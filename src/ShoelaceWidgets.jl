@@ -46,7 +46,7 @@ end
 get_type(::Type{String}) = ""
 get_type(::Type{T}) where T <: Number = "number"
 
-SLInput(label::String, default::T; help::String="", placeholder::String="") where T = SLInput{T}(Observable(default), label, get_type(T), help, placeholder)
+SLInput(default::T; label::String="", help::String="", placeholder::String="") where T = SLInput{T}(Observable(default), label, get_type(T), help, placeholder)
 
 function Bonito.jsrender(session::Session, x::SLInput{T}) where T
 

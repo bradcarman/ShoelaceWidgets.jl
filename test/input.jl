@@ -3,7 +3,7 @@ using Bonito
 using ShoelaceWidgets
 
 
-input = SLInput("Test", ""; placeholder="Name")
+input = SLInput(""; label="Test", placeholder="Name")
 app = App() do session
     DOM.html(
         DOM.head(
@@ -19,7 +19,7 @@ input.value[] = "Hello World"
 # change to Brad
 @test input.value[] == "Hello World"
 
-input = SLInput("Number", 0.0; help="enter a number from 1 to 10")
+input = SLInput(0.0; help="enter a number from 1 to 10")
 app = App() do session
     DOM.html(
         DOM.head(
