@@ -90,7 +90,7 @@ struct SLSelect{T}
     # value from getproperty
 end
 
-function SLSelect(label::String, values::Vector{T}) where T 
+function SLSelect(values::Vector{T}; label::String = "") where T 
     options = Hyperscript.Node[]
     for (i,x) in enumerate(values)
         push!(options, sl_option(x; value=i))
@@ -158,7 +158,7 @@ struct SLButton
     label::String
 end
 
-SLButton(label::String, disabled::Bool = false) = SLButton(Observable(true), Observable(disabled), label)
+SLButton(label::String; disabled::Bool = false) = SLButton(Observable(true), Observable(disabled), label)
 
 function Bonito.jsrender(session::Session, x::SLButton)
 
