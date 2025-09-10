@@ -20,6 +20,22 @@ app = App() do session
     )
 end
 
-button.disabled[] = false
+button.disabled[] = true
+
+
+
+button = SLButton("Test"; disabled=true)
+
+app = App() do session
+    DOM.html(
+        DOM.head(
+            get_shoelace()...
+        ),
+        DOM.body(
+            button
+        )
+    )
+end
+
 
 @test true

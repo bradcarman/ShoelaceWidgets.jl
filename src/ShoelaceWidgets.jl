@@ -169,7 +169,7 @@ function Bonito.jsrender(session::Session, x::SLButton)
     """
 
     dom = if x.disabled[]
-        sl_button(x.label; onclick=click, disabled=nothing)
+        sl_button(x.label; onclick=click, disabled=true)
     else
         sl_button(x.label; onclick=click)
     end
