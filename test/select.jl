@@ -26,10 +26,14 @@ app = App() do session
     )
 end
 # Bonito.Server(app, "0.0.0.0", 80)
-select.index[] = 1
 @test select.value == "one"
 push!(select, "four")
 select.index[] = 4
 @test select.value == "four"
+
+popat!(select, select.index[])
+@test select.value == "three"
+
 empty!(select)
 @test isnothing(select.value)
+

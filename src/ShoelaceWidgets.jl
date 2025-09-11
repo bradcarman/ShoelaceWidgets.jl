@@ -122,6 +122,13 @@ function Base.empty!(x::SLSelect)
     notify(x.options)
 end
 
+function Base.popat!(x::SLSelect, i::Int)
+    popat!(x.values, i)
+    popat!(x.options[], i)
+    x.index[] = i-1
+    notify(x.options)
+end
+
 function Bonito.jsrender(session::Session, x::SLSelect)
 
     setup = js"""
