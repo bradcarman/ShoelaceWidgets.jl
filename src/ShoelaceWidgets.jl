@@ -63,7 +63,6 @@ function Bonito.jsrender(session::Session, x::SLInput{T}) where T
     }
     """
 
-    @show T
     dom = if T <: Number
         sl_input(; label=x.label, type=x.type, value=x.value, helpText=x.help, placeholder=x.placeholder)
     else
@@ -90,18 +89,17 @@ struct SLSelect{T}
     # value from getproperty
 end
 
-function SLSelect(values::Vector{T}; label::String = "") where T 
+function SLSelect(values::Vector{T}; label::String = "", index=0) where T 
     options = Hyperscript.Node[]
     for (i,x) in enumerate(values)
         push!(options, sl_option(x; value=i))
     end
-    index = Observable{Int}()
-    return SLSelect(label, Observable(options), values, index)
+    return SLSelect(label, Observable(options), values, Observable(index))
 end
 
 function Base.getproperty(x::SLSelect, name::Symbol)
     if name == :value
-        if !isempty(x.values)
+        if !isempty(x.values) & (x.index[] > 0)
             return x.values[x.index[]]
         else
             return nothing
@@ -135,7 +133,7 @@ function Bonito.jsrender(session::Session, x::SLSelect)
     }
     """
 
-    dom = sl_select(x.options; label=x.label)
+    dom = sl_select(x.options; label=x.label, value=string(x.index[]))
     update_value = js""" function (value) { 
         $(dom).value = value.toString()
         } 

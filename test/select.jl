@@ -2,8 +2,19 @@ using Test
 using Bonito
 using ShoelaceWidgets
 
-
 select = SLSelect(["one", "two", "three"]; label="Test")
+app = App() do session
+    DOM.html(
+        DOM.head(
+            get_shoelace()...
+        ),
+        DOM.body(
+            select
+        )
+    )
+end
+
+select = SLSelect(["one", "two", "three"]; label="Test", index=1)
 app = App() do session
     DOM.html(
         DOM.head(

@@ -30,3 +30,16 @@ app = App() do session
         )
     )
 end
+
+
+input = SLInput(NaN)
+app = App() do session
+    DOM.html(
+        DOM.head(
+            get_shoelace()...
+        ),
+        DOM.body(
+            input
+        )
+    )
+end
