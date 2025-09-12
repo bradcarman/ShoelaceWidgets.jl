@@ -7,7 +7,7 @@ using Hyperscript
 export get_shoelace
 
 # controls
-export SLInput, SLSelect, SLButton
+export SLInput, SLSelect, SLButton, SLRadio, SLRadioGroup
 
 # tags
 export sl_tab_group, sl_tab, sl_tab_panel, sl_tag, sl_format_date, sl_spinner, sl_icon
@@ -192,6 +192,103 @@ function Bonito.jsrender(session::Session, x::SLButton)
 
     return Bonito.jsrender(session, dom)
 end
+
+
+# ----------------------------------------
+# Radio
+# ----------------------------------------
+sl_radio_group(args...; kw...) = m("sl-radio-group", args...; kw...)
+sl_radio(args...; kw...) = m("sl-radio", args...; kw...)
+
+struct SLRadio
+    value::String
+    disaabled::Bool
+end
+SLRadio(value::String; disabled=false) = SLRadio(value, disabled)
+
+struct SLRadioGroup
+    label::String
+    options::Observable{Vector{Hyperscript.Node}}
+    values::Vector{SLRadio}
+    value::Observable{String}
+end
+
+function get_sl_radio(x::SLRadio, i::Int)
+    r = if x.disaabled
+        sl_radio(x.value; value=string(i), disabled=true)
+    else
+        sl_radio(x.value; value=string(i))
+    end
+
+    return r
+end
+
+function SLRadioGroup(values::Vector{SLRadio}; label::String = "", index=0) 
+    options = Hyperscript.Node[]
+    for (i,x) in enumerate(values)
+        push!(options, get_sl_radio(x, i))
+    end
+    return SLRadioGroup(label, Observable(options), values, Observable(string(index)))
+end
+
+# function Base.getproperty(x::SLRadioGroup, name::Symbol)
+#     if name == :value
+#         if !isempty(x.values) & (x.index[] > 0)
+#             return x.values[x.index[]]
+#         else
+#             return nothing
+#         end
+#     else
+#         return getfield(x, name)
+#     end
+# end
+
+function Base.push!(x::SLRadioGroup, value::SLRadio)
+    push!(x.values, value)
+    i = length(x.values)
+    push!(x.options[], get_sl_radio(value, i))
+    notify(x.options)
+end
+
+function Base.empty!(x::SLRadioGroup)
+    empty!(x.values)
+    empty!(x.options[])
+    x.value[] = "0"
+    notify(x.options)
+end
+
+function Base.popat!(x::SLRadioGroup, i::Int)
+    popat!(x.values, i)
+    popat!(x.options[], i)
+    x.value[] = string(i-1)
+    notify(x.options)
+end
+
+function Bonito.jsrender(session::Session, x::SLRadioGroup)
+
+    setup = js"""
+    function onload(element) {
+        function onchange(e) {
+            console.log(e)
+            console.log(element.value)
+            $(x.value).notify(element.value)
+        }
+        element.addEventListener("sl-change", onchange);
+    }
+    """
+
+    dom = sl_radio_group(x.options; label=x.label, value=x.value)
+    update_value = js""" function (value) { 
+        $(dom).value = value
+        } 
+    """
+    onjs(session, x.value, update_value)
+
+    Bonito.onload(session, dom, setup)
+
+    return Bonito.jsrender(session, dom)
+end
+
 
 
 
