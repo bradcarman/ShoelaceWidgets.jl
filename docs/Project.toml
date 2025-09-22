@@ -1,0 +1,6 @@
+[deps]
+ShoelaceWidgets = "1dc53738-a592-4c0c-95ab-f92b84dc4c89"
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+
+[compat]
+Documenter = "1"

@@ -11,3 +11,11 @@ end
 @testset "SLButton" begin
     include("button.jl")
 end
+
+@testset "SLRadio" begin
+    include("radio.jl")
+end
+
+@testset "SLDialog" begin
+    include("diaglog.jl")
+end
