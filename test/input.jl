@@ -1,6 +1,7 @@
 using Test
 using Bonito
 using ShoelaceWidgets
+using Dates
 
 
 input = SLInput(""; label="Test", placeholder="Name")
@@ -33,6 +34,32 @@ end
 
 
 input = SLInput(NaN)
+app = App() do session
+    DOM.html(
+        DOM.head(
+            get_shoelace()...
+        ),
+        DOM.body(
+            input
+        )
+    )
+end
+
+
+input = SLInput(NaN)
+app = App() do session
+    DOM.html(
+        DOM.head(
+            get_shoelace()...
+        ),
+        DOM.body(
+            input
+        )
+    )
+end
+
+
+input = SLInput(Date(2025,1,1))
 app = App() do session
     DOM.html(
         DOM.head(

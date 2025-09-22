@@ -2,6 +2,7 @@ module ShoelaceWidgets
 using Bonito: m, @js_str
 using Bonito
 using Hyperscript
+using Dates
 
 # header
 export get_shoelace
@@ -47,6 +48,7 @@ get_type(::Type{String}) = ""
 get_type(::Type{T}) where T <: Number = "number"
 
 SLInput(default::T; label::String="", help::String="", placeholder::String="") where T = SLInput{T}(Observable(default), label, get_type(T), help, placeholder)
+SLInput(default::Date; label::String="", help::String="")  = SLInput{String}(Observable(string(default)), label, "date", help, "Date")
 
 function Bonito.jsrender(session::Session, x::SLInput{T}) where T
 
@@ -56,6 +58,7 @@ function Bonito.jsrender(session::Session, x::SLInput{T}) where T
             if ($(x.type) == "number"){
                 $(x.value).notify(Number(element.value))
             } else {
+                console.log(element.value)
                 $(x.value).notify(element.value)
             }
         }
