@@ -17,11 +17,14 @@ app = App() do session
             get_shoelace()...
         ),
         DOM.body(
+            DOM.h1("Hello World"),
+            DOM.div(""; style="height:200vh; width:100vh; border:dashed"),
             dialog
         )
     )
 end
 dialog.open[] = true
+dialog.value[] = DOM.div("Test 2")
 
 # NOTE: diaglog does not show well in VS Code, use browser to see correctly
 # port = 80

@@ -298,12 +298,12 @@ end
 sl_dialog(args...; kw...) = m("sl-dialog", args...; kw...)
 
 struct SLDialog
-    value::Hyperscript.Node
+    value::Observable{Hyperscript.Node}
     label::String
     open::Observable{Bool}
 end
 
-SLDialog(value::Hyperscript.Node; label::String) = SLDialog(value, label, Observable(false))
+SLDialog(value::Hyperscript.Node; label::String) = SLDialog(Observable(value), label, Observable(false))
 
 function Bonito.jsrender(session::Session, x::SLDialog)
 

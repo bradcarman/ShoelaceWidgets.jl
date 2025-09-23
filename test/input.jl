@@ -59,7 +59,7 @@ app = App() do session
 end
 
 
-input = SLInput(Date(2025,1,1))
+input = SLInput{String}(Observable(""), "Date", "date", "", "Date")
 app = App() do session
     DOM.html(
         DOM.head(
