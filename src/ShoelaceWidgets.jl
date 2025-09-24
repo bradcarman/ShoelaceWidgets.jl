@@ -244,6 +244,12 @@ function Base.getproperty(x::SLRadioGroup, name::Symbol)
     end
 end
 
+function Base.setproperty!(x::SLRadioGroup, name::Symbol, value::Int)
+    if name == :index
+        x.value[] = string(value)
+    end
+end
+
 function Base.push!(x::SLRadioGroup, value::SLRadio)
     push!(x.values, value)
     i = length(x.values)
