@@ -214,6 +214,7 @@ struct SLRadioGroup
     options::Observable{Vector{Hyperscript.Node}}
     values::Vector{SLRadio}
     value::Observable{String}
+    # index from getproperty
 end
 
 function get_sl_radio(x::SLRadio, i::Int)
@@ -234,17 +235,14 @@ function SLRadioGroup(values::Vector{SLRadio}; label::String = "", index=0)
     return SLRadioGroup(label, Observable(options), values, Observable(string(index)))
 end
 
-# function Base.getproperty(x::SLRadioGroup, name::Symbol)
-#     if name == :value
-#         if !isempty(x.values) & (x.index[] > 0)
-#             return x.values[x.index[]]
-#         else
-#             return nothing
-#         end
-#     else
-#         return getfield(x, name)
-#     end
-# end
+function Base.getproperty(x::SLRadioGroup, name::Symbol)
+    if name == :index
+        i = tryparse(Int, x.value[])
+        return i
+    else
+        return getfield(x, name)
+    end
+end
 
 function Base.push!(x::SLRadioGroup, value::SLRadio)
     push!(x.values, value)
