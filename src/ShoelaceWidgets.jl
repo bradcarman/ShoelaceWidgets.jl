@@ -11,7 +11,7 @@ export get_shoelace
 export SLInput, SLSelect, SLButton, SLRadio, SLRadioGroup, SLDialog
 
 # tags
-export sl_tab_group, sl_tab, sl_tab_panel, sl_tag, sl_format_date, sl_spinner, sl_icon
+export sl_tab_group, sl_tab, sl_tab_panel, sl_tag, sl_format_date, sl_spinner, sl_icon, sl_card
 
 
 
@@ -30,6 +30,8 @@ sl_tag(args...; kw...) = m("sl-tag", args...; kw...)
 sl_format_date(args...; kw...) = m("sl-format-date", args...; kw...)
 sl_spinner(args...; kw...) = m("sl-spinner", args...; kw...)
 sl_icon(args...; kw...) = m("sl-icon", args...; kw...)
+
+sl_card(args...; kw...) = m("sl-card", args...; kw...)
 
 # ----------------------------------------
 # Input
@@ -92,12 +94,17 @@ struct SLSelect{T}
     # value from getproperty
 end
 
-function SLSelect(values::Vector{T}; label::String = "", index=0) where T 
+function get_options(values::Vector)
     options = Hyperscript.Node[]
     for (i,x) in enumerate(values)
         push!(options, sl_option(x; value=i))
     end
-    return SLSelect(label, Observable(options), values, Observable(index))
+    return options
+end
+
+function SLSelect(values::Vector{T}; label::String = "", index=0) where T 
+    
+    return SLSelect(label, Observable(get_options(values)), values, Observable(index))
 end
 
 function Base.getproperty(x::SLSelect, name::Symbol)
@@ -127,7 +134,8 @@ end
 
 function Base.popat!(x::SLSelect, i::Int)
     popat!(x.values, i)
-    popat!(x.options[], i)
+    x.options[] = get_options(x.values) #<-- ensure options are re-ordered
+
     x.index[] = i-1
     notify(x.options)
 end
@@ -164,9 +172,11 @@ struct SLButton
     value::Observable{Bool}
     disabled::Observable{Bool}
     label::String
+    loading::Observable{Bool}
+    variant::Union{String, Nothing}
 end
 
-SLButton(label::String; disabled::Bool = false) = SLButton(Observable(true), Observable(disabled), label)
+SLButton(label::String; disabled::Bool = false, variant=nothing) = SLButton(Observable(true), Observable(disabled), label, Observable(false), variant)
 
 function Bonito.jsrender(session::Session, x::SLButton)
 
@@ -176,11 +186,17 @@ function Bonito.jsrender(session::Session, x::SLButton)
         } 
     """
 
-    dom = if x.disabled[]
-        sl_button(x.label; onclick=click, disabled=true)
-    else
-        sl_button(x.label; onclick=click)
+    kwargs = Pair[]
+    if x.disabled[]
+        push!(kwargs, :disabled => true)
     end
+
+    if !isnothing(x.variant)
+        push!(kwargs, :variant => x.variant)
+    end
+
+    dom = sl_button(x.label; onclick=click, kwargs...)
+
     
     disable = js"""
         function (value) {
@@ -192,6 +208,17 @@ function Bonito.jsrender(session::Session, x::SLButton)
         }
     """
     onjs(session, x.disabled, disable)
+
+    loading = js"""
+        function (value) {
+            if (value) {
+                $(dom).setAttribute("loading","")
+            } else {
+                $(dom).removeAttribute("loading")
+            }
+        }
+    """
+    onjs(session, x.loading, loading)
 
     return Bonito.jsrender(session, dom)
 end
@@ -205,9 +232,10 @@ sl_radio(args...; kw...) = m("sl-radio", args...; kw...)
 
 struct SLRadio
     value::String
-    disaabled::Bool
+    disabled::Bool
+    object::Any
 end
-SLRadio(value::String; disabled=false) = SLRadio(value, disabled)
+SLRadio(value::String; disabled=false, object=nothing) = SLRadio(value, disabled, object)
 
 struct SLRadioGroup
     label::String
@@ -215,10 +243,11 @@ struct SLRadioGroup
     values::Vector{SLRadio}
     value::Observable{String}
     # index from getproperty
+    # object from getproperty
 end
 
 function get_sl_radio(x::SLRadio, i::Int)
-    r = if x.disaabled
+    r = if x.disabled
         sl_radio(x.value; value=string(i), disabled=true)
     else
         sl_radio(x.value; value=string(i))
@@ -239,6 +268,14 @@ function Base.getproperty(x::SLRadioGroup, name::Symbol)
     if name == :index
         i = tryparse(Int, x.value[])
         return i
+    elseif name == :object
+        i = tryparse(Int, x.value[])
+        if !isnothing(i) && (i > 0)
+            radio = x.values[i] 
+            return radio.object
+        else
+            return nothing
+        end
     else
         return getfield(x, name)
     end
@@ -267,7 +304,7 @@ end
 function Base.popat!(x::SLRadioGroup, i::Int)
     popat!(x.values, i)
     popat!(x.options[], i)
-    x.value[] = string(i-1)
+    x.value[] = "0"
     notify(x.options)
 end
 

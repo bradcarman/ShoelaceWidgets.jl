@@ -34,6 +34,13 @@ select.index[] = 4
 popat!(select, select.index[])
 @test select.value == "three"
 
+select.index[] = 1
+popat!(select, select.index[])
+@test select.index[] == 0
+@test isnothing(select.value)
+select.index[] = 1
+@test select.value == "two"
+
 empty!(select)
 @test isnothing(select.value)
 
