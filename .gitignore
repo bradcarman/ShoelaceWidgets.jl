@@ -1,2 +1,4 @@
-.vscode/settings.json
+.vscode/
 Manifest.toml
+docs/bonito
+docs/build
