@@ -1,7 +1,7 @@
 name = "ShoelaceWidgets"
 uuid = "1dc53738-a592-4c0c-95ab-f92b84dc4c89"
 authors = ["Brad Carman <bradleygcarman@outlook.com>"]
-version = "0.7.3"
+version = "0.8.0"
 
 [deps]
 Bonito = "824d6782-a2ef-11e9-3a09-e5662e0c26f8"
@@ -10,5 +10,10 @@ Hyperscript = "47d2ed2b-36de-50cf-bf87-49c2cf4b8b91"
 
 [compat]
 Bonito = "4.1.2"
-Dates = "1.11.0"
 Hyperscript = "0.0.5"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]

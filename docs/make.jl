@@ -16,7 +16,12 @@ makedocs(;
     ],
 )
 
+#=
+using LiveServer
+serve(dir="docs/build")
+=#
+
 deploydocs(;
-    repo="github.com/bradcarman/ShoelaceWidgets.jl",
-    devbranch="main",
+    repo="github.com/bradcarman/ShoelaceWidgets.jl.git"
 )
+

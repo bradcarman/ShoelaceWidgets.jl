@@ -1,2 +1,6 @@
-.vscode/settings.json
+.vscode/
+.claude/
+CLAUDE.md
 Manifest.toml
+docs/bonito
+docs/build

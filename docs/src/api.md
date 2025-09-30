@@ -8,29 +8,42 @@ get_shoelace
 
 ## Input Components
 
-### SLInput
+### Input
 
 ```@docs
 SLInput
 ```
 
-### SLSelect
+### Select
 
 ```@docs
 SLSelect
 ```
 
-### SLButton
+### Button
 
 ```@docs
 SLButton
 ```
 
-### Radio Components
+### Radio
 
 ```@docs
 SLRadio
 SLRadioGroup
+```
+
+### Dialog
+
+```@docs
+SLDialog
+```
+
+### Tree
+
+```@docs
+SLTree
+SLTreeItem
 ```
 
 ## UI Element Functions

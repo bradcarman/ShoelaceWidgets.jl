@@ -17,5 +17,9 @@ end
 end
 
 @testset "SLDialog" begin
-    include("diaglog.jl")
+    include("dialog.jl")
+end
+
+@testset "SLTree" begin
+    include("tree.jl")
 end
