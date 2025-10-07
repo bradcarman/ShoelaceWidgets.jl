@@ -11,7 +11,7 @@ export get_shoelace
 export SLInput, SLSelect, SLButton, SLRadio, SLRadioGroup, SLDialog, SLTree, SLTreeItem
 
 # tags
-export sl_tab_group, sl_tab, sl_tab_panel, sl_tag, sl_format_date, sl_spinner, sl_icon, sl_card
+export sl_tab_group, sl_tab, sl_tab_panel, sl_tag, sl_format_date, sl_spinner, sl_icon, sl_card, sl_checkbox
 
 
 
@@ -87,7 +87,19 @@ Creates a Shoelace icon component. Icons provide visual representations from the
 """
 sl_icon(args...; kw...) = m("sl-icon", args...; kw...)
 
+"""
+    sl_card(args...; kw...)
+
+Creates a Shoelace card component. Cards provide a container for grouping related content.
+"""
 sl_card(args...; kw...) = m("sl-card", args...; kw...)
+
+"""
+    sl_checkbox(args...; kw...)
+
+Creates a Shoelace checkbox component. Checkboxes allow users to toggle an option on or off.
+"""
+sl_checkbox(args...; kw...) = m("sl-checkbox", args...; kw...)
 
 # ----------------------------------------
 # Input

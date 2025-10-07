@@ -63,4 +63,6 @@ sl_tag
 sl_format_date
 sl_spinner
 sl_icon
+sl_card
+sl_checkbox
 ```
