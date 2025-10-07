@@ -107,7 +107,7 @@ sl_checkbox(args...; kw...) = m("sl-checkbox", args...; kw...)
 sl_input(args...; kw...) = m("sl-input", args...; kw...)
 
 """
-    SLInput(default; label="", help="", placeholder="")
+    SLInput(default; label="", help="", placeholder="", disabled=false)
 
 Creates a reactive input field widget. The input value is synchronized with Julia through an Observable.
 
@@ -117,6 +117,7 @@ Creates a reactive input field widget. The input value is synchronized with Juli
 - `type::String` - HTML input type (automatically determined from value type)
 - `help::String` - Help text displayed below the input
 - `placeholder::String` - Placeholder text shown when input is empty
+- `disabled::Observable{Bool}` - Observable controlling whether input is disabled
 
 # Examples
 ```julia
@@ -129,9 +130,15 @@ num_input = SLInput(0.0; help="Enter a number from 1 to 10")
 # Date input
 date_input = SLInput(Date(2024, 1, 1); label="Select date")
 
+# Disabled input
+disabled_input = SLInput(""; label="Read-only", disabled=true)
+
 # Access the value
 println(input.value[])  # Get current value
 input.value[] = "New value"  # Set value
+
+# Disable/enable dynamically
+input.disabled[] = true
 ```
 """
 struct SLInput{T}
@@ -140,13 +147,14 @@ struct SLInput{T}
     type::String
     help::String
     placeholder::String
+    disabled::Observable{Bool}
 end
 
 get_type(::Type{String}) = ""
 get_type(::Type{T}) where T <: Number = "number"
 
-SLInput(default::T; label::String="", help::String="", placeholder::String="") where T = SLInput{T}(Observable(default), label, get_type(T), help, placeholder)
-SLInput(default::Date; label::String="", help::String="")  = SLInput{String}(Observable(string(default)), label, "date", help, "Date")
+SLInput(default::T; label::String="", help::String="", placeholder::String="", disabled::Bool=false) where T = SLInput{T}(Observable(default), label, get_type(T), help, placeholder, Observable(disabled))
+SLInput(default::Date; label::String="", help::String="", disabled::Bool=false)  = SLInput{String}(Observable(string(default)), label, "date", help, "Date", Observable(disabled))
 
 function Bonito.jsrender(session::Session, x::SLInput{T}) where T
 
@@ -164,11 +172,27 @@ function Bonito.jsrender(session::Session, x::SLInput{T}) where T
     }
     """
 
-    dom = if T <: Number
-        sl_input(; label=x.label, type=x.type, value=x.value, helpText=x.help, placeholder=x.placeholder)
-    else
-        sl_input(; label=x.label, type=x.type, value=x.value, helpText=x.help, clearable=nothing, placeholder=x.placeholder)
+    kwargs = Pair[]
+    if x.disabled[]
+        push!(kwargs, :disabled => true)
     end
+
+    if T <: Number
+        push!(kwargs, :clearable => nothing)
+    end
+
+    dom = sl_input(; label=x.label, type=x.type, value=x.value, helpText=x.help, placeholder=x.placeholder, kwargs...)
+
+    disable = js"""
+        function (value) {
+            if (value) {
+                $(dom).setAttribute("disabled","")
+            } else {
+                $(dom).removeAttribute("disabled")
+            }
+        }
+    """
+    onjs(session, x.disabled, disable)
 
     Bonito.onload(session, dom, setup)
 
@@ -689,27 +713,13 @@ tree.value[] = "Maple"
 ```
 """
 struct SLTree
+    items::Observable{Vector{Hyperscript.Node}}
     values::Vector{SLTreeItem}
     value::Observable{String}
 end
-SLTree(values::Vector{SLTreeItem}) = SLTree(values, Observable(""))
 
-# Helper function to convert nested structures to SLTreeItem
-function _convert_to_tree_item(item::String)
-    return SLTreeItem(item)
-end
-
-function _convert_to_tree_item(item::Pair{String, <:Vector})
-    label, children = item
-    child_items = SLTreeItem[_convert_to_tree_item(child) for child in children]
-    return SLTreeItem(label, child_items)
-end
-
-# Constructor that accepts nested Vector{Union{String, Pair{String, Vector}}}
-function SLTree(items::Vector)
-    tree_items = SLTreeItem[_convert_to_tree_item(item) for item in items]
-    return SLTree(tree_items)
-end
+SLTree(values::Vector{SLTreeItem}) = SLTree(Observable(get_sl_tree_item.(values)), values, Observable(""))
+SLTree() = SLTree(Observable(Hyperscript.Node[]), SLTreeItem[], Observable(""))
 
 function get_sl_tree_item(x::SLTreeItem)
     item = if !isempty(x.values)
@@ -721,15 +731,29 @@ function get_sl_tree_item(x::SLTreeItem)
     return item
 end
 
+function Base.push!(x::SLTree, value::SLTreeItem)
+    push!(x.values, value)
+    push!(x.items[], get_sl_tree_item(value))
+    notify(x.items)
+end
+
+function Base.empty!(x::SLTree)
+    empty!(x.values)
+    empty!(x.items[])
+    notify(x.items)
+end
+
+function Base.popat!(x::SLTree, i::Int)
+    popat!(x.values, i)
+    popat!(x.items[], i)
+    notify(x.items)
+end
+
 function Bonito.jsrender(session::Session, x::SLTree)
 
     setup = js"""
     function onload(element) {
         function onchange(e) {
-            console.log(e.detail);
-            console.log(e.detail.selection);
-            console.log(e.detail.selection[0]);
-            console.log(e.detail.selection[0].innerText);
             if (e.detail.selection.length > 0){
                 $(x.value).notify(e.detail.selection[0].innerText);
             }
@@ -738,31 +762,7 @@ function Bonito.jsrender(session::Session, x::SLTree)
     }
     """
 
-    dom = sl_tree(get_sl_tree_item.(x.values))
-
-    update_value = js""" function (value) {
-        // Find all tree items
-        const items = $(dom).querySelectorAll('sl-tree-item');
-
-        // Deselect all items first
-        items.forEach(item => item.selected = false);
-
-        // Find and select the item with matching text
-        for (const item of items) {
-            // Get direct text content (not including children)
-            const directText = Array.from(item.childNodes)
-                .filter(node => node.nodeType === Node.TEXT_NODE)
-                .map(node => node.textContent.trim())
-                .join('');
-
-            if (directText === value) {
-                item.selected = true;
-                break;
-            }
-        }
-    }
-    """
-    onjs(session, x.value, update_value)
+    dom = sl_tree(x.items)
 
     Bonito.onload(session, dom, setup)
 
