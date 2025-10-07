@@ -23,3 +23,7 @@ end
 @testset "SLTree" begin
     include("tree.jl")
 end
+
+@testset "SLCheckbox" begin
+    include("checkbox.jl")
+end

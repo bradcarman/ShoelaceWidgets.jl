@@ -8,7 +8,7 @@ using Dates
 export get_shoelace
 
 # controls
-export SLInput, SLSelect, SLButton, SLRadio, SLRadioGroup, SLDialog, SLTree, SLTreeItem
+export SLInput, SLSelect, SLButton, SLRadio, SLRadioGroup, SLDialog, SLTree, SLTreeItem, SLCheckbox
 
 # tags
 export sl_tab_group, sl_tab, sl_tab_panel, sl_tag, sl_format_date, sl_spinner, sl_icon, sl_card, sl_checkbox
@@ -400,6 +400,89 @@ function Bonito.jsrender(session::Session, x::SLButton)
         }
     """
     onjs(session, x.loading, loading)
+
+    return Bonito.jsrender(session, dom)
+end
+
+
+# ----------------------------------------
+# Checkbox
+# ----------------------------------------
+
+"""
+    SLCheckbox(label; checked=false, disabled=false)
+
+Creates a checkbox widget with reactive state management.
+
+# Fields
+- `value::Observable{Bool}` - Observable containing the checkbox state (checked/unchecked)
+- `disabled::Observable{Bool}` - Observable controlling whether checkbox is disabled
+- `label::String` - Checkbox label text
+
+# Examples
+```julia
+# Create checkbox
+checkbox = SLCheckbox("Accept terms"; checked=false)
+
+# React to checkbox changes
+on(checkbox.value) do checked
+    if checked
+        println("Terms accepted!")
+    end
+end
+
+# Disable checkbox
+checkbox.disabled[] = true
+
+# Check/uncheck programmatically
+checkbox.value[] = true
+```
+"""
+struct SLCheckbox
+    value::Observable{Bool}
+    disabled::Observable{Bool}
+    label::String
+end
+
+SLCheckbox(label::String; checked::Bool = false, disabled::Bool = false) = SLCheckbox(Observable(checked), Observable(disabled), label)
+
+function Bonito.jsrender(session::Session, x::SLCheckbox)
+
+    setup = js"""
+    function onload(element) {
+        function onchange(e) {
+            $(x.value).notify(element.checked)
+        }
+        element.addEventListener("sl-change", onchange);
+    }
+    """
+
+    kwargs = Pair[]
+    if x.disabled[]
+        push!(kwargs, :disabled => true)
+    end
+
+    dom = sl_checkbox(x.label; checked=x.value[], kwargs...)
+
+    disable = js"""
+        function (value) {
+            if (value) {
+                $(dom).setAttribute("disabled","")
+            } else {
+                $(dom).removeAttribute("disabled")
+            }
+        }
+    """
+    onjs(session, x.disabled, disable)
+
+    update_checked = js"""
+        function (value) {
+            $(dom).checked = value
+        }
+    """
+    onjs(session, x.value, update_checked)
+
+    Bonito.onload(session, dom, setup)
 
     return Bonito.jsrender(session, dom)
 end

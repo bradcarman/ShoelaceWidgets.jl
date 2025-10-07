@@ -26,6 +26,12 @@ SLSelect
 SLButton
 ```
 
+### Checkbox
+
+```@docs
+SLCheckbox
+```
+
 ### Radio
 
 ```@docs
