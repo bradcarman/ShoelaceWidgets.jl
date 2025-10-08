@@ -52,6 +52,12 @@ SLTree
 SLTreeItem
 ```
 
+### Textarea
+
+```@docs
+SLTextarea
+```
+
 ## UI Element Functions
 
 ### Tab Components

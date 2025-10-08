@@ -8,7 +8,7 @@ using Dates
 export get_shoelace
 
 # controls
-export SLInput, SLSelect, SLButton, SLRadio, SLRadioGroup, SLDialog, SLTree, SLTreeItem, SLCheckbox
+export SLInput, SLSelect, SLButton, SLRadio, SLRadioGroup, SLDialog, SLTree, SLTreeItem, SLCheckbox, SLTextarea
 
 # tags
 export sl_tab_group, sl_tab, sl_tab_panel, sl_tag, sl_format_date, sl_spinner, sl_icon, sl_card, sl_checkbox
@@ -481,6 +481,90 @@ function Bonito.jsrender(session::Session, x::SLCheckbox)
         }
     """
     onjs(session, x.value, update_checked)
+
+    Bonito.onload(session, dom, setup)
+
+    return Bonito.jsrender(session, dom)
+end
+
+
+# ----------------------------------------
+# Textarea
+# ----------------------------------------
+sl_textarea(args...; kw...) = m("sl-textarea", args...; kw...)
+
+"""
+    SLTextarea(default; label="", help="", placeholder="", rows=3, disabled=false)
+
+Creates a reactive textarea widget for multi-line text input. The textarea value is synchronized with Julia through an Observable.
+
+# Fields
+- `value::Observable{String}` - Observable containing the current textarea value
+- `label::String` - Label text displayed above the textarea
+- `help::String` - Help text displayed below the textarea
+- `placeholder::String` - Placeholder text shown when textarea is empty
+- `rows::Int` - Number of visible text rows
+- `disabled::Observable{Bool}` - Observable controlling whether textarea is disabled
+
+# Examples
+```julia
+# Basic textarea
+textarea = SLTextarea(""; label="Comments", placeholder="Enter your comments here")
+
+# Textarea with more rows
+textarea = SLTextarea(""; label="Description", rows=5, help="Please provide details")
+
+# Disabled textarea
+textarea = SLTextarea("Read-only content"; label="Info", disabled=true)
+
+# Access the value
+println(textarea.value[])  # Get current value
+textarea.value[] = "New text"  # Set value
+
+# Disable/enable dynamically
+textarea.disabled[] = true
+```
+"""
+struct SLTextarea
+    value::Observable{String}
+    label::String
+    help::String
+    placeholder::String
+    rows::Int
+    disabled::Observable{Bool}
+end
+
+SLTextarea(default::String=""; label::String="", help::String="", placeholder::String="", rows::Int=3, disabled::Bool=false) = SLTextarea(Observable(default), label, help, placeholder, rows, Observable(disabled))
+
+function Bonito.jsrender(session::Session, x::SLTextarea)
+
+    setup = js"""
+    function onload(element) {
+        function onchange(e) {
+            console.log(element.value)
+            $(x.value).notify(element.value)
+        }
+        element.addEventListener("sl-change", onchange);
+    }
+    """
+
+    kwargs = Pair[]
+    if x.disabled[]
+        push!(kwargs, :disabled => true)
+    end
+
+    dom = sl_textarea(; label=x.label, value=x.value, helpText=x.help, placeholder=x.placeholder, rows=x.rows, kwargs...)
+
+    disable = js"""
+        function (value) {
+            if (value) {
+                $(dom).setAttribute("disabled","")
+            } else {
+                $(dom).removeAttribute("disabled")
+            }
+        }
+    """
+    onjs(session, x.disabled, disable)
 
     Bonito.onload(session, dom, setup)
 
