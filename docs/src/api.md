@@ -58,6 +58,12 @@ SLTreeItem
 SLTextarea
 ```
 
+### Progress Bar
+
+```@docs
+SLProgressBar
+```
+
 ## UI Element Functions
 
 ### Tab Components

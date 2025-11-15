@@ -8,7 +8,7 @@ using Dates
 export get_shoelace
 
 # controls
-export SLInput, SLSelect, SLButton, SLRadio, SLRadioGroup, SLDialog, SLTree, SLTreeItem, SLCheckbox, SLTextarea
+export SLInput, SLSelect, SLButton, SLRadio, SLRadioGroup, SLDialog, SLTree, SLTreeItem, SLCheckbox, SLTextarea, SLProgressBar
 
 # tags
 export sl_tab_group, sl_tab, sl_tab_panel, sl_tag, sl_format_date, sl_spinner, sl_icon, sl_card, sl_checkbox
@@ -937,7 +937,128 @@ function Bonito.jsrender(session::Session, x::SLTree)
 end
 
 
+# ----------------------------------------
+# Progress Bar
+# ----------------------------------------
+sl_progress_bar(args...; kw...) = m("sl-progress-bar", args...; kw...)
 
+"""
+    SLProgressBar(value=0; label="", height="", show_value=true, indeterminate=false, visible=true)
+
+Creates a progress bar widget with reactive state management.
+
+# Fields
+- `value::Observable{Float64}` - Observable containing the progress percentage (0.0 to 100.0)
+- `label::String` - Label text for assistive devices
+- `height::String` - CSS height value (e.g., "20px", "1rem")
+- `show_value::Bool` - Whether to display the percentage value
+- `indeterminate::Observable{Bool}` - Observable controlling indeterminate/loading state
+- `visible::Observable{Bool}` - Observable controlling visibility of the progress bar
+
+# Examples
+```julia
+# Create basic progress bar
+progress = SLProgressBar(50.0; label="Loading")
+
+# Progress bar with custom height
+progress = SLProgressBar(75.0; height="30px", label="Upload progress")
+
+# Indeterminate progress bar (for unknown duration)
+progress = SLProgressBar(; indeterminate=true, label="Processing")
+
+# Update progress value
+progress.value[] = 80.0
+
+# Toggle indeterminate state
+progress.indeterminate[] = true
+
+# Hide percentage display
+progress_hidden = SLProgressBar(50.0; show_value=false)
+
+# Show/hide progress bar dynamically
+progress.visible[] = false  # Hide
+progress.visible[] = true   # Show
+
+# Create initially hidden progress bar
+progress = SLProgressBar(0.0; visible=false, label="Background task")
+```
+"""
+struct SLProgressBar
+    value::Observable{Float64}
+    label::String
+    height::String
+    show_value::Bool
+    indeterminate::Observable{Bool}
+    visible::Observable{Bool}
+end
+
+SLProgressBar(value::Real=0.0; label::String="", height::String="", show_value::Bool=true, indeterminate::Bool=false, visible::Bool=true) =
+    SLProgressBar(Observable(Float64(value)), label, height, show_value, Observable(indeterminate), Observable(visible))
+
+function Bonito.jsrender(session::Session, x::SLProgressBar)
+
+    kwargs = Pair[]
+
+    if !isempty(x.label)
+        push!(kwargs, :label => x.label)
+    end
+
+    if x.indeterminate[]
+        push!(kwargs, :indeterminate => true)
+    end
+
+    # Apply custom height and label visibility via CSS custom properties
+    style_attrs = Pair[]
+    if !isempty(x.height)
+        push!(style_attrs, Symbol("--height") => x.height)
+    end
+
+    # Hide the label (which contains the percentage) if show_value is false
+    if !x.show_value
+        push!(style_attrs, Symbol("--label-color") => "transparent")
+    end
+
+    # Set initial visibility
+    if !x.visible[]
+        push!(style_attrs, :display => "none")
+    end
+
+    dom = sl_progress_bar(; value=x.value[], kwargs..., style_attrs...)
+
+    # Update value when Observable changes
+    update_value = js"""
+        function (value) {
+            $(dom).value = value
+        }
+    """
+    onjs(session, x.value, update_value)
+
+    # Update indeterminate state when Observable changes
+    update_indeterminate = js"""
+        function (value) {
+            if (value) {
+                $(dom).setAttribute("indeterminate", "")
+            } else {
+                $(dom).removeAttribute("indeterminate")
+            }
+        }
+    """
+    onjs(session, x.indeterminate, update_indeterminate)
+
+    # Update visibility when Observable changes
+    update_visible = js"""
+        function (value) {
+            if (value) {
+                $(dom).style.display = ""
+            } else {
+                $(dom).style.display = "none"
+            }
+        }
+    """
+    onjs(session, x.visible, update_visible)
+
+    return Bonito.jsrender(session, dom)
+end
 
 
 end # module ShoelaceWidgets

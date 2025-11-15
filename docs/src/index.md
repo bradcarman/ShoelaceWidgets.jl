@@ -89,6 +89,46 @@ app = App() do session
 end
 ```
 
+#### Progress Bar
+Create a progress bar with reactive updates:
+
+```@example quickstart
+# Create progress bar
+progress = SLProgressBar(0.0; label="Loading", height="20px")
+
+# Simulate progress updates
+@async begin
+    for i in 0:10:100
+        sleep(0.5)
+        progress.value[] = i
+    end
+end
+
+app = App() do session
+    DOM.html(
+        DOM.head(
+            get_shoelace()...
+        ),
+        DOM.body(
+            progress
+        )
+    )
+end
+```
+
+You can also show and hide progress bars dynamically:
+
+```@example quickstart
+# Create initially hidden progress bar
+progress = SLProgressBar(50.0; visible=false, label="Background task")
+
+# Show the progress bar
+progress.visible[] = true
+
+# Hide it again
+progress.visible[] = false
+```
+
 
 ## Available Components
 
@@ -98,7 +138,10 @@ ShoelaceWidgets.jl provides Julia wrappers for common Shoelace components:
 - [`SLInput`](@ref) - Text input fields with various types
 - [`SLSelect`](@ref) - Dropdown selection components
 - [`SLButton`](@ref) - Interactive buttons
+- [`SLCheckbox`](@ref) - Checkbox controls
+- [`SLTextarea`](@ref) - Multi-line text input
 - [`SLRadio`](@ref) / [`SLRadioGroup`](@ref) - Radio button controls
+- [`SLProgressBar`](@ref) - Progress indicators and loading bars
 - [`SLTree`](@ref) / [`SLTreeItem`](@ref) - Tree menu
 - [`SLDialog`](@ref) - Dialog window
 
