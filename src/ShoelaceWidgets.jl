@@ -774,11 +774,16 @@ SLDialog(value::Hyperscript.Node; label::String) = SLDialog(Observable(value), l
 
 function Bonito.jsrender(session::Session, x::SLDialog)
 
-    # setup = js"""
-    # function onload(element) {
-    #     element.addEventListener("sl-change", onchange);
-    # }
-    # """
+    setup = js"""
+    function onload(element) {
+
+        function hide(e){
+            $(x.open).notify(false);
+        }
+
+        element.addEventListener("sl-hide", hide);
+    }
+    """
 
     dom = sl_dialog(x.value; label=x.label)
     open_close = js""" function (value) { 
@@ -792,7 +797,7 @@ function Bonito.jsrender(session::Session, x::SLDialog)
     """
     onjs(session, x.open, open_close)
 
-    # Bonito.onload(session, dom, setup)
+    Bonito.onload(session, dom, setup)
 
     return Bonito.jsrender(session, dom)
 end

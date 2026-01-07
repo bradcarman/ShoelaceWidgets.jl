@@ -11,6 +11,11 @@ body = DOM.div(
 )
 dialog = SLDialog(body; label="Test")
 
+on(dialog.open) do open
+    @show open
+end
+
+
 app = App() do session
     DOM.html(
         DOM.head(
