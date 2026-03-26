@@ -46,7 +46,7 @@ app = App() do session
 end
 
 
-input = SLInput(NaN)
+input = SLInput(Date(now()))
 app = App() do session
     DOM.html(
         DOM.head(
@@ -57,6 +57,8 @@ app = App() do session
         )
     )
 end
+
+input.value[] = "2026-03-01"
 
 
 input = SLInput{String}(Observable(""), "Date", "date", "", "Date")
@@ -70,3 +72,21 @@ app = App() do session
         )
     )
 end
+
+file = Bonito.FileInput()
+app = App() do session
+    DOM.html(
+        DOM.head(
+            get_shoelace()...
+        ),
+        DOM.body(
+            file
+        )
+    )
+end
+
+#=
+port = 80
+url = "0.0.0.0"
+server = Bonito.Server(app, url, port)
+=#

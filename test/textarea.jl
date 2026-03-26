@@ -22,6 +22,6 @@ end
 
 textarea.value[] = "Test content"
 textarea.disabled[] = true
-
+textarea.rows[] = 10
 
 @test true

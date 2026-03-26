@@ -156,6 +156,7 @@ get_type(::Type{T}) where T <: Number = "number"
 SLInput(default::T; label::String="", help::String="", placeholder::String="", disabled::Bool=false) where T = SLInput{T}(Observable(default), label, get_type(T), help, placeholder, Observable(disabled))
 SLInput(default::Date; label::String="", help::String="", disabled::Bool=false)  = SLInput{String}(Observable(string(default)), label, "date", help, "Date", Observable(disabled))
 
+
 function Bonito.jsrender(session::Session, x::SLInput{T}) where T
 
     setup = js"""
@@ -530,11 +531,11 @@ struct SLTextarea
     label::String
     help::String
     placeholder::String
-    rows::Int
+    rows::Observable{Int}
     disabled::Observable{Bool}
 end
 
-SLTextarea(default::String=""; label::String="", help::String="", placeholder::String="", rows::Int=3, disabled::Bool=false) = SLTextarea(Observable(default), label, help, placeholder, rows, Observable(disabled))
+SLTextarea(default::String=""; label::String="", help::String="", placeholder::String="", rows::Int=3, disabled::Bool=false) = SLTextarea(Observable(default), label, help, placeholder, Observable(rows), Observable(disabled))
 
 function Bonito.jsrender(session::Session, x::SLTextarea)
 
@@ -565,6 +566,13 @@ function Bonito.jsrender(session::Session, x::SLTextarea)
         }
     """
     onjs(session, x.disabled, disable)
+
+    rows = js"""
+        function (value) {
+            $(dom).setAttribute("rows", value)
+        }
+    """
+    onjs(session, x.rows, rows)
 
     Bonito.onload(session, dom, setup)
 
@@ -777,10 +785,15 @@ function Bonito.jsrender(session::Session, x::SLDialog)
     setup = js"""
     function onload(element) {
 
+        //function show(e){
+        //    $(x.open).notify(true);
+        //}
+
         function hide(e){
             $(x.open).notify(false);
         }
 
+        //element.addEventListener("sl-show", show);
         element.addEventListener("sl-hide", hide);
     }
     """
@@ -850,7 +863,7 @@ Creates a hierarchical tree menu widget with reactive selection tracking.
 
 # Construction Methods
 
-1. **Using SLTreeItem objects**:
+**Using SLTreeItem objects**:
 ```julia
 tree = SLTree([
     SLTreeItem("Folder A", [
@@ -858,18 +871,6 @@ tree = SLTree([
         SLTreeItem("File 2")
     ]),
     SLTreeItem("Folder B", [SLTreeItem("File 3")])
-])
-```
-
-2. **Using simplified nested syntax** (strings and pairs):
-```julia
-tree = SLTree([
-    "Deciduous" => [
-        "Birch",
-        "Maple" => ["Field", "Red", "Sugar"],
-        "Oak"
-    ],
-    "Coniferous" => ["Cedar", "Pine", "Spruce"]
 ])
 ```
 
