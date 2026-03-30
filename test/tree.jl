@@ -32,8 +32,8 @@ end
 tree.value[] = "A"
 @test tree.value[] == "A"
 
-
-
+push!(tree.items[], ShoelaceWidgets.sl_tree_item("C"))
+notify(tree.items)
 
 # TODO: complete this simplified form...
 # # Test new simplified constructor

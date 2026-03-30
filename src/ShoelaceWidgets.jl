@@ -357,9 +357,10 @@ struct SLButton
     label::String
     loading::Observable{Bool}
     variant::Union{String, Nothing}
+    size::Union{String, Nothing}
 end
 
-SLButton(label::String; disabled::Bool = false, variant=nothing) = SLButton(Observable(true), Observable(disabled), label, Observable(false), variant)
+SLButton(label::String; disabled::Bool = false, variant=nothing, size=nothing) = SLButton(Observable(true), Observable(disabled), label, Observable(false), variant, size)
 
 function Bonito.jsrender(session::Session, x::SLButton)
 
@@ -376,6 +377,10 @@ function Bonito.jsrender(session::Session, x::SLButton)
 
     if !isnothing(x.variant)
         push!(kwargs, :variant => x.variant)
+    end
+
+    if !isnothing(x.size)
+        push!(kwargs, :size => x.size)
     end
 
     dom = sl_button(x.label; onclick=click, kwargs...)
