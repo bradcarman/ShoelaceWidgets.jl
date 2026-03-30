@@ -244,6 +244,7 @@ struct SLSelect{T}
     options::Observable{Vector{Hyperscript.Node}}
     values::Vector{T}
     index::Observable{Int}
+    help::String
     # value from getproperty
 end
 
@@ -255,9 +256,9 @@ function get_options(values::Vector)
     return options
 end
 
-function SLSelect(values::Vector{T}; label::String = "", index=0) where T 
+function SLSelect(values::Vector{T}; label::String = "", index=0, help::String="") where T 
     
-    return SLSelect(label, Observable(get_options(values)), values, Observable(index))
+    return SLSelect(label, Observable(get_options(values)), values, Observable(index), help)
 end
 
 function Base.getproperty(x::SLSelect, name::Symbol)
@@ -304,7 +305,7 @@ function Bonito.jsrender(session::Session, x::SLSelect)
     }
     """
 
-    dom = sl_select(x.options; label=x.label, value=string(x.index[]))
+    dom = sl_select(x.options; label=x.label, value=string(x.index[]), helpText=x.help)
     update_value = js""" function (value) { 
         $(dom).value = value.toString()
         } 
@@ -443,9 +444,10 @@ struct SLCheckbox
     value::Observable{Bool}
     disabled::Observable{Bool}
     label::String
+    help::String
 end
 
-SLCheckbox(label::String; checked::Bool = false, disabled::Bool = false) = SLCheckbox(Observable(checked), Observable(disabled), label)
+SLCheckbox(label::String; checked::Bool = false, disabled::Bool = false, help::String="") = SLCheckbox(Observable(checked), Observable(disabled), label, help)
 
 function Bonito.jsrender(session::Session, x::SLCheckbox)
 
@@ -463,7 +465,7 @@ function Bonito.jsrender(session::Session, x::SLCheckbox)
         push!(kwargs, :disabled => true)
     end
 
-    dom = sl_checkbox(x.label; checked=x.value[], kwargs...)
+    dom = sl_checkbox(x.label; checked=x.value[], helpText=x.help, kwargs...)
 
     disable = js"""
         function (value) {
@@ -651,6 +653,7 @@ struct SLRadioGroup
     options::Observable{Vector{Hyperscript.Node}}
     values::Vector{SLRadio}
     value::Observable{String}
+    help::String
     # index from getproperty
     # object from getproperty
 end
@@ -665,12 +668,12 @@ function get_sl_radio(x::SLRadio, i::Int)
     return r
 end
 
-function SLRadioGroup(values::Vector{SLRadio}; label::String = "", index=0) 
+function SLRadioGroup(values::Vector{SLRadio}; label::String = "", index=0, help::String="") 
     options = Hyperscript.Node[]
     for (i,x) in enumerate(values)
         push!(options, get_sl_radio(x, i))
     end
-    return SLRadioGroup(label, Observable(options), values, Observable(string(index)))
+    return SLRadioGroup(label, Observable(options), values, Observable(string(index)), help)
 end
 
 function Base.getproperty(x::SLRadioGroup, name::Symbol)
@@ -730,7 +733,7 @@ function Bonito.jsrender(session::Session, x::SLRadioGroup)
     }
     """
 
-    dom = sl_radio_group(x.options; label=x.label, value=x.value)
+    dom = sl_radio_group(x.options; label=x.label, value=x.value, helpText=x.help)
     update_value = js""" function (value) { 
         $(dom).value = value
         } 

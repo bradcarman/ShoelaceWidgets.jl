@@ -17,8 +17,9 @@ app = App() do session
 end
 
 input.value[] = "Hello World"
-# change to Brad
 @test input.value[] == "Hello World"
+input.disabled[] = true
+input.disabled[] = false
 
 input = SLInput(0.0; help="enter a number from 1 to 10")
 app = App() do session
