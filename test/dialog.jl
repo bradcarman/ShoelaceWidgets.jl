@@ -3,10 +3,10 @@ using Bonito
 using ShoelaceWidgets
 
 
-input = SLInput(""; label="Test", placeholder="Name")
+select = SLSelect(["one", "two", "three"]; label="Test", index=1)
 body = DOM.div(
     DOM.h1("Test"),
-    input; 
+    select; 
     style="height: 150vh; border: dashed 2px var(--sl-color-neutral-200); padding: 0 1rem;"
 )
 dialog = SLDialog(body; label="Test")
@@ -29,6 +29,11 @@ app = App() do session
     )
 end
 dialog.open[] = true
+
+
+
+
+
 dialog.value[] = DOM.div("Test 2")
 
 # NOTE: diaglog does not show well in VS Code, use browser to see correctly

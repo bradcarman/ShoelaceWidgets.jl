@@ -798,7 +798,9 @@ function Bonito.jsrender(session::Session, x::SLDialog)
         //}
 
         function hide(e){
-            $(x.open).notify(false);
+            if (e.target === element) {
+                $(x.open).notify(false);
+            }
         }
 
         //element.addEventListener("sl-show", show);
