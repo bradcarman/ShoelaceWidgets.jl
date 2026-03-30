@@ -857,9 +857,10 @@ folder = SLTreeItem("Documents", [
 struct SLTreeItem
     value::String
     values::Vector{SLTreeItem}
+    selected::Observable{Bool}
 
-    SLTreeItem(value::String) = new(value, SLTreeItem[])
-    SLTreeItem(value::String, values::Vector{SLTreeItem}) = new(value, values)
+    SLTreeItem(value::String; selected=false) = new(value, SLTreeItem[], Observable(selected))
+    SLTreeItem(value::String, values::Vector{SLTreeItem}; selected=false) = new(value, values, Observable(selected))
 end
 
 """
@@ -906,9 +907,9 @@ SLTree() = SLTree(Observable(Hyperscript.Node[]), SLTreeItem[], Observable(""))
 
 function get_sl_tree_item(x::SLTreeItem)
     item = if !isempty(x.values)
-        sl_tree_item(x.value, get_sl_tree_item.(x.values); expanded=true)
+        sl_tree_item(x.value, get_sl_tree_item.(x.values); expanded=true, selected=x.selected)
     else
-        sl_tree_item(x.value)
+        sl_tree_item(x.value; selected=x.selected)
     end
 
     return item
