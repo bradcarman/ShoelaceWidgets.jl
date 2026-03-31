@@ -16,7 +16,7 @@ export sl_tab_group, sl_tab, sl_tab_panel, sl_tag, sl_format_date, sl_spinner, s
 
 
 # ----------------------------------------
-const CSS = """
+const STYLE_CSS = """
     /* ---------------------------------------------------
        Core CSS to make sl-radio look like sl-tree-item
        --------------------------------------------------- */
@@ -663,6 +663,7 @@ Represents a single radio button option within a radio group.
 - `value::String` - Display text for the radio button
 - `disabled::Bool` - Whether this option is disabled
 - `object::Any` - Optional associated data object
+- `index::Int` - Position in the group (set automatically when added to an SLRadioGroup)
 
 # Example
 ```julia
@@ -670,12 +671,19 @@ radio1 = SLRadio("Option A"; object=1)
 radio2 = SLRadio("Option B"; object=2, disabled=true)
 ```
 """
-struct SLRadio
+mutable struct SLRadio
     value::String
     disabled::Bool
     object::Any
+    index::Int
 end
-SLRadio(value::String; disabled=false, object=nothing) = SLRadio(value, disabled, object)
+SLRadio(value::String; disabled=false, object=nothing) = SLRadio(value, disabled, object, 0)
+
+function Bonito.jsrender(session::Session, x::SLRadio)
+    kwargs = x.disabled ? [:disabled => true] : []
+    dom = sl_radio(x.value; value=string(x.index), kwargs...)
+    return Bonito.jsrender(session, dom)
+end
 
 """
     SLRadioGroup(values; label="", index=0)
@@ -684,8 +692,7 @@ Creates a radio button group widget with reactive selection tracking.
 
 # Fields
 - `label::String` - Label text displayed above the radio group
-- `options::Observable{Vector{Hyperscript.Node}}` - Observable containing the radio button elements
-- `values::Vector{SLRadio}` - Array of SLRadio options
+- `values::Observable{Vector{SLRadio}}` - Observable containing the radio button options
 - `value::Observable{String}` - Observable containing the selected index as a string
 - `index` - Computed property returning the currently selected index (Int or nothing)
 - `object` - Computed property returning the associated object of the selected radio
@@ -716,30 +723,18 @@ group.index = 2
 """
 struct SLRadioGroup
     label::String
-    options::Observable{Vector{Hyperscript.Node}}
-    values::Vector{SLRadio}
+    values::Observable{Vector{SLRadio}}
     value::Observable{String}
     help::String
     # index from getproperty
     # object from getproperty
 end
 
-function get_sl_radio(x::SLRadio, i::Int)
-    r = if x.disabled
-        sl_radio(x.value; value=string(i), disabled=true)
-    else
-        sl_radio(x.value; value=string(i))
+function SLRadioGroup(values::Vector{SLRadio}; label::String = "", index=0, help::String="")
+    for (i, r) in enumerate(values)
+        r.index = i
     end
-
-    return r
-end
-
-function SLRadioGroup(values::Vector{SLRadio}; label::String = "", index=0, help::String="") 
-    options = Hyperscript.Node[]
-    for (i,x) in enumerate(values)
-        push!(options, get_sl_radio(x, i))
-    end
-    return SLRadioGroup(label, Observable(options), values, Observable(string(index)), help)
+    return SLRadioGroup(label, Observable(values), Observable(string(index)), help)
 end
 
 function Base.getproperty(x::SLRadioGroup, name::Symbol)
@@ -749,7 +744,7 @@ function Base.getproperty(x::SLRadioGroup, name::Symbol)
     elseif name == :object
         i = tryparse(Int, x.value[])
         if !isnothing(i) && (i > 0)
-            radio = x.values[i] 
+            radio = x.values[][i]
             return radio.object
         else
             return nothing
@@ -766,24 +761,24 @@ function Base.setproperty!(x::SLRadioGroup, name::Symbol, value::Int)
 end
 
 function Base.push!(x::SLRadioGroup, value::SLRadio)
-    push!(x.values, value)
-    i = length(x.values)
-    push!(x.options[], get_sl_radio(value, i))
-    notify(x.options)
+    value.index = length(x.values[]) + 1
+    push!(x.values[], value)
+    notify(x.values)
 end
 
 function Base.empty!(x::SLRadioGroup)
-    empty!(x.values)
-    empty!(x.options[])
+    empty!(x.values[])
     x.value[] = "0"
-    notify(x.options)
+    notify(x.values)
 end
 
 function Base.popat!(x::SLRadioGroup, i::Int)
-    popat!(x.values, i)
-    popat!(x.options[], i)
+    popat!(x.values[], i)
+    for (j, r) in enumerate(x.values[])
+        r.index = j
+    end
     x.value[] = "0"
-    notify(x.options)
+    notify(x.values)
 end
 
 function Bonito.jsrender(session::Session, x::SLRadioGroup)
@@ -791,18 +786,16 @@ function Bonito.jsrender(session::Session, x::SLRadioGroup)
     setup = js"""
     function onload(element) {
         function onchange(e) {
-            console.log(e)
-            console.log(element.value)
             $(x.value).notify(element.value)
         }
         element.addEventListener("sl-change", onchange);
     }
     """
 
-    dom = sl_radio_group(x.options; label=x.label, value=x.value, helpText=x.help)
-    update_value = js""" function (value) { 
+    dom = sl_radio_group(x.values; label=x.label, value=x.value, helpText=x.help)
+    update_value = js""" function (value) {
         $(dom).value = value
-        } 
+        }
     """
     onjs(session, x.value, update_value)
 
