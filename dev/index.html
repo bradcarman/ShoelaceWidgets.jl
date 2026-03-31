@@ -16,9 +16,67 @@ app = App() do session
             input
         )
     )
-end</code></pre><div><div class="bonito-fragment" id="4039e8aa-2c3d-446a-b1e2-32a41c0afe47" data-jscall-id="root"><div><script src="../../../../.julia/packages/Bonito/OJTyF/js_dependencies/Bonito.bundled.js" type="module"></script><style></style></div><div><script type="module">Bonito.init_session("4039e8aa-2c3d-446a-b1e2-32a41c0afe47", Bonito.fetch_binary('bonito/bin/f224c601bfeb8615db906ec17951684f01e4ec21-5468373067680628222.bin'), "root", false);
-</script><div></div></div></div><div class="bonito-fragment" id="4650c369-f021-4db8-9e60-eb58e1a4467e" data-jscall-id="subsession-application-dom"><div><style></style></div><div><script type="module">Bonito.init_session("4650c369-f021-4db8-9e60-eb58e1a4467e", Bonito.fetch_binary('bonito/bin/63b5473d81c0cd194e9e8d8412051e5cd073b73e-8257749671115970783.bin'), "sub", false);
-</script><div data-jscall-id="1"><div data-jscall-id="2"><link rel="stylesheet" data-jscall-id="3" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/themes/light.css" /><script data-jscall-id="4" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/shoelace-autoloader.js" type="module"></script></div><div data-jscall-id="5"><sl-input label="Enter text:" help-text="" data-jscall-id="6" value="" placeholder="Type something..." type=""></sl-input></div></div></div></div></div><p>The <code>get_shoelace()</code> function returns the necessary Shoelace CSS and JavaScript includes that should be added to your document head.</p><h3 id="More-Examples"><a class="docs-heading-anchor" href="#More-Examples">More Examples</a><a id="More-Examples-1"></a><a class="docs-heading-anchor-permalink" href="#More-Examples" title="Permalink"></a></h3><h4 id="Button"><a class="docs-heading-anchor" href="#Button">Button</a><a id="Button-1"></a><a class="docs-heading-anchor-permalink" href="#Button" title="Permalink"></a></h4><p>Create a button with click handling:</p><pre><code class="language-julia hljs"># Create button
+end</code></pre><div><div class="bonito-fragment" id="c065b1f2-e965-4403-9e3f-83839244bfc9" data-jscall-id="root"><div><script src="../../../../.julia/packages/Bonito/OJTyF/js_dependencies/Bonito.bundled.js" type="module"></script><style></style></div><div><script type="module">Bonito.init_session("c065b1f2-e965-4403-9e3f-83839244bfc9", Bonito.fetch_binary('bonito/bin/e13a3e490baf3bf4611fd2c345f35323a9471b48-9774237969287304086.bin'), "root", false);
+</script><div></div></div></div><div class="bonito-fragment" id="8e4f5530-11a2-4036-a67d-2d276f240132" data-jscall-id="subsession-application-dom"><div><style></style></div><div><script type="module">Bonito.init_session("8e4f5530-11a2-4036-a67d-2d276f240132", Bonito.fetch_binary('bonito/bin/69c295a5d7502c17717a6e5e77e8f615f2d2ddfc-10980846807019076558.bin'), "sub", false);
+</script><div data-jscall-id="1"><div data-jscall-id="2"><link rel="stylesheet" data-jscall-id="3" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/themes/light.css" /><script data-jscall-id="4" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/shoelace-autoloader.js" type="module"></script><style data-jscall-id="5">    /* ---------------------------------------------------
+       Core CSS to make sl-radio look like sl-tree-item
+       --------------------------------------------------- */
+
+    /* Force the host element to be block level so it stacks properly */
+    sl-radio.tree-style {
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    /* 1. Base styling for the "row" */
+    sl-radio.tree-style::part(base) {
+      padding: var(--sl-spacing-x-small) var(--sl-spacing-small);
+      border-radius: var(--sl-border-radius-medium);
+      transition: background-color 150ms ease, color 150ms ease;
+      width: 100%; /* Makes it stretch like a tree node */
+      box-sizing: border-box;
+      cursor: pointer;
+    }
+
+    /* 2. Hover effect */
+    sl-radio.tree-style:hover::part(base) {
+      background-color: var(--sl-color-neutral-100);
+    }
+
+    /* 3. The "Selected" state highlight */
+    sl-radio.tree-style[checked]::part(base),
+    sl-radio.tree-style[aria-checked="true"]::part(base) {
+      background-color: var(--sl-color-primary-100);
+      color: var(--sl-color-primary-700);
+    }
+
+    /* Hide the little radio circle completely */
+    sl-radio.tree-style-hidden-circle::part(control) {
+      display: none;
+    }
+
+    /* Remove the gap between the hidden circle and the label */
+    sl-radio.tree-style-hidden-circle::part(base) {
+      gap: 0;
+      /* Make the left side flat for the bar, keep right side rounded */
+      border-radius: 0 var(--sl-border-radius-medium) var(--sl-border-radius-medium) 0;
+      /* Invisible border to prevent text shifting on selection */
+      border-left: 4px solid transparent; 
+    }
+
+    /* Add the blue bar indicator when checked */
+    sl-radio.tree-style-hidden-circle[checked]::part(base),
+    sl-radio.tree-style-hidden-circle[aria-checked="true"]::part(base) {
+      border-left-color: var(--sl-color-primary-600);
+    }
+
+    /* Ensure no stray padding exists on the label */
+    sl-radio.tree-style-hidden-circle::part(label) {
+      padding-inline-start: 0; 
+      /* Make the label take up full width for a bigger click target */
+      width: 100%; 
+    }
+</style></div><div data-jscall-id="6"><sl-input label="Enter text:" help-text="" data-jscall-id="7" value="" placeholder="Type something..." type=""></sl-input></div></div></div></div></div><p>The <code>get_shoelace()</code> function returns the necessary Shoelace CSS and JavaScript includes that should be added to your document head.</p><h3 id="More-Examples"><a class="docs-heading-anchor" href="#More-Examples">More Examples</a><a id="More-Examples-1"></a><a class="docs-heading-anchor-permalink" href="#More-Examples" title="Permalink"></a></h3><h4 id="Button"><a class="docs-heading-anchor" href="#Button">Button</a><a id="Button-1"></a><a class="docs-heading-anchor-permalink" href="#Button" title="Permalink"></a></h4><p>Create a button with click handling:</p><pre><code class="language-julia hljs"># Create button
 btn = SLButton(&quot;Click Me&quot;; variant=&quot;primary&quot;)
 
 # Set up click handler
@@ -38,8 +96,66 @@ app = App() do session
             btn
         )
     )
-end</code></pre><div class="bonito-fragment" id="e5e1ba82-e307-4846-befd-4e89934fdcf2" data-jscall-id="subsession-application-dom"><div><style></style></div><div><script type="module">Bonito.init_session("e5e1ba82-e307-4846-befd-4e89934fdcf2", Bonito.fetch_binary('bonito/bin/f4778a20ff7f0757db45eb86c1c3093ea23c2324-12008402361612726269.bin'), "sub", false);
-</script><div data-jscall-id="7"><div data-jscall-id="8"><link rel="stylesheet" data-jscall-id="9" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/themes/light.css" /><script data-jscall-id="10" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/shoelace-autoloader.js" type="module"></script></div><div data-jscall-id="11"><sl-button onclick="" variant="primary" data-jscall-id="12">Click Me</sl-button></div></div></div></div><h4 id="Dropdown"><a class="docs-heading-anchor" href="#Dropdown">Dropdown</a><a id="Dropdown-1"></a><a class="docs-heading-anchor-permalink" href="#Dropdown" title="Permalink"></a></h4><p>Create a dropdown select:</p><pre><code class="language-julia hljs"># Create select widget
+end</code></pre><div class="bonito-fragment" id="6c79e17a-ee64-43e9-bbf4-657d6ed5992e" data-jscall-id="subsession-application-dom"><div><style></style></div><div><script type="module">Bonito.init_session("6c79e17a-ee64-43e9-bbf4-657d6ed5992e", Bonito.fetch_binary('bonito/bin/5cc87a450818c5f3daf6f1bed2642d8f98814b7d-2513319303330816274.bin'), "sub", false);
+</script><div data-jscall-id="8"><div data-jscall-id="9"><link rel="stylesheet" data-jscall-id="10" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/themes/light.css" /><script data-jscall-id="11" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/shoelace-autoloader.js" type="module"></script><style data-jscall-id="12">    /* ---------------------------------------------------
+       Core CSS to make sl-radio look like sl-tree-item
+       --------------------------------------------------- */
+
+    /* Force the host element to be block level so it stacks properly */
+    sl-radio.tree-style {
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    /* 1. Base styling for the "row" */
+    sl-radio.tree-style::part(base) {
+      padding: var(--sl-spacing-x-small) var(--sl-spacing-small);
+      border-radius: var(--sl-border-radius-medium);
+      transition: background-color 150ms ease, color 150ms ease;
+      width: 100%; /* Makes it stretch like a tree node */
+      box-sizing: border-box;
+      cursor: pointer;
+    }
+
+    /* 2. Hover effect */
+    sl-radio.tree-style:hover::part(base) {
+      background-color: var(--sl-color-neutral-100);
+    }
+
+    /* 3. The "Selected" state highlight */
+    sl-radio.tree-style[checked]::part(base),
+    sl-radio.tree-style[aria-checked="true"]::part(base) {
+      background-color: var(--sl-color-primary-100);
+      color: var(--sl-color-primary-700);
+    }
+
+    /* Hide the little radio circle completely */
+    sl-radio.tree-style-hidden-circle::part(control) {
+      display: none;
+    }
+
+    /* Remove the gap between the hidden circle and the label */
+    sl-radio.tree-style-hidden-circle::part(base) {
+      gap: 0;
+      /* Make the left side flat for the bar, keep right side rounded */
+      border-radius: 0 var(--sl-border-radius-medium) var(--sl-border-radius-medium) 0;
+      /* Invisible border to prevent text shifting on selection */
+      border-left: 4px solid transparent; 
+    }
+
+    /* Add the blue bar indicator when checked */
+    sl-radio.tree-style-hidden-circle[checked]::part(base),
+    sl-radio.tree-style-hidden-circle[aria-checked="true"]::part(base) {
+      border-left-color: var(--sl-color-primary-600);
+    }
+
+    /* Ensure no stray padding exists on the label */
+    sl-radio.tree-style-hidden-circle::part(label) {
+      padding-inline-start: 0; 
+      /* Make the label take up full width for a bigger click target */
+      width: 100%; 
+    }
+</style></div><div data-jscall-id="13"><sl-button onclick="" variant="primary" data-jscall-id="14">Click Me</sl-button></div></div></div></div><h4 id="Dropdown"><a class="docs-heading-anchor" href="#Dropdown">Dropdown</a><a id="Dropdown-1"></a><a class="docs-heading-anchor-permalink" href="#Dropdown" title="Permalink"></a></h4><p>Create a dropdown select:</p><pre><code class="language-julia hljs"># Create select widget
 select = SLSelect([&quot;Small&quot;, &quot;Medium&quot;, &quot;Large&quot;]; label=&quot;Choose size&quot;, index=1)
 
 on(select.index) do i
@@ -55,9 +171,67 @@ app = App() do session
             select
         )
     )
-end</code></pre><div class="bonito-fragment" id="8addfca3-f488-4fc4-bd3f-99eca317afc6" data-jscall-id="subsession-application-dom"><div><style></style></div><div><script type="module">Bonito.init_session("8addfca3-f488-4fc4-bd3f-99eca317afc6", Bonito.fetch_binary('bonito/bin/114b45fde84c649511a5b65e1764f65fd5500ada-243491894039752346.bin'), "sub", false);
-</script><div data-jscall-id="13"><div data-jscall-id="14"><link rel="stylesheet" data-jscall-id="15" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/themes/light.css" /><script data-jscall-id="16" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/shoelace-autoloader.js" type="module"></script></div><div data-jscall-id="17"><sl-select label="Choose size" help-text="" data-jscall-id="18" value="1"><div data-jscall-id="23"><div class="bonito-fragment" id="2fb3df49-ef96-4178-acae-5a7ee7ba7173" data-jscall-id="subsession-application-dom"><div data-jscall-id="24"><style data-jscall-id="25"></style></div><div data-jscall-id="26"><script data-jscall-id="27" type="module">Bonito.init_session("2fb3df49-ef96-4178-acae-5a7ee7ba7173", null, "sub", false);
-</script><span data-jscall-id="19"><sl-option data-jscall-id="20" value="1">Small</sl-option><sl-option data-jscall-id="21" value="2">Medium</sl-option><sl-option data-jscall-id="22" value="3">Large</sl-option></span></div></div></div></sl-select></div></div></div></div><h4 id="Progress-Bar"><a class="docs-heading-anchor" href="#Progress-Bar">Progress Bar</a><a id="Progress-Bar-1"></a><a class="docs-heading-anchor-permalink" href="#Progress-Bar" title="Permalink"></a></h4><p>Create a progress bar with reactive updates:</p><pre><code class="language-julia hljs"># Create progress bar
+end</code></pre><div class="bonito-fragment" id="8b41bf8e-6fb3-4bae-a472-af332f1954cf" data-jscall-id="subsession-application-dom"><div><style></style></div><div><script type="module">Bonito.init_session("8b41bf8e-6fb3-4bae-a472-af332f1954cf", Bonito.fetch_binary('bonito/bin/e39241f68c3cd11ae0f049675b47d7fe457c14db-5217195366638794146.bin'), "sub", false);
+</script><div data-jscall-id="15"><div data-jscall-id="16"><link rel="stylesheet" data-jscall-id="17" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/themes/light.css" /><script data-jscall-id="18" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/shoelace-autoloader.js" type="module"></script><style data-jscall-id="19">    /* ---------------------------------------------------
+       Core CSS to make sl-radio look like sl-tree-item
+       --------------------------------------------------- */
+
+    /* Force the host element to be block level so it stacks properly */
+    sl-radio.tree-style {
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    /* 1. Base styling for the "row" */
+    sl-radio.tree-style::part(base) {
+      padding: var(--sl-spacing-x-small) var(--sl-spacing-small);
+      border-radius: var(--sl-border-radius-medium);
+      transition: background-color 150ms ease, color 150ms ease;
+      width: 100%; /* Makes it stretch like a tree node */
+      box-sizing: border-box;
+      cursor: pointer;
+    }
+
+    /* 2. Hover effect */
+    sl-radio.tree-style:hover::part(base) {
+      background-color: var(--sl-color-neutral-100);
+    }
+
+    /* 3. The "Selected" state highlight */
+    sl-radio.tree-style[checked]::part(base),
+    sl-radio.tree-style[aria-checked="true"]::part(base) {
+      background-color: var(--sl-color-primary-100);
+      color: var(--sl-color-primary-700);
+    }
+
+    /* Hide the little radio circle completely */
+    sl-radio.tree-style-hidden-circle::part(control) {
+      display: none;
+    }
+
+    /* Remove the gap between the hidden circle and the label */
+    sl-radio.tree-style-hidden-circle::part(base) {
+      gap: 0;
+      /* Make the left side flat for the bar, keep right side rounded */
+      border-radius: 0 var(--sl-border-radius-medium) var(--sl-border-radius-medium) 0;
+      /* Invisible border to prevent text shifting on selection */
+      border-left: 4px solid transparent; 
+    }
+
+    /* Add the blue bar indicator when checked */
+    sl-radio.tree-style-hidden-circle[checked]::part(base),
+    sl-radio.tree-style-hidden-circle[aria-checked="true"]::part(base) {
+      border-left-color: var(--sl-color-primary-600);
+    }
+
+    /* Ensure no stray padding exists on the label */
+    sl-radio.tree-style-hidden-circle::part(label) {
+      padding-inline-start: 0; 
+      /* Make the label take up full width for a bigger click target */
+      width: 100%; 
+    }
+</style></div><div data-jscall-id="20"><sl-select label="Choose size" help-text="" data-jscall-id="21" value="1"><div data-jscall-id="26"><div class="bonito-fragment" id="ac8ab100-e986-4aa8-9a57-fe9c1c926db4" data-jscall-id="subsession-application-dom"><div data-jscall-id="27"><style data-jscall-id="28"></style></div><div data-jscall-id="29"><script data-jscall-id="30" type="module">Bonito.init_session("ac8ab100-e986-4aa8-9a57-fe9c1c926db4", null, "sub", false);
+</script><span data-jscall-id="22"><sl-option data-jscall-id="23" value="1">Small</sl-option><sl-option data-jscall-id="24" value="2">Medium</sl-option><sl-option data-jscall-id="25" value="3">Large</sl-option></span></div></div></div></sl-select></div></div></div></div><h4 id="Progress-Bar"><a class="docs-heading-anchor" href="#Progress-Bar">Progress Bar</a><a id="Progress-Bar-1"></a><a class="docs-heading-anchor-permalink" href="#Progress-Bar" title="Permalink"></a></h4><p>Create a progress bar with reactive updates:</p><pre><code class="language-julia hljs"># Create progress bar
 progress = SLProgressBar(0.0; label=&quot;Loading&quot;, height=&quot;20px&quot;)
 
 # Simulate progress updates
@@ -77,12 +251,70 @@ app = App() do session
             progress
         )
     )
-end</code></pre><div class="bonito-fragment" id="ef5b2318-ab36-4b0a-adb5-332c36ca81e7" data-jscall-id="subsession-application-dom"><div><style></style></div><div><script type="module">Bonito.init_session("ef5b2318-ab36-4b0a-adb5-332c36ca81e7", Bonito.fetch_binary('bonito/bin/08ee14b2bfc038448207f07b184bb04e7c4fb4b8-12534503363831108797.bin'), "sub", false);
-</script><div data-jscall-id="28"><div data-jscall-id="29"><link rel="stylesheet" data-jscall-id="30" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/themes/light.css" /><script data-jscall-id="31" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/shoelace-autoloader.js" type="module"></script></div><div data-jscall-id="32"><sl-progress-bar label="Loading" data-jscall-id="33" --height="20px" value="0.0"></sl-progress-bar></div></div></div></div><p>You can also show and hide progress bars dynamically:</p><pre><code class="language-julia hljs"># Create initially hidden progress bar
+end</code></pre><div class="bonito-fragment" id="53032eaa-6473-4a1e-983c-501d6b09d1f2" data-jscall-id="subsession-application-dom"><div><style></style></div><div><script type="module">Bonito.init_session("53032eaa-6473-4a1e-983c-501d6b09d1f2", Bonito.fetch_binary('bonito/bin/562d2fb91ef14e6f3831eec15a64945de5c4719a-14872173886139396426.bin'), "sub", false);
+</script><div data-jscall-id="31"><div data-jscall-id="32"><link rel="stylesheet" data-jscall-id="33" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/themes/light.css" /><script data-jscall-id="34" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/shoelace-autoloader.js" type="module"></script><style data-jscall-id="35">    /* ---------------------------------------------------
+       Core CSS to make sl-radio look like sl-tree-item
+       --------------------------------------------------- */
+
+    /* Force the host element to be block level so it stacks properly */
+    sl-radio.tree-style {
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    /* 1. Base styling for the "row" */
+    sl-radio.tree-style::part(base) {
+      padding: var(--sl-spacing-x-small) var(--sl-spacing-small);
+      border-radius: var(--sl-border-radius-medium);
+      transition: background-color 150ms ease, color 150ms ease;
+      width: 100%; /* Makes it stretch like a tree node */
+      box-sizing: border-box;
+      cursor: pointer;
+    }
+
+    /* 2. Hover effect */
+    sl-radio.tree-style:hover::part(base) {
+      background-color: var(--sl-color-neutral-100);
+    }
+
+    /* 3. The "Selected" state highlight */
+    sl-radio.tree-style[checked]::part(base),
+    sl-radio.tree-style[aria-checked="true"]::part(base) {
+      background-color: var(--sl-color-primary-100);
+      color: var(--sl-color-primary-700);
+    }
+
+    /* Hide the little radio circle completely */
+    sl-radio.tree-style-hidden-circle::part(control) {
+      display: none;
+    }
+
+    /* Remove the gap between the hidden circle and the label */
+    sl-radio.tree-style-hidden-circle::part(base) {
+      gap: 0;
+      /* Make the left side flat for the bar, keep right side rounded */
+      border-radius: 0 var(--sl-border-radius-medium) var(--sl-border-radius-medium) 0;
+      /* Invisible border to prevent text shifting on selection */
+      border-left: 4px solid transparent; 
+    }
+
+    /* Add the blue bar indicator when checked */
+    sl-radio.tree-style-hidden-circle[checked]::part(base),
+    sl-radio.tree-style-hidden-circle[aria-checked="true"]::part(base) {
+      border-left-color: var(--sl-color-primary-600);
+    }
+
+    /* Ensure no stray padding exists on the label */
+    sl-radio.tree-style-hidden-circle::part(label) {
+      padding-inline-start: 0; 
+      /* Make the label take up full width for a bigger click target */
+      width: 100%; 
+    }
+</style></div><div data-jscall-id="36"><sl-progress-bar label="Loading" data-jscall-id="37" --height="20px" value="0.0"></sl-progress-bar></div></div></div></div><p>You can also show and hide progress bars dynamically:</p><pre><code class="language-julia hljs"># Create initially hidden progress bar
 progress = SLProgressBar(50.0; visible=false, label=&quot;Background task&quot;)
 
 # Show the progress bar
 progress.visible[] = true
 
 # Hide it again
-progress.visible[] = false</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">false</code></pre><h2 id="Available-Components"><a class="docs-heading-anchor" href="#Available-Components">Available Components</a><a id="Available-Components-1"></a><a class="docs-heading-anchor-permalink" href="#Available-Components" title="Permalink"></a></h2><p>ShoelaceWidgets.jl provides Julia wrappers for common Shoelace components:</p><h3 id="Web-Components"><a class="docs-heading-anchor" href="#Web-Components">Web Components</a><a id="Web-Components-1"></a><a class="docs-heading-anchor-permalink" href="#Web-Components" title="Permalink"></a></h3><ul><li><a href="api/#ShoelaceWidgets.SLInput"><code>SLInput</code></a> - Text input fields with various types</li><li><a href="api/#ShoelaceWidgets.SLSelect"><code>SLSelect</code></a> - Dropdown selection components</li><li><a href="api/#ShoelaceWidgets.SLButton"><code>SLButton</code></a> - Interactive buttons</li><li><a href="api/#ShoelaceWidgets.SLCheckbox"><code>SLCheckbox</code></a> - Checkbox controls</li><li><a href="api/#ShoelaceWidgets.SLTextarea"><code>SLTextarea</code></a> - Multi-line text input</li><li><a href="api/#ShoelaceWidgets.SLRadio"><code>SLRadio</code></a> / <a href="api/#ShoelaceWidgets.SLRadioGroup"><code>SLRadioGroup</code></a> - Radio button controls</li><li><a href="api/#ShoelaceWidgets.SLProgressBar"><code>SLProgressBar</code></a> - Progress indicators and loading bars</li><li><a href="api/#ShoelaceWidgets.SLTree"><code>SLTree</code></a> / <a href="api/#ShoelaceWidgets.SLTreeItem"><code>SLTreeItem</code></a> - Tree menu</li><li><a href="api/#ShoelaceWidgets.SLDialog"><code>SLDialog</code></a> - Dialog window</li></ul><h3 id="UI-Elements"><a class="docs-heading-anchor" href="#UI-Elements">UI Elements</a><a id="UI-Elements-1"></a><a class="docs-heading-anchor-permalink" href="#UI-Elements" title="Permalink"></a></h3><ul><li><code>sl_tab_group</code>, <code>sl_tab</code>, <code>sl_tab_panel</code> - Tab navigation</li><li><code>sl_tag</code> - Tags for labels and categories</li><li><code>sl_format_date</code> - Date formatting</li><li><code>sl_spinner</code> - Loading indicators</li><li><code>sl_icon</code> - Icons from the Shoelace icon library</li></ul><h2 id="Learn-More"><a class="docs-heading-anchor" href="#Learn-More">Learn More</a><a id="Learn-More-1"></a><a class="docs-heading-anchor-permalink" href="#Learn-More" title="Permalink"></a></h2><ul><li>Check out the <a href="api/">API Reference</a> for detailed documentation of all components</li><li>Visit the <a href="https://shoelace.style/">Shoelace documentation</a> to learn more about the underlying web components</li><li>See the <a href="https://bonito.jl.org/">Bonito.jl documentation</a> for information about the Julia web framework</li></ul></article><nav class="docs-footer"><a class="docs-footer-nextpage" href="api/">API Reference »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Monday 30 March 2026 18:31">Monday 30 March 2026</span>. Using Julia version 1.12.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+progress.visible[] = false</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">false</code></pre><h2 id="Available-Components"><a class="docs-heading-anchor" href="#Available-Components">Available Components</a><a id="Available-Components-1"></a><a class="docs-heading-anchor-permalink" href="#Available-Components" title="Permalink"></a></h2><p>ShoelaceWidgets.jl provides Julia wrappers for common Shoelace components:</p><h3 id="Web-Components"><a class="docs-heading-anchor" href="#Web-Components">Web Components</a><a id="Web-Components-1"></a><a class="docs-heading-anchor-permalink" href="#Web-Components" title="Permalink"></a></h3><ul><li><a href="api/#ShoelaceWidgets.SLInput"><code>SLInput</code></a> - Text input fields with various types</li><li><a href="api/#ShoelaceWidgets.SLSelect"><code>SLSelect</code></a> - Dropdown selection components</li><li><a href="api/#ShoelaceWidgets.SLButton"><code>SLButton</code></a> - Interactive buttons</li><li><a href="api/#ShoelaceWidgets.SLCheckbox"><code>SLCheckbox</code></a> - Checkbox controls</li><li><a href="api/#ShoelaceWidgets.SLTextarea"><code>SLTextarea</code></a> - Multi-line text input</li><li><a href="api/#ShoelaceWidgets.SLRadio"><code>SLRadio</code></a> / <a href="api/#ShoelaceWidgets.SLRadioGroup"><code>SLRadioGroup</code></a> - Radio button controls (also available as <code>SLListItem</code> / <code>SLList</code> that provide different selection styling )</li><li><a href="api/#ShoelaceWidgets.SLProgressBar"><code>SLProgressBar</code></a> - Progress indicators and loading bars</li><li><a href="api/#ShoelaceWidgets.SLDialog"><code>SLDialog</code></a> - Dialog window</li></ul><h3 id="UI-Elements"><a class="docs-heading-anchor" href="#UI-Elements">UI Elements</a><a id="UI-Elements-1"></a><a class="docs-heading-anchor-permalink" href="#UI-Elements" title="Permalink"></a></h3><ul><li><code>sl_tab_group</code>, <code>sl_tab</code>, <code>sl_tab_panel</code> - Tab navigation</li><li><code>sl_tag</code> - Tags for labels and categories</li><li><code>sl_format_date</code> - Date formatting</li><li><code>sl_spinner</code> - Loading indicators</li><li><code>sl_icon</code> - Icons from the Shoelace icon library</li></ul><h2 id="Learn-More"><a class="docs-heading-anchor" href="#Learn-More">Learn More</a><a id="Learn-More-1"></a><a class="docs-heading-anchor-permalink" href="#Learn-More" title="Permalink"></a></h2><ul><li>Check out the <a href="api/">API Reference</a> for detailed documentation of all components</li><li>Visit the <a href="https://shoelace.style/">Shoelace documentation</a> to learn more about the underlying web components</li><li>See the <a href="https://bonito.jl.org/">Bonito.jl documentation</a> for information about the Julia web framework</li></ul></article><nav class="docs-footer"><a class="docs-footer-nextpage" href="api/">API Reference »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Tuesday 31 March 2026 10:02">Tuesday 31 March 2026</span>. Using Julia version 1.12.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
