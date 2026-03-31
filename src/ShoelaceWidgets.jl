@@ -16,6 +16,66 @@ export sl_tab_group, sl_tab, sl_tab_panel, sl_tag, sl_format_date, sl_spinner, s
 
 
 # ----------------------------------------
+const CSS = """
+    /* ---------------------------------------------------
+       Core CSS to make sl-radio look like sl-tree-item
+       --------------------------------------------------- */
+
+    /* Force the host element to be block level so it stacks properly */
+    sl-radio.tree-style {
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    /* 1. Base styling for the "row" */
+    sl-radio.tree-style::part(base) {
+      padding: var(--sl-spacing-x-small) var(--sl-spacing-small);
+      border-radius: var(--sl-border-radius-medium);
+      transition: background-color 150ms ease, color 150ms ease;
+      width: 100%; /* Makes it stretch like a tree node */
+      box-sizing: border-box;
+      cursor: pointer;
+    }
+
+    /* 2. Hover effect */
+    sl-radio.tree-style:hover::part(base) {
+      background-color: var(--sl-color-neutral-100);
+    }
+
+    /* 3. The "Selected" state highlight */
+    sl-radio.tree-style[checked]::part(base),
+    sl-radio.tree-style[aria-checked="true"]::part(base) {
+      background-color: var(--sl-color-primary-100);
+      color: var(--sl-color-primary-700);
+    }
+
+    /* Hide the little radio circle completely */
+    sl-radio.tree-style-hidden-circle::part(control) {
+      display: none;
+    }
+
+    /* Remove the gap between the hidden circle and the label */
+    sl-radio.tree-style-hidden-circle::part(base) {
+      gap: 0;
+      /* Make the left side flat for the bar, keep right side rounded */
+      border-radius: 0 var(--sl-border-radius-medium) var(--sl-border-radius-medium) 0;
+      /* Invisible border to prevent text shifting on selection */
+      border-left: 4px solid transparent; 
+    }
+
+    /* Add the blue bar indicator when checked */
+    sl-radio.tree-style-hidden-circle[checked]::part(base),
+    sl-radio.tree-style-hidden-circle[aria-checked="true"]::part(base) {
+      border-left-color: var(--sl-color-primary-600);
+    }
+
+    /* Ensure no stray padding exists on the label */
+    sl-radio.tree-style-hidden-circle::part(label) {
+      padding-inline-start: 0; 
+      /* Make the label take up full width for a bigger click target */
+      width: 100%; 
+    }
+"""
 
 """
     get_shoelace()
@@ -35,7 +95,8 @@ end
 """
 get_shoelace() = [
     DOM.link(;rel="stylesheet", href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/themes/light.css"),
-    DOM.script(;type="module", src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/shoelace-autoloader.js")
+    DOM.script(;type="module", src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/shoelace-autoloader.js"),
+    DOM.style(STYLE_CSS)
 ]
 
 """
@@ -826,132 +887,157 @@ function Bonito.jsrender(session::Session, x::SLDialog)
 end
 
 
-# ----------------------------------------
-# Tree
-# ----------------------------------------
-sl_tree(args...; kw...) = m("sl-tree", args...; kw...)
-sl_tree_item(args...; kw...) = m("sl-tree-item", args...; kw...)
+# -------------------------------------------------------
+# List (Same of SLRadio with SLTree like selection style)
+# -------------------------------------------------------
 
-"""
-    SLTreeItem(value)
-    SLTreeItem(value, children)
 
-Represents a single item in a tree structure.
 
-# Fields
-- `value::String` - Display text for the tree item
-- `values::Vector{SLTreeItem}` - Child tree items
 
-# Examples
-```julia
-# Leaf node
-item = SLTreeItem("File.txt")
 
-# Node with children
-folder = SLTreeItem("Documents", [
-    SLTreeItem("Report.pdf"),
-    SLTreeItem("Notes.txt")
-])
-```
-"""
-struct SLTreeItem
-    value::String
-    values::Vector{SLTreeItem}
-    selected::Observable{Bool}
+# NOTE: SLTree needs more work to be done properly, will remove for now
+# # ----------------------------------------
+# # Tree
+# # ----------------------------------------
+# sl_tree(args...; kw...) = m("sl-tree", args...; kw...)
+# sl_tree_item(args...; kw...) = m("sl-tree-item", args...; kw...)
 
-    SLTreeItem(value::String; selected=false) = new(value, SLTreeItem[], Observable(selected))
-    SLTreeItem(value::String, values::Vector{SLTreeItem}; selected=false) = new(value, values, Observable(selected))
-end
+# """
+#     SLTreeItem(value)
+#     SLTreeItem(value, children)
 
-"""
-    SLTree(items)
+# Represents a single item in a tree structure.
 
-Creates a hierarchical tree menu widget with reactive selection tracking.
+# # Fields
+# - `value::String` - Display text for the tree item
+# - `values::Vector{SLTreeItem}` - Child tree items
 
-# Fields
-- `values::Vector{SLTreeItem}` - Array of root-level tree items
-- `value::Observable{String}` - Observable containing the selected item's text
+# # Examples
+# ```julia
+# # Leaf node
+# item = SLTreeItem("File.txt")
 
-# Construction Methods
+# # Node with children
+# folder = SLTreeItem("Documents", [
+#     SLTreeItem("Report.pdf"),
+#     SLTreeItem("Notes.txt")
+# ])
+# ```
+# """
+# struct SLTreeItem
+#     value::String
+#     values::Vector{SLTreeItem}
+#     selected::Observable{Bool}
 
-**Using SLTreeItem objects**:
-```julia
-tree = SLTree([
-    SLTreeItem("Folder A", [
-        SLTreeItem("File 1"),
-        SLTreeItem("File 2")
-    ]),
-    SLTreeItem("Folder B", [SLTreeItem("File 3")])
-])
-```
+#     SLTreeItem(value::String; selected=false) = new(value, SLTreeItem[], Observable(selected))
+#     SLTreeItem(value::String, values::Vector{SLTreeItem}; selected=false) = new(value, values, Observable(selected))
+# end
 
-# Selection
-```julia
-# Monitor selection changes
-on(tree.value) do selected
-    println("Selected: ", selected)
-end
+# """
+#     SLTree(items)
 
-# Programmatically select item
-tree.value[] = "Maple"
-```
-"""
-struct SLTree
-    items::Observable{Vector{Hyperscript.Node}}
-    values::Vector{SLTreeItem}
-    value::Observable{String}
-end
+# Creates a hierarchical tree menu widget with reactive selection tracking.
 
-SLTree(values::Vector{SLTreeItem}) = SLTree(Observable(get_sl_tree_item.(values)), values, Observable(""))
-SLTree() = SLTree(Observable(Hyperscript.Node[]), SLTreeItem[], Observable(""))
+# # Fields
+# - `items::Observable{Vector{SLTreeItem}}` - Observable containing the root-level tree items
+# - `value::Observable{String}` - Observable containing the selected item's text
 
-function get_sl_tree_item(x::SLTreeItem)
-    item = if !isempty(x.values)
-        sl_tree_item(x.value, get_sl_tree_item.(x.values); expanded=true, selected=x.selected)
-    else
-        sl_tree_item(x.value; selected=x.selected)
-    end
+# # Construction Methods
 
-    return item
-end
+# **Using SLTreeItem objects**:
+# ```julia
+# tree = SLTree([
+#     SLTreeItem("Folder A", [
+#         SLTreeItem("File 1"),
+#         SLTreeItem("File 2")
+#     ]),
+#     SLTreeItem("Folder B", [SLTreeItem("File 3")])
+# ])
+# ```
 
-function Base.push!(x::SLTree, value::SLTreeItem)
-    push!(x.values, value)
-    push!(x.items[], get_sl_tree_item(value))
-    notify(x.items)
-end
+# # Selection
+# ```julia
+# # Monitor selection changes
+# on(tree.value) do selected
+#     println("Selected: ", selected)
+# end
 
-function Base.empty!(x::SLTree)
-    empty!(x.values)
-    empty!(x.items[])
-    notify(x.items)
-end
+# # Programmatically select an item
+# tree.items[][1].selected[] = true
+# ```
+# """
+# struct SLTree
+#     items::Observable{Vector{SLTreeItem}}
+#     value::Observable{String}
+# end
 
-function Base.popat!(x::SLTree, i::Int)
-    popat!(x.values, i)
-    popat!(x.items[], i)
-    notify(x.items)
-end
+# SLTree(values::Vector{SLTreeItem}) = SLTree(Observable(values), Observable(""))
+# SLTree() = SLTree(Observable(SLTreeItem[]), Observable(""))
 
-function Bonito.jsrender(session::Session, x::SLTree)
+# function Base.push!(x::SLTree, value::SLTreeItem)
+#     push!(x.items[], value)
+#     notify(x.items)
+# end
 
-    setup = js"""
-    function onload(element) {
-        function onchange(e) {
-            if (e.detail.selection.length > 0){
-                $(x.value).notify(e.detail.selection[0].innerText);
-            }
-        }
-        element.addEventListener("sl-selection-change", onchange);
-    }
-    """
+# function Base.empty!(x::SLTree)
+#     empty!(x.items[])
+#     notify(x.items)
+# end
 
-    dom = sl_tree(x.items)
+# function Base.popat!(x::SLTree, i::Int)
+#     popat!(x.items[], i)
+#     notify(x.items)
+# end
 
-    Bonito.onload(session, dom, setup)
+# function Bonito.jsrender(session::Session, x::SLTreeItem)
+    
+#     # setup = js"""
+#     # function onload(element) {
+#     #     function onchange(e) {
+#     #         $(x.value).notify(element.selected)
+#     #     }
+#     #     element.addEventListener("sl-change", onchange);
+#     # }
+#     # """
+    
+#     kwargs = x.selected[] ? [:selected => true] : []
+#     dom = if !isempty(x.values)
+#         sl_tree_item(x.value, x.values; expanded=true, kwargs...)
+#     else
+#         sl_tree_item(x.value; kwargs...)
+#     end
 
-    return Bonito.jsrender(session, dom)
-end
+#     update_selected = js"""
+#         function (value) {
+#             $(dom).selected = value
+#         }
+#     """
+#     onjs(session, x.selected, update_selected)
+
+#     # Bonito.onload(session, dom, setup)
+
+#     return Bonito.jsrender(session, dom)
+# end
+
+# function Bonito.jsrender(session::Session, x::SLTree)
+
+#     setup = js"""
+#     function onload(element) {
+#         function onchange(e) {
+#             if (e.detail.selection.length > 0){
+#                 $(x.value).notify(e.detail.selection[0].innerText);
+#             }
+#         }
+#         element.addEventListener("sl-selection-change", onchange);
+#     }
+#     """
+
+#     dom = sl_tree(x.items)
+
+#     Bonito.onload(session, dom, setup)
+
+#     return Bonito.jsrender(session, dom)
+# end
 
 
 # ----------------------------------------
