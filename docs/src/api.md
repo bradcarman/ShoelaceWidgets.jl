@@ -39,6 +39,8 @@ SLRadio
 SLRadioGroup
 ```
 
+Also exists as `SLListItem` and `SLList`, providing a different selection styling.
+
 ### Dialog
 
 ```@docs
@@ -46,11 +48,7 @@ SLDialog
 ```
 
 ### Tree
-
-```@docs
-SLTree
-SLTreeItem
-```
+NOTE: SLTree needs more work to be done properly, will remove for now
 
 ### Textarea
 
