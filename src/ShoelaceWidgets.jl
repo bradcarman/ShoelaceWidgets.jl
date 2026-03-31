@@ -786,6 +786,11 @@ function Base.push!(x::SLRadioGroup, value::SLRadioLike)
     notify(x.values)
 end
 
+function Base.insert!(x::SLRadioGroup, i, value::SLRadioLike)
+    insert!(x.values[], i, value)
+    notify(x.values)
+end
+
 function Base.empty!(x::SLRadioGroup)
     empty!(x.values[])
     x.value[] = "0"

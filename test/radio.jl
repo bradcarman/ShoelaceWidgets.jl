@@ -32,4 +32,9 @@ app = App() do session
     )
 end
 
+insert!(radio, 1, SLRadio("one"))
+popat!(radio, 2)
+radio.index=1
+radio.index=2
+
 @test true
