@@ -8,7 +8,7 @@ using Dates
 export get_shoelace
 
 # controls
-export SLInput, SLSelect, SLButton, SLRadio, SLRadioGroup, SLDialog, SLTree, SLTreeItem, SLCheckbox, SLTextarea, SLProgressBar
+export SLInput, SLSelect, SLButton, SLRadio, SLRadioGroup, SLDialog, SLList, SLListItem, SLCheckbox, SLTextarea, SLProgressBar
 
 # tags
 export sl_tab_group, sl_tab, sl_tab_panel, sl_tag, sl_format_date, sl_spinner, sl_icon, sl_card, sl_checkbox
@@ -649,10 +649,15 @@ end
 
 
 # ----------------------------------------
-# Radio
+# Radio & List
 # ----------------------------------------
+abstract type SLRadioLike end
+
 sl_radio_group(args...; kw...) = m("sl-radio-group", args...; kw...)
 sl_radio(args...; kw...) = m("sl-radio", args...; kw...)
+
+sl_list(args...; kw...) = m("sl-radio-group", args...; kw...)
+sl_list_item(args...; kw...) = m("sl-radio", args...; class="tree-style tree-style-hidden-circle", kw...)
 
 """
     SLRadio(value; disabled=false, object=nothing)
@@ -671,7 +676,7 @@ radio1 = SLRadio("Option A"; object=1)
 radio2 = SLRadio("Option B"; object=2, disabled=true)
 ```
 """
-mutable struct SLRadio
+mutable struct SLRadio <: SLRadioLike
     value::String
     disabled::Bool
     object::Any
@@ -679,9 +684,22 @@ mutable struct SLRadio
 end
 SLRadio(value::String; disabled=false, object=nothing) = SLRadio(value, disabled, object, 0)
 
-function Bonito.jsrender(session::Session, x::SLRadio)
+mutable struct SLListItem <: SLRadioLike
+    value::String
+    disabled::Bool
+    object::Any
+    index::Int
+end
+SLListItem(value::String; disabled=false, object=nothing) = SLListItem(value, disabled, object, 0)
+
+function Bonito.jsrender(session::Session, x::SLRadioLike)
     kwargs = x.disabled ? [:disabled => true] : []
-    dom = sl_radio(x.value; value=string(x.index), kwargs...)
+    f = if x isa SLRadio
+        sl_radio
+    elseif x isa SLListItem
+        sl_list_item
+    end
+    dom = f(x.value; value=string(x.index), kwargs...)
     return Bonito.jsrender(session, dom)
 end
 
@@ -723,14 +741,16 @@ group.index = 2
 """
 struct SLRadioGroup
     label::String
-    values::Observable{Vector{SLRadio}}
+    values::Observable{Vector{<:SLRadioLike}}
     value::Observable{String}
     help::String
     # index from getproperty
     # object from getproperty
 end
 
-function SLRadioGroup(values::Vector{SLRadio}; label::String = "", index=0, help::String="")
+SLList = SLRadioGroup
+
+function SLRadioGroup(values::Vector{<:SLRadioLike}; label::String = "", index=0, help::String="")
     for (i, r) in enumerate(values)
         r.index = i
     end
@@ -760,7 +780,7 @@ function Base.setproperty!(x::SLRadioGroup, name::Symbol, value::Int)
     end
 end
 
-function Base.push!(x::SLRadioGroup, value::SLRadio)
+function Base.push!(x::SLRadioGroup, value::SLRadioLike)
     value.index = length(x.values[]) + 1
     push!(x.values[], value)
     notify(x.values)
@@ -803,6 +823,8 @@ function Bonito.jsrender(session::Session, x::SLRadioGroup)
 
     return Bonito.jsrender(session, dom)
 end
+
+
 
 # ----------------------------------------
 # Dialog
