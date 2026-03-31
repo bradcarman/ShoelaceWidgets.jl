@@ -140,7 +140,7 @@ ShoelaceWidgets.jl provides Julia wrappers for common Shoelace components:
 - [`SLButton`](@ref) - Interactive buttons
 - [`SLCheckbox`](@ref) - Checkbox controls
 - [`SLTextarea`](@ref) - Multi-line text input
-- [`SLRadio`](@ref) / [`SLRadioGroup`](@ref) - Radio button controls (also available as [`SLListItem`](@ref) / [`SLList`](@ref) that provide different selection styling )
+- [`SLRadio`](@ref) / [`SLRadioGroup`](@ref) - Radio button controls (also available as `SLListItem` / `SLList` that provide different selection styling )
 - [`SLProgressBar`](@ref) - Progress indicators and loading bars
 - [`SLDialog`](@ref) - Dialog window
 
