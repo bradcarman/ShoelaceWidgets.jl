@@ -62,6 +62,12 @@ SLTextarea
 SLProgressBar
 ```
 
+### Alert
+
+```@docs
+SLAlert
+```
+
 ## UI Element Functions
 
 ### Tab Components
