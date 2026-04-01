@@ -28,3 +28,7 @@ end
 @testset "SLCheckbox" begin
     include("checkbox.jl")
 end
+
+@testset "SLAlert" begin
+    include("alert.jl")
+end

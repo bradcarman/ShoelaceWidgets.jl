@@ -8,7 +8,7 @@ using Dates
 export get_shoelace
 
 # controls
-export SLInput, SLSelect, SLButton, SLRadio, SLRadioGroup, SLDialog, SLList, SLListItem, SLCheckbox, SLTextarea, SLProgressBar
+export SLInput, SLSelect, SLButton, SLRadio, SLRadioGroup, SLDialog, SLList, SLListItem, SLCheckbox, SLTextarea, SLProgressBar, SLAlert
 
 # tags
 export sl_tab_group, sl_tab, sl_tab_panel, sl_tag, sl_format_date, sl_spinner, sl_icon, sl_card, sl_checkbox
@@ -1182,6 +1182,68 @@ function Bonito.jsrender(session::Session, x::SLProgressBar)
 
     return Bonito.jsrender(session, dom)
 end
+
+
+# ----------------------------------------
+# Alert
+# ----------------------------------------
+sl_alert(args...; kw...) = m("sl-alert", args...; kw...)
+
+"""
+    SLAlert(content; label="")
+
+Creates an alert with several variants
+
+# Fields
+- `value::Observable{Hyperscript.Node}` - Observable containing the dialog content
+- `variant::String` - type of alert: 'primary', 'success', 'neutral', 'warning', or 'danger'
+- `open::Observable{Bool}` - Observable controlling alert visibility
+- `icon::String` - type of icon: `info-circle` or `check2-circle` for example.  See full list [here](https://shoelace.style/components/icon)
+"""
+struct SLAlert
+    value::Observable{Hyperscript.Node}
+    variant::String
+    open::Observable{Bool}
+    icon::String
+end
+
+SLAlert(value::Hyperscript.Node; variant = "primary", open = true, icon="info-circle") = SLAlert(Observable(value), variant, Observable(open), icon)
+
+function Bonito.jsrender(session::Session, x::SLAlert)
+
+    setup = js"""
+    function onload(element) {
+
+        //function show(e){
+        //    $(x.open).notify(true);
+        //}
+
+        function hide(e){
+            if (e.target === element) {
+                $(x.open).notify(false);
+            }
+        }
+
+        //element.addEventListener("sl-show", show);
+        element.addEventListener("sl-hide", hide);
+    }
+    """
+
+    dom = sl_alert(x.value, sl_icon(;slot="icon", name=x.icon); variant=x.variant, open=x.open[], icon=x.icon)
+    open_close = js""" function (value) { 
+        if (value)
+            {
+                $(dom).show();
+            }else{
+                $(dom).hide();
+            }
+        } 
+    """
+    onjs(session, x.open, open_close)
+
+    return Bonito.jsrender(session, dom)
+end
+
 
 
 end # module ShoelaceWidgets

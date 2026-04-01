@@ -115,7 +115,6 @@ app = App() do session
     )
 end
 ```
-
 You can also show and hide progress bars dynamically:
 
 ```@example quickstart
@@ -127,6 +126,23 @@ progress.visible[] = true
 
 # Hide it again
 progress.visible[] = false
+```
+
+#### Alert
+Create an alert to display information...
+
+```@example quickstart
+alert = SLAlert(DOM.div(DOM.strong("This is super informative"), DOM.br(), DOM.div("You can tell by how pretty the alert is.")))
+app = App() do session
+    DOM.html(
+        DOM.head(
+            get_shoelace()...
+        ),
+        DOM.body(
+            alert            
+        )
+    )
+end
 ```
 
 
@@ -143,6 +159,7 @@ ShoelaceWidgets.jl provides Julia wrappers for common Shoelace components:
 - [`SLRadio`](@ref) / [`SLRadioGroup`](@ref) - Radio button controls (also available as `SLListItem` / `SLList` that provide different selection styling )
 - [`SLProgressBar`](@ref) - Progress indicators and loading bars
 - [`SLDialog`](@ref) - Dialog window
+- [`SLAlert`](@ref) - Alerts used to display important messages inline
 
 ### UI Elements
 - `sl_tab_group`, `sl_tab`, `sl_tab_panel` - Tab navigation
