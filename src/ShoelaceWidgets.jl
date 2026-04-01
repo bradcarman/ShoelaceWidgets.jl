@@ -243,7 +243,7 @@ function Bonito.jsrender(session::Session, x::SLInput{T}) where T
         push!(kwargs, :clearable => nothing)
     end
 
-    dom = sl_input(; label=x.label, type=x.type, value=x.value, helpText=x.help, placeholder=x.placeholder, kwargs...)
+    dom = sl_input(DOM.div(Bonito.HTML(x.help); slot="help-text"); label=x.label, type=x.type, value=x.value, placeholder=x.placeholder, kwargs...)
 
     disable = js"""
         function (value) {
@@ -366,7 +366,7 @@ function Bonito.jsrender(session::Session, x::SLSelect)
     }
     """
 
-    dom = sl_select(x.options; label=x.label, value=string(x.index[]), helpText=x.help)
+    dom = sl_select(x.options, DOM.div(Bonito.HTML(x.help); slot="help-text"); label=x.label, value=string(x.index[]))
     update_value = js""" function (value) { 
         $(dom).value = value.toString()
         } 
@@ -531,7 +531,7 @@ function Bonito.jsrender(session::Session, x::SLCheckbox)
         push!(kwargs, :disabled => true)
     end
 
-    dom = sl_checkbox(x.label; checked=x.value[], helpText=x.help, kwargs...)
+    dom = sl_checkbox(x.label, DOM.div(Bonito.HTML(x.help); slot="help-text"); checked=x.value[], kwargs...)
 
     disable = js"""
         function (value) {
@@ -622,7 +622,7 @@ function Bonito.jsrender(session::Session, x::SLTextarea)
         push!(kwargs, :disabled => true)
     end
 
-    dom = sl_textarea(; label=x.label, value=x.value, helpText=x.help, placeholder=x.placeholder, rows=x.rows, kwargs...)
+    dom = sl_textarea(DOM.div(Bonito.HTML(x.help); slot="help-text"); label=x.label, value=x.value, placeholder=x.placeholder, rows=x.rows, kwargs...)
 
     disable = js"""
         function (value) {
@@ -817,7 +817,7 @@ function Bonito.jsrender(session::Session, x::SLRadioGroup)
     }
     """
 
-    dom = sl_radio_group(x.values; label=x.label, value=x.value, helpText=x.help)
+    dom = sl_radio_group(x.values, DOM.div(Bonito.HTML(x.help); slot="help-text"); label=x.label, value=x.value)
     update_value = js""" function (value) {
         $(dom).value = value
         }

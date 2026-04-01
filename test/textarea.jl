@@ -3,7 +3,7 @@ using Bonito
 using ShoelaceWidgets
 
 
-textarea = SLTextarea(""; label="Comments", placeholder="Enter your comments here")
+textarea = SLTextarea(""; label="Comments", placeholder="Enter your comments here", help="test <strong>test</strong>")
 
 on(textarea.value) do text
     println("Textarea value: $text")

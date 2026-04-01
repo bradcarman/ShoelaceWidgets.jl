@@ -2,7 +2,7 @@ using Test
 using Bonito
 using ShoelaceWidgets
 
-select = SLSelect(["one", "two", "three"]; label="Test")
+select = SLSelect(["one", "two", "three"]; label="Test", help="test <strong>test</strong>")
 app = App() do session
     DOM.html(
         DOM.head(

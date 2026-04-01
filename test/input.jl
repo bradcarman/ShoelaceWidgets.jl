@@ -21,7 +21,7 @@ input.value[] = "Hello World"
 input.disabled[] = true
 input.disabled[] = false
 
-input = SLInput(0.0; help="enter a number from 1 to 10")
+input = SLInput(0.0; help="<ul><li>1 = bad</li><li>10 = good</li></ul>")
 app = App() do session
     DOM.html(
         DOM.head(

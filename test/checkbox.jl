@@ -3,7 +3,7 @@ using Bonito
 using ShoelaceWidgets
 
 
-checkbox = SLCheckbox("Accept terms")
+checkbox = SLCheckbox("Accept terms"; help="test <strong>test</strong>")
 
 on(checkbox.value) do checked
     println("Checkbox state: $checked")

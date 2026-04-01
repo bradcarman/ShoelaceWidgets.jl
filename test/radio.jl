@@ -20,7 +20,7 @@ radio.value[] = "1"
 radio.index = 2
 @test radio.index == 2
 
-radio = SLRadioGroup([SLRadio("one"; disabled=true), SLRadio("two")]; label="Test")
+radio = SLRadioGroup([SLRadio("one"; disabled=true), SLRadio("two")]; label="Test", help="test <strong>test</strong>")
 app = App() do session
     DOM.html(
         DOM.head(
