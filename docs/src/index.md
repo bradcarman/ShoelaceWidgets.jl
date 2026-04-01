@@ -18,7 +18,7 @@ using ShoelaceWidgets
 using Bonito
 
 # Create an input widget
-input = SLInput(""; label="Enter text:", placeholder="Type something...", help="help text can be in <strong>HTML</strong>)
+input = SLInput(""; label="Enter text:", placeholder="Type something...", help="help text can be in <strong>HTML</strong>")
 
 # Create a Bonito app
 app = App() do session
