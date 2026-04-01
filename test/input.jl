@@ -61,8 +61,17 @@ end
 
 input.value[] = "2026-03-01"
 
-
-input = SLInput{String}(Observable(""), "Date", "date", "", "Date")
+#=
+struct SLInput{T}
+    value::Observable{T}
+    label::String
+    type::String
+    help::String
+    placeholder::String
+    disabled::Observable{Bool}
+end
+=#
+input = SLInput{String}(Observable(""), "Date", "date", "", "Date", Observable(false))
 app = App() do session
     DOM.html(
         DOM.head(
