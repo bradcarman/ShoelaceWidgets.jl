@@ -71,7 +71,7 @@ struct SLInput{T}
     disabled::Observable{Bool}
 end
 =#
-input = SLInput{String}(Observable(""), "Date", "date", "", "Date", Observable(false))
+input = SLInput{String}(Observable(""), "Date", "date", "", "Date", Observable(false), "")
 app = App() do session
     DOM.html(
         DOM.head(
