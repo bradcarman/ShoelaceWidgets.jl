@@ -168,7 +168,7 @@ sl_checkbox(args...; kw...) = m("sl-checkbox", args...; kw...)
 sl_input(args...; kw...) = m("sl-input", args...; kw...)
 
 """
-    SLInput(default; label="", help="", placeholder="", disabled=false)
+    SLInput(default; label="", help="", placeholder="", disabled=false, style="")
 
 Creates a reactive input field widget. The input value is synchronized with Julia through an Observable.
 
@@ -179,6 +179,7 @@ Creates a reactive input field widget. The input value is synchronized with Juli
 - `help::String` - Help text displayed below the input
 - `placeholder::String` - Placeholder text shown when input is empty
 - `disabled::Observable{Bool}` - Observable controlling whether input is disabled
+- `style::String` - Inline CSS style applied to the input element
 
 # Examples
 ```julia
@@ -209,13 +210,14 @@ struct SLInput{T}
     help::String
     placeholder::String
     disabled::Observable{Bool}
+    style::String
 end
 
 get_type(::Type{String}) = ""
 get_type(::Type{T}) where T <: Number = "number"
 
-SLInput(default::T; label::String="", help::String="", placeholder::String="", disabled::Bool=false) where T = SLInput{T}(Observable(default), label, get_type(T), help, placeholder, Observable(disabled))
-SLInput(default::Date; label::String="", help::String="", disabled::Bool=false)  = SLInput{String}(Observable(string(default)), label, "date", help, "Date", Observable(disabled))
+SLInput(default::T; label::String="", help::String="", placeholder::String="", disabled::Bool=false, style::String="") where T = SLInput{T}(Observable(default), label, get_type(T), help, placeholder, Observable(disabled), style)
+SLInput(default::Date; label::String="", help::String="", disabled::Bool=false, style::String="") = SLInput{String}(Observable(string(default)), label, "date", help, "Date", Observable(disabled), style)
 
 
 function Bonito.jsrender(session::Session, x::SLInput{T}) where T
@@ -243,7 +245,7 @@ function Bonito.jsrender(session::Session, x::SLInput{T}) where T
         push!(kwargs, :clearable => nothing)
     end
 
-    dom = sl_input(DOM.div(Bonito.HTML(x.help); slot="help-text"); label=x.label, type=x.type, value=x.value, placeholder=x.placeholder, kwargs...)
+    dom = sl_input(DOM.div(Bonito.HTML(x.help); slot="help-text"); label=x.label, type=x.type, value=x.value, placeholder=x.placeholder, style=x.style, kwargs...)
 
     disable = js"""
         function (value) {
@@ -269,7 +271,7 @@ sl_option(args...; kw...) = m("sl-option", args...; kw...)
 sl_select(args...; kw...) = m("sl-select", args...; kw...)
 
 """
-    SLSelect(values; label="", index=0)
+    SLSelect(values; label="", index=0, help="", style="")
 
 Creates a dropdown select widget with reactive selection tracking.
 
@@ -279,6 +281,7 @@ Creates a dropdown select widget with reactive selection tracking.
 - `values::Vector{T}` - Array of selectable values
 - `index::Observable{Int}` - Observable containing the currently selected index (1-based)
 - `value` - Computed property returning `values[index[]]` (the currently selected value)
+- `style::String` - Inline CSS style applied to the select element
 
 # Methods
 - `push!(select, value)` - Add a new option
@@ -306,6 +309,7 @@ struct SLSelect{T}
     values::Vector{T}
     index::Observable{Int}
     help::String
+    style::String
     # value from getproperty
 end
 
@@ -317,9 +321,8 @@ function get_options(values::Vector)
     return options
 end
 
-function SLSelect(values::Vector{T}; label::String = "", index=0, help::String="") where T 
-    
-    return SLSelect(label, Observable(get_options(values)), values, Observable(index), help)
+function SLSelect(values::Vector{T}; label::String="", index=0, help::String="", style::String="") where T
+    return SLSelect(label, Observable(get_options(values)), values, Observable(index), help, style)
 end
 
 function Base.getproperty(x::SLSelect, name::Symbol)
@@ -366,7 +369,7 @@ function Bonito.jsrender(session::Session, x::SLSelect)
     }
     """
 
-    dom = sl_select(x.options, DOM.div(Bonito.HTML(x.help); slot="help-text"); label=x.label, value=string(x.index[]))
+    dom = sl_select(x.options, DOM.div(Bonito.HTML(x.help); slot="help-text"); label=x.label, value=string(x.index[]), style=x.style)
     update_value = js""" function (value) { 
         $(dom).value = value.toString()
         } 
@@ -384,7 +387,7 @@ end
 sl_button(args...; kw...) = m("sl-button", args...; kw...)
 
 """
-    SLButton(label; disabled=false, variant=nothing)
+    SLButton(label; disabled=false, variant=nothing, size=nothing, style="")
 
 Creates a clickable button widget with reactive state management.
 
@@ -394,6 +397,8 @@ Creates a clickable button widget with reactive state management.
 - `label::String` - Button text label
 - `loading::Observable{Bool}` - Observable controlling loading spinner state
 - `variant::Union{String, Nothing}` - Button style variant (e.g., "primary", "success", "danger")
+- `size::Union{String, Nothing}` - Button size (e.g., "small", "medium", "large")
+- `style::String` - Inline CSS style applied to the button element
 
 # Examples
 ```julia
@@ -419,9 +424,10 @@ struct SLButton
     loading::Observable{Bool}
     variant::Union{String, Nothing}
     size::Union{String, Nothing}
+    style::String
 end
 
-SLButton(label::String; disabled::Bool = false, variant=nothing, size=nothing) = SLButton(Observable(true), Observable(disabled), label, Observable(false), variant, size)
+SLButton(label::String; disabled::Bool=false, variant=nothing, size=nothing, style::String="") = SLButton(Observable(true), Observable(disabled), label, Observable(false), variant, size, style)
 
 function Bonito.jsrender(session::Session, x::SLButton)
 
@@ -444,7 +450,7 @@ function Bonito.jsrender(session::Session, x::SLButton)
         push!(kwargs, :size => x.size)
     end
 
-    dom = sl_button(x.label; onclick=click, kwargs...)
+    dom = sl_button(x.label; onclick=click, style=x.style, kwargs...)
 
     
     disable = js"""
@@ -478,7 +484,7 @@ end
 # ----------------------------------------
 
 """
-    SLCheckbox(label; checked=false, disabled=false)
+    SLCheckbox(label; checked=false, disabled=false, help="", style="")
 
 Creates a checkbox widget with reactive state management.
 
@@ -486,6 +492,8 @@ Creates a checkbox widget with reactive state management.
 - `value::Observable{Bool}` - Observable containing the checkbox state (checked/unchecked)
 - `disabled::Observable{Bool}` - Observable controlling whether checkbox is disabled
 - `label::String` - Checkbox label text
+- `help::String` - Help text displayed below the checkbox
+- `style::String` - Inline CSS style applied to the checkbox element
 
 # Examples
 ```julia
@@ -511,9 +519,10 @@ struct SLCheckbox
     disabled::Observable{Bool}
     label::String
     help::String
+    style::String
 end
 
-SLCheckbox(label::String; checked::Bool = false, disabled::Bool = false, help::String="") = SLCheckbox(Observable(checked), Observable(disabled), label, help)
+SLCheckbox(label::String; checked::Bool=false, disabled::Bool=false, help::String="", style::String="") = SLCheckbox(Observable(checked), Observable(disabled), label, help, style)
 
 function Bonito.jsrender(session::Session, x::SLCheckbox)
 
@@ -531,7 +540,7 @@ function Bonito.jsrender(session::Session, x::SLCheckbox)
         push!(kwargs, :disabled => true)
     end
 
-    dom = sl_checkbox(x.label, DOM.div(Bonito.HTML(x.help); slot="help-text"); checked=x.value[], kwargs...)
+    dom = sl_checkbox(x.label, DOM.div(Bonito.HTML(x.help); slot="help-text"); checked=x.value[], style=x.style, kwargs...)
 
     disable = js"""
         function (value) {
@@ -563,7 +572,7 @@ end
 sl_textarea(args...; kw...) = m("sl-textarea", args...; kw...)
 
 """
-    SLTextarea(default; label="", help="", placeholder="", rows=3, disabled=false)
+    SLTextarea(default; label="", help="", placeholder="", rows=3, disabled=false, style="")
 
 Creates a reactive textarea widget for multi-line text input. The textarea value is synchronized with Julia through an Observable.
 
@@ -574,6 +583,7 @@ Creates a reactive textarea widget for multi-line text input. The textarea value
 - `placeholder::String` - Placeholder text shown when textarea is empty
 - `rows::Int` - Number of visible text rows
 - `disabled::Observable{Bool}` - Observable controlling whether textarea is disabled
+- `style::String` - Inline CSS style applied to the textarea element
 
 # Examples
 ```julia
@@ -601,9 +611,10 @@ struct SLTextarea
     placeholder::String
     rows::Observable{Int}
     disabled::Observable{Bool}
+    style::String
 end
 
-SLTextarea(default::String=""; label::String="", help::String="", placeholder::String="", rows::Int=3, disabled::Bool=false) = SLTextarea(Observable(default), label, help, placeholder, Observable(rows), Observable(disabled))
+SLTextarea(default::String=""; label::String="", help::String="", placeholder::String="", rows::Int=3, disabled::Bool=false, style::String="") = SLTextarea(Observable(default), label, help, placeholder, Observable(rows), Observable(disabled), style)
 
 function Bonito.jsrender(session::Session, x::SLTextarea)
 
@@ -622,7 +633,7 @@ function Bonito.jsrender(session::Session, x::SLTextarea)
         push!(kwargs, :disabled => true)
     end
 
-    dom = sl_textarea(DOM.div(Bonito.HTML(x.help); slot="help-text"); label=x.label, value=x.value, placeholder=x.placeholder, rows=x.rows, kwargs...)
+    dom = sl_textarea(DOM.div(Bonito.HTML(x.help); slot="help-text"); label=x.label, value=x.value, placeholder=x.placeholder, rows=x.rows, style=x.style, kwargs...)
 
     disable = js"""
         function (value) {
@@ -704,7 +715,7 @@ function Bonito.jsrender(session::Session, x::SLRadioLike)
 end
 
 """
-    SLRadioGroup(values; label="", index=0)
+    SLRadioGroup(values; label="", index=0, help="", style="")
 
 Creates a radio button group widget with reactive selection tracking.
 
@@ -714,6 +725,7 @@ Creates a radio button group widget with reactive selection tracking.
 - `value::Observable{String}` - Observable containing the selected index as a string
 - `index` - Computed property returning the currently selected index (Int or nothing)
 - `object` - Computed property returning the associated object of the selected radio
+- `style::String` - Inline CSS style applied to the radio group element
 
 # Methods
 - `push!(group, radio)` - Add a new radio button
@@ -744,17 +756,18 @@ struct SLRadioGroup
     values::Observable{Vector{<:SLRadioLike}}
     value::Observable{String}
     help::String
+    style::String
     # index from getproperty
     # object from getproperty
 end
 
 SLList = SLRadioGroup
 
-function SLRadioGroup(values::Vector{<:SLRadioLike}; label::String = "", index=0, help::String="")
+function SLRadioGroup(values::Vector{<:SLRadioLike}; label::String="", index=0, help::String="", style::String="")
     for (i, r) in enumerate(values)
         r.index = i
     end
-    return SLRadioGroup(label, Observable(values), Observable(string(index)), help)
+    return SLRadioGroup(label, Observable(values), Observable(string(index)), help, style)
 end
 
 function Base.getproperty(x::SLRadioGroup, name::Symbol)
@@ -817,7 +830,7 @@ function Bonito.jsrender(session::Session, x::SLRadioGroup)
     }
     """
 
-    dom = sl_radio_group(x.values, DOM.div(Bonito.HTML(x.help); slot="help-text"); label=x.label, value=x.value)
+    dom = sl_radio_group(x.values, DOM.div(Bonito.HTML(x.help); slot="help-text"); label=x.label, value=x.value, style=x.style)
     update_value = js""" function (value) {
         $(dom).value = value
         }
@@ -837,7 +850,7 @@ end
 sl_dialog(args...; kw...) = m("sl-dialog", args...; kw...)
 
 """
-    SLDialog(content; label="")
+    SLDialog(content; label="", style="")
 
 Creates a modal dialog widget that can be shown or hidden.
 
@@ -845,6 +858,7 @@ Creates a modal dialog widget that can be shown or hidden.
 - `value::Observable{Hyperscript.Node}` - Observable containing the dialog content
 - `label::String` - Dialog title/header text
 - `open::Observable{Bool}` - Observable controlling dialog visibility
+- `style::String` - Inline CSS style applied to the dialog element
 
 # Examples
 ```julia
@@ -865,9 +879,10 @@ struct SLDialog
     value::Observable{Hyperscript.Node}
     label::String
     open::Observable{Bool}
+    style::String
 end
 
-SLDialog(value::Hyperscript.Node; label::String) = SLDialog(Observable(value), label, Observable(false))
+SLDialog(value::Hyperscript.Node; label::String, style="") = SLDialog(Observable(value), label, Observable(false), style)
 
 function Bonito.jsrender(session::Session, x::SLDialog)
 
@@ -889,7 +904,7 @@ function Bonito.jsrender(session::Session, x::SLDialog)
     }
     """
 
-    dom = sl_dialog(x.value; label=x.label)
+    dom = sl_dialog(x.value; label=x.label, style=x.style)
     open_close = js""" function (value) { 
         if (value)
             {
