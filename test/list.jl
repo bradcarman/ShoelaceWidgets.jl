@@ -2,7 +2,10 @@ using Test
 using Bonito
 using ShoelaceWidgets
 
-radio = SLList(SLListItem.(["one", "two", "three"]); label="Test")
+item1 = SLListItem("test 1")
+item2 = SLListItem(DOM.a("test 2"; href="https://www.google.com/"))
+
+radio = SLList([item1, item2]; label="Test")
 app = App() do session
     DOM.html(
         DOM.head(

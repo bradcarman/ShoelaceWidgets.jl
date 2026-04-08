@@ -8,7 +8,7 @@ using Dates
 export get_shoelace
 
 # controls
-export SLInput, SLSelect, SLButton, SLRadio, SLRadioGroup, SLDialog, SLList, SLListItem, SLCheckbox, SLTextarea, SLProgressBar, SLAlert
+export SLInput, SLSelect, SLButton, SLRadio, SLRadioGroup, SLDialog, SLList, SLListItem, SLCheckbox, SLTextarea, SLProgressBar, SLAlert, SLDetails
 
 # tags
 export sl_tab_group, sl_tab, sl_tab_panel, sl_tag, sl_format_date, sl_spinner, sl_icon, sl_card, sl_checkbox
@@ -696,12 +696,12 @@ end
 SLRadio(value::String; disabled=false, object=nothing) = SLRadio(value, disabled, object, 0)
 
 mutable struct SLListItem <: SLRadioLike
-    value::String
+    value::Union{String, Hyperscript.Node}
     disabled::Bool
     object::Any
     index::Int
 end
-SLListItem(value::String; disabled=false, object=nothing) = SLListItem(value, disabled, object, 0)
+SLListItem(value::Union{String, Hyperscript.Node}; disabled=false, object=nothing) = SLListItem(value, disabled, object, 0)
 
 function Bonito.jsrender(session::Session, x::SLRadioLike)
     kwargs = x.disabled ? [:disabled => true] : []
@@ -920,6 +920,61 @@ function Bonito.jsrender(session::Session, x::SLDialog)
 
     return Bonito.jsrender(session, dom)
 end
+
+
+# ----------------------------------------
+# Details
+# ----------------------------------------
+sl_details(args...; kw...) = m("sl-details", args...; kw...)
+
+
+struct SLDetails
+    value::Observable{Hyperscript.Node}
+    summary::String
+    open::Observable{Bool}
+    style::String
+end
+
+SLDetails(value::Hyperscript.Node; summary::String, style="") = SLDetails(Observable(value), summary, Observable(false), style)
+
+function Bonito.jsrender(session::Session, x::SLDetails)
+
+    setup = js"""
+    function onload(element) {
+
+        //function show(e){
+        //    $(x.open).notify(true);
+        //}
+
+        function hide(e){
+            if (e.target === element) {
+                $(x.open).notify(false);
+            }
+        }
+
+        //element.addEventListener("sl-show", show);
+        element.addEventListener("sl-hide", hide);
+    }
+    """
+
+    dom = sl_details(x.value; summary=x.summary, style=x.style)
+    open_close = js""" function (value) { 
+        if (value)
+            {
+                $(dom).show();
+            }else{
+                $(dom).hide();
+            }
+        } 
+    """
+    onjs(session, x.open, open_close)
+
+    Bonito.onload(session, dom, setup)
+
+    return Bonito.jsrender(session, dom)
+end
+
+
 
 
 # -------------------------------------------------------
