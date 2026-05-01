@@ -163,10 +163,36 @@ ShoelaceWidgets.jl provides Julia wrappers for common Shoelace components:
 
 ### UI Elements
 - `sl_tab_group`, `sl_tab`, `sl_tab_panel` - Tab navigation
+
+```@example quickstart
+tabs = sl_tab_group(
+    
+    sl_tab("Tab 1"; slot="nav", panel="tab1"),
+    sl_tab("Tab 2"; slot="nav", panel="tab2"),
+    
+
+    sl_tab_panel(DOM.div("Hello World"); name="tab1"),
+    sl_tab_panel(DOM.div("Goodbye"); name="tab2")
+)
+
+app = App() do session
+    DOM.html(
+        DOM.head(
+            get_shoelace()...
+        ),
+        DOM.body(
+            tabs
+        )
+    )
+end
+```
+
 - `sl_tag` - Tags for labels and categories
 - `sl_format_date` - Date formatting
 - `sl_spinner` - Loading indicators
-- `sl_icon` - Icons from the Shoelace icon library
+- `sl_icon` - Icons from the [Shoelace Icon Library](https://shoelace.style/components/icon)
+
+
 
 ## Learn More
 
