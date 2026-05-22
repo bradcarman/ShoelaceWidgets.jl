@@ -1216,7 +1216,7 @@ function Bonito.jsrender(session::Session, x::SLProgressBar)
         push!(style_attrs, :display => "none")
     end
 
-    dom = sl_progress_bar(; value=x.value[], kwargs..., style_attrs...)
+    dom = sl_progress_bar(; value=x.value[], kwargs..., style=join(("$k: $v" for (k, v) in style_attrs), ";"))
 
     # Update value when Observable changes
     update_value = js"""

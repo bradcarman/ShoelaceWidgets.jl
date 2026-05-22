@@ -4,7 +4,7 @@ using ShoelaceWidgets
 
 
 # Test basic progress bar
-progress = SLProgressBar(50.0; label="Loading")
+progress = SLProgressBar(50.0; label="Loading", visible=false)
 
 app = App() do session
     DOM.html(
@@ -18,6 +18,7 @@ app = App() do session
 end
 
 # Test updating progress value
+progress.visible[] = true
 progress.value[] = 75.0
 
 
