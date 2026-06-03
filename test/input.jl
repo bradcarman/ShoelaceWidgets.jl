@@ -3,7 +3,6 @@ using Bonito
 using ShoelaceWidgets
 using Dates
 
-
 input = SLInput(""; label="Test", placeholder="Name")
 app = App() do session
     DOM.html(
@@ -96,6 +95,21 @@ app = App() do session
 end
 
 #=
+
+# check proper rendering in the browser
+
+input = ShoelaceWidgets.sl_input(""; value="£", label="Test")
+app = App() do session
+    DOM.html(
+        DOM.head(
+            get_shoelace()...
+        ),
+        DOM.body(
+            input
+        )
+    )
+end
+
 port = 80
 url = "0.0.0.0"
 server = Bonito.Server(app, url, port)

@@ -2,8 +2,14 @@ using Test
 using Bonito
 using ShoelaceWidgets
 
-item1 = SLListItem("test 1")
-item2 = SLListItem(DOM.a("test 2"; href="https://www.google.com/"))
+button = SLButton("Test")
+
+on(button.value) do x
+    println("Hello World")
+end
+
+item1 = SLListItem(DOM.div("test 1", button))
+item2 = SLListItem("test 2")
 
 radio = SLList([item1, item2]; label="Test")
 app = App() do session

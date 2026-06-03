@@ -78,10 +78,11 @@ const STYLE_CSS = """
 """
 
 """
-    get_shoelace()
+    get_shoelace(charset="UTF-8")
 
 Returns an array of DOM elements (link and script tags) needed to load the Shoelace web component library from CDN.
-This should be included in the document head of your Bonito application.
+This should be included in the document head of your Bonito application.  The `charset` is also included which is not
+specifically required by Shoelace.style but is defaulted to UTF-8 to ensure Julia Unicode is rendered correctly in browsers.
 
 # Example
 ```julia
@@ -93,7 +94,8 @@ app = App() do session
 end
 ```
 """
-get_shoelace() = [
+get_shoelace(charset="UTF-8") = [
+    DOM.meta(;charset),
     DOM.link(;rel="stylesheet", href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/themes/light.css"),
     DOM.script(;type="module", src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/shoelace-autoloader.js"),
     DOM.style(STYLE_CSS)
