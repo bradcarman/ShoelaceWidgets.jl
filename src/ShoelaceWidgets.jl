@@ -11,7 +11,7 @@ export get_shoelace
 export SLInput, SLSelect, SLButton, SLRadio, SLRadioGroup, SLDialog, SLList, SLListItem, SLCheckbox, SLTextarea, SLProgressBar, SLAlert, SLDetails
 
 # tags
-export sl_tab_group, sl_tab, sl_tab_panel, sl_tag, sl_format_date, sl_spinner, sl_icon, sl_card, sl_checkbox
+export sl_tab_group, sl_tab, sl_tab_panel, sl_tag, sl_format_date, sl_spinner, sl_icon, sl_card, sl_checkbox, sl_tooltip
 
 
 
@@ -128,6 +128,13 @@ sl_tab_panel(args...; kw...) = m("sl-tab-panel", args...; kw...)
 Creates a Shoelace tag component. Tags are used for labels, categories, and keyword indicators.
 """
 sl_tag(args...; kw...) = m("sl-tag", args...; kw...)
+
+"""
+    sl_tooltip(args...; kw...)
+
+Creates a Shoelace tooltip component. Use the `content` keyword to set the tooltip contents.
+"""
+sl_tooltip(args...; kw...) = m("sl-tooltip", args...; kw...)
 
 """
     sl_format_date(args...; kw...)

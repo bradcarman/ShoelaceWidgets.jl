@@ -191,7 +191,22 @@ end
 - `sl_format_date` - Date formatting
 - `sl_spinner` - Loading indicators
 - `sl_icon` - Icons from the [Shoelace Icon Library](https://shoelace.style/components/icon)
+- `sl_tooltop` - Tooltip display during mouse hover 
 
+```julia
+button = SLButton("Test")
+
+app = App() do session
+    DOM.html(
+        DOM.head(
+            get_shoelace()...
+        ),
+        DOM.body(
+            sl_tooltip(button; content="click me")
+        )
+    )
+end
+```
 
 
 ## Learn More

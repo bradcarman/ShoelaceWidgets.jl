@@ -15,7 +15,7 @@ app = App() do session
             get_shoelace()...
         ),
         DOM.body(
-            button
+            sl_tooltip(button; content="click me")
         )
     )
 end
