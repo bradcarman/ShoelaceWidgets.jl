@@ -193,7 +193,7 @@ end
 - `sl_icon` - Icons from the [Shoelace Icon Library](https://shoelace.style/components/icon)
 - `sl_tooltop` - Tooltip display during mouse hover 
 
-```julia
+```@example quickstart
 button = SLButton("Test")
 
 app = App() do session
