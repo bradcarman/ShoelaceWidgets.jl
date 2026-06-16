@@ -401,7 +401,7 @@ sl_button(args...; kw...) = m("sl-button", args...; kw...)
 Creates a clickable button widget with reactive state management.
 
 # Fields
-- `value::Observable{Bool}` - Observable that triggers (set to true) when button is clicked
+- `value::Observable{Union{Session,Nothing}}` - Observable set to the active `Session` when the button is clicked (`nothing` before any click), enabling handlers to call `Bonito.evaljs(session, ...)`
 - `disabled::Observable{Bool}` - Observable controlling whether button is disabled
 - `label::String` - Button text label
 - `loading::Observable{Bool}` - Observable controlling loading spinner state
@@ -427,7 +427,7 @@ btn.loading[] = true
 ```
 """
 struct SLButton
-    value::Observable{Bool}
+    value::Observable{Union{Session,Nothing}}
     disabled::Observable{Bool}
     label::String
     loading::Observable{Bool}
@@ -436,15 +436,24 @@ struct SLButton
     style::String
 end
 
-SLButton(label::String; disabled::Bool=false, variant=nothing, size=nothing, style::String="") = SLButton(Observable(true), Observable(disabled), label, Observable(false), variant, size, style)
+SLButton(label::String; disabled::Bool=false, variant=nothing, size=nothing, style::String="") = SLButton(Observable(nothing), Observable(disabled), label, Observable(false), variant, size, style)
 
 function Bonito.jsrender(session::Session, x::SLButton)
 
+    # The active Session is only available here, as the first argument to
+    # jsrender. The browser cannot send it back to us, so JS just notifies a
+    # local trigger and we set `value` to the captured `session` Julia-side.
+    clicked = Observable(false)
+
     click = js"""
-        function (value) { 
-            $(x.value).notify(true)
-        } 
+        function (event) {
+            $(clicked).notify(true)
+        }
     """
+
+    on(session, clicked) do _
+        x.value[] = session
+    end
 
     kwargs = Pair[]
     if x.disabled[]
