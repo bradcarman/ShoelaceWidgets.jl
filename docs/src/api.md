@@ -87,4 +87,5 @@ sl_spinner
 sl_icon
 sl_card
 sl_checkbox
+sl_tooltip
 ```
