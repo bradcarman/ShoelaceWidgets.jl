@@ -14,6 +14,16 @@ app = App() do session
     )
 end
 
+select.index[]=1
+insert!(select, 1, "four")
+
+@test select.index[] == 1
+@test select.value == "four"
+
+
+
+
+
 select = SLSelect(["one", "two", "three"]; label="Test", index=1)
 app = App() do session
     DOM.html(

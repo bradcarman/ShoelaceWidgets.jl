@@ -346,6 +346,17 @@ function Base.getproperty(x::SLSelect, name::Symbol)
     end
 end
 
+function Base.insert!(x::SLSelect{T}, i, value::T) where T
+    insert!(x.values, i, value)
+    x.options[] = get_options(x.values)
+    notify(x.options)
+    # trigger a display refresh
+    if x.index[] == i
+        x.index[] = 0
+        x.index[] = i
+    end
+end
+
 function Base.push!(x::SLSelect{T}, value::T) where T
     push!(x.values, value)
     push!(x.options[], sl_option(value; value=length(x.values)))
