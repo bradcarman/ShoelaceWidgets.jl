@@ -220,13 +220,14 @@ struct SLInput{T}
     placeholder::String
     disabled::Observable{Bool}
     style::String
+    select_on_focus::Bool
 end
 
 get_type(::Type{String}) = ""
 get_type(::Type{T}) where T <: Number = "number"
 
-SLInput(default::T; label::String="", help::String="", placeholder::String="", disabled::Bool=false, style::String="") where T = SLInput{T}(Observable(default), label, get_type(T), help, placeholder, Observable(disabled), style)
-SLInput(default::Date; label::String="", help::String="", disabled::Bool=false, style::String="") = SLInput{String}(Observable(string(default)), label, "date", help, "Date", Observable(disabled), style)
+SLInput(default::T; label::String="", help::String="", placeholder::String="", disabled::Bool=false, style::String="", select_on_focus::Bool=false) where T = SLInput{T}(Observable(default), label, get_type(T), help, placeholder, Observable(disabled), style, select_on_focus)
+SLInput(default::Date; label::String="", help::String="", disabled::Bool=false, style::String="", select_on_focus::Bool=false) = SLInput{String}(Observable(string(default)), label, "date", help, "Date", Observable(disabled), style, select_on_focus)
 
 
 function Bonito.jsrender(session::Session, x::SLInput{T}) where T
@@ -242,6 +243,10 @@ function Bonito.jsrender(session::Session, x::SLInput{T}) where T
             }
         }
         element.addEventListener("sl-change", onchange);
+        if ($(x.select_on_focus)) {
+            // highlight existing contents on focus so the user can type over them
+            element.addEventListener("sl-focus", function () { element.select(); });
+        }
     }
     """
 
