@@ -388,7 +388,12 @@ function Bonito.jsrender(session::Session, x::SLSelect)
     setup = js"""
     function onload(element) {
         function onchange(e) {
-            $(x.index).notify(parseInt(element.value))
+            // Guard against empty/non-numeric element.value: parseInt("") is NaN,
+            // and pushing NaN into an Observable{Int} throws InexactError server-side.
+            const idx = parseInt(element.value)
+            if (Number.isInteger(idx)) {
+                $(x.index).notify(idx)
+            }
         }
         element.addEventListener("sl-change", onchange);
     }
