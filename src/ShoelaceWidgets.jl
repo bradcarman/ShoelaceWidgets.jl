@@ -221,13 +221,15 @@ struct SLInput{T}
     disabled::Observable{Bool}
     style::String
     select_on_focus::Bool
+    min::Real
+    max::Real
 end
 
 get_type(::Type{String}) = ""
 get_type(::Type{T}) where T <: Number = "number"
 
-SLInput(default::T; label::String="", help::String="", placeholder::String="", disabled::Bool=false, style::String="", select_on_focus::Bool=false) where T = SLInput{T}(Observable(default), label, get_type(T), help, placeholder, Observable(disabled), style, select_on_focus)
-SLInput(default::Date; label::String="", help::String="", disabled::Bool=false, style::String="", select_on_focus::Bool=false) = SLInput{String}(Observable(string(default)), label, "date", help, "Date", Observable(disabled), style, select_on_focus)
+SLInput(default::T; label::String="", help::String="", placeholder::String="", disabled::Bool=false, style::String="", select_on_focus::Bool=false, min=NaN, max=NaN) where T = SLInput{T}(Observable(default), label, get_type(T), help, placeholder, Observable(disabled), style, select_on_focus, min, max)
+SLInput(default::Date; label::String="", help::String="", disabled::Bool=false, style::String="", select_on_focus::Bool=false) = SLInput{String}(Observable(string(default)), label, "date", help, "Date", Observable(disabled), style, select_on_focus, NaN, NaN) #TODO: support date min/max
 
 
 function Bonito.jsrender(session::Session, x::SLInput{T}) where T
@@ -257,9 +259,21 @@ function Bonito.jsrender(session::Session, x::SLInput{T}) where T
 
     if T <: Number
         push!(kwargs, :clearable => nothing)
+        if !isnan(x.min)
+            push!(kwargs, :min => x.min)
+        end
+        if !isnan(x.max)
+            push!(kwargs, :max => x.max)
+        end
     end
 
-    dom = sl_input(DOM.div(Bonito.HTML(x.help); slot="help-text"); label=x.label, type=x.type, value=x.value, placeholder=x.placeholder, style=x.style, kwargs...)
+    dom = sl_input(DOM.div(Bonito.HTML(x.help); slot="help-text"); 
+                    label=x.label, 
+                    type=x.type, 
+                    value=x.value, 
+                    placeholder=x.placeholder, 
+                    style=x.style, 
+                    kwargs...)
 
     disable = js"""
         function (value) {

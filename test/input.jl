@@ -20,7 +20,7 @@ input.value[] = "Hello World"
 input.disabled[] = true
 input.disabled[] = false
 
-input = SLInput(0.0; help="<ul><li>1 = bad</li><li>10 = good</li></ul>")
+input = SLInput(0.0; help="<ul><li>1 = bad</li><li>10 = good</li></ul>", min=0, max=10)
 app = App() do session
     DOM.html(
         DOM.head(
