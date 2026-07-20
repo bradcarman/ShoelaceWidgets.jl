@@ -208,6 +208,19 @@ app = App() do session
 end
 ```
 
+- `sl_copy_button` - send contents of value to the clipboard
+```@example quickstart
+app = App() do session
+    DOM.html(
+        DOM.head(
+            get_shoelace()...
+        ),
+        DOM.body(
+            DOM.div("Copy Button:", sl_copy_button(;value="clipboard contents"))
+        )
+    )
+end
+```
 
 ## Learn More
 

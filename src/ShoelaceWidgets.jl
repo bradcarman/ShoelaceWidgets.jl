@@ -11,7 +11,7 @@ export get_shoelace
 export SLInput, SLSelect, SLButton, SLRadio, SLRadioGroup, SLDialog, SLList, SLListItem, SLCheckbox, SLTextarea, SLProgressBar, SLAlert, SLDetails
 
 # tags
-export sl_tab_group, sl_tab, sl_tab_panel, sl_tag, sl_format_date, sl_spinner, sl_icon, sl_card, sl_checkbox, sl_tooltip
+export sl_tab_group, sl_tab, sl_tab_panel, sl_tag, sl_format_date, sl_spinner, sl_icon, sl_card, sl_checkbox, sl_tooltip, sl_copy_button
 
 
 
@@ -170,6 +170,14 @@ sl_card(args...; kw...) = m("sl-card", args...; kw...)
 Creates a Shoelace checkbox component. Checkboxes allow users to toggle an option on or off.
 """
 sl_checkbox(args...; kw...) = m("sl-checkbox", args...; kw...)
+
+"""
+    sl_copy_button(args...; kw...)
+
+Creates a Shoelace copy button component, contents passed to the `value` keyword are sent to the clipboard.
+"""
+sl_copy_button(args...; kw...) = m("sl-copy-button", args...; kw...)
+
 
 # ----------------------------------------
 # Input
