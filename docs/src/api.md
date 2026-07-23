@@ -88,4 +88,5 @@ sl_icon
 sl_card
 sl_checkbox
 sl_tooltip
+sl_copy_button
 ```
