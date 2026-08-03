@@ -10,6 +10,9 @@ export get_shoelace
 # controls
 export SLInput, SLSelect, SLButton, SLRadio, SLRadioGroup, SLDialog, SLList, SLListItem, SLCheckbox, SLTextarea, SLProgressBar, SLAlert, SLDetails
 
+# composite controls
+export ListManager
+
 # tags
 export sl_tab_group, sl_tab, sl_tab_panel, sl_tag, sl_format_date, sl_spinner, sl_icon, sl_card, sl_checkbox, sl_tooltip, sl_copy_button
 
@@ -294,6 +297,16 @@ function Bonito.jsrender(session::Session, x::SLInput{T}) where T
     """
     onjs(session, x.disabled, disable)
 
+
+    # focus = js"""
+    #     function (value) {
+    #         if (value) {
+    #             $(dom).select()
+    #         } 
+    #     }            
+    # """
+    # onjs(session, x.focus, focus)
+
     Bonito.onload(session, dom, setup)
 
     return Bonito.jsrender(session, dom)
@@ -384,6 +397,8 @@ function Base.insert!(x::SLSelect{T}, i, value::T) where T
     end
 end
 
+#TODO: add append!
+
 function Base.push!(x::SLSelect{T}, value::T) where T
     push!(x.values, value)
     push!(x.options[], sl_option(value; value=length(x.values)))
@@ -446,7 +461,7 @@ Creates a clickable button widget with reactive state management.
 # Fields
 - `value::Observable{Union{Session,Nothing}}` - Observable set to the active `Session` when the button is clicked (`nothing` before any click), enabling handlers to call `Bonito.evaljs(session, ...)`
 - `disabled::Observable{Bool}` - Observable controlling whether button is disabled
-- `label::String` - Button text label
+- `label::Union{String, Hyperscript.Node}` - Button content: text, or a node such as an `sl_icon` for an icon-only button
 - `loading::Observable{Bool}` - Observable controlling loading spinner state
 - `variant::Union{String, Nothing}` - Button style variant (e.g., "primary", "success", "danger")
 - `size::Union{String, Nothing}` - Button size (e.g., "small", "medium", "large")
@@ -472,14 +487,14 @@ btn.loading[] = true
 struct SLButton
     value::Observable{Union{Session,Nothing}}
     disabled::Observable{Bool}
-    label::String
+    label::Union{String, Hyperscript.Node}
     loading::Observable{Bool}
     variant::Union{String, Nothing}
     size::Union{String, Nothing}
     style::String
 end
 
-SLButton(label::String; disabled::Bool=false, variant=nothing, size=nothing, style::String="") = SLButton(Observable(nothing), Observable(disabled), label, Observable(false), variant, size, style)
+SLButton(label::Union{String, Hyperscript.Node}; disabled::Bool=false, variant=nothing, size=nothing, style::String="") = SLButton(Observable(nothing), Observable(disabled), label, Observable(false), variant, size, style)
 
 function Bonito.jsrender(session::Session, x::SLButton)
 
@@ -902,6 +917,25 @@ function Bonito.jsrender(session::Session, x::SLRadioGroup)
 
     return Bonito.jsrender(session, dom)
 end
+
+function get_values(list::SLRadioGroup)
+    values = []
+    for x in list.values[]
+        push!(values, x.value)
+    end
+
+    return values
+end
+
+function get_objects(list::SLRadioGroup)
+    values = []
+    for x in list.values[]
+        push!(values, x.object)
+    end
+
+    return values
+end
+
 
 
 
@@ -1375,6 +1409,8 @@ function Bonito.jsrender(session::Session, x::SLAlert)
     return Bonito.jsrender(session, dom)
 end
 
+
+include("list_manager.jl")
 
 
 end # module ShoelaceWidgets

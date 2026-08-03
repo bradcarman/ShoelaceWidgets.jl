@@ -32,3 +32,7 @@ end
 @testset "SLAlert" begin
     include("alert.jl")
 end
+
+@testset "ListManager" begin
+    include("list_manager.jl")
+end
