@@ -11,7 +11,7 @@ export get_shoelace
 export SLInput, SLSelect, SLButton, SLRadio, SLRadioGroup, SLDialog, SLList, SLListItem, SLCheckbox, SLTextarea, SLProgressBar, SLAlert, SLDetails
 
 # composite controls
-export ListManager
+export ListManager, DialogManager
 
 # tags
 export sl_tab_group, sl_tab, sl_tab_panel, sl_tag, sl_format_date, sl_spinner, sl_icon, sl_card, sl_checkbox, sl_tooltip, sl_copy_button
@@ -74,9 +74,18 @@ const STYLE_CSS = """
 
     /* Ensure no stray padding exists on the label */
     sl-radio.tree-style-hidden-circle::part(label) {
-      padding-inline-start: 0; 
+      padding-inline-start: 0;
       /* Make the label take up full width for a bigger click target */
-      width: 100%; 
+      width: 100%;
+    }
+
+    /* ---------------------------------------------------
+       DialogManager: OK and Cancel are the only way out, so
+       remove the header close button rather than leave a
+       control that does nothing
+       --------------------------------------------------- */
+    sl-dialog.dialog-manager::part(close-button) {
+      display: none;
     }
 """
 
@@ -1410,6 +1419,8 @@ function Bonito.jsrender(session::Session, x::SLAlert)
 end
 
 
+# dialog_manager first: ListManager has a DialogManager field
+include("dialog_manager.jl")
 include("list_manager.jl")
 
 

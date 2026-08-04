@@ -20,22 +20,39 @@ flow is driven by an [`SLDialog`](@ref) the user may dismiss.
 The move up and move down buttons reorder the list, and the selection follows the item as it moves,
 so the same item can be walked to either end with repeated clicks.
 
-Buttons disable themselves when they do not apply: delete while no item is selected, clear while the
-list is empty, and the two moves at the corresponding end of the list. Deleting or clearing drops the
-selection.
+Passing `edit_function` adds a pencil button that edits the selected item through a
+[`DialogManager`](@ref) owned by the manager, whose body is the `edit_content` node. It is called as
+`edit_function(manager, action)` with an [`OpenOKCancel`](@ref):
+
+- `Open` when the button is clicked. `manager.dialog.value[]` has already been seeded with the
+  selected item's value, so this seeds the editors in `edit_content` from it.
+- `OK` when the user accepts. Commit the editors, typically with
+  [`replace_selected!`](@ref).
+- `Cancel` when the user rejects. Nothing has been committed, so this normally needs no branch.
+
+Because the dialog cannot be dismissed by the overlay, escape, or a close button, exactly one `OK` or
+`Cancel` follows every `Open`.
+
+Leaving `edit_function` as `nothing` means no edit button and no dialog are created at all, and both
+the `edit` and `dialog` fields are `nothing`.
+
+Buttons disable themselves when they do not apply: delete and edit while no item is selected, clear
+while the list is empty, and the two moves at the corresponding end of the list. Deleting or clearing
+drops the selection.
 
 # Fields
 - `list::SLList` - The underlying list; use `list.index` and `list.object` to inspect the selection
 - `add::SLButton` - The add button
 - `delete::SLButton` - The delete button
 - `clear::SLButton` - The clear button
+- `edit::Union{SLButton, Nothing}` - The edit button, an `sl_icon` pencil, or `nothing`
 - `move_up::SLButton` - The move up button, an `sl_icon` arrow
 - `move_down::SLButton` - The move down button, an `sl_icon` arrow
+- `dialog::Union{DialogManager, Nothing}` - The OK/Cancel edit dialog, or `nothing`
 - `add_function::Function` - Called as `add_function(session)`, returns a new value or `nothing`
 - `item_function::Function` - Maps a value to the `SLListItem` used to display it
 - `get_function::Function` - Maps an `SLListItem` back to its value, the inverse of `item_function`
-- `move_up_tooltip::String` - Tooltip text for the move up button
-- `move_down_tooltip::String` - Tooltip text for the move down button
+- `edit_function::Union{Function, Nothing}` - Called as `edit_function(manager, action)`
 - `style::String` - Inline CSS style applied to the wrapping element
 
 # Methods
@@ -45,6 +62,8 @@ selection.
 - `deleteat!(manager, i)` - Remove the item at index i
 - `empty!(manager)` - Remove all items
 - `moveat!(manager, from, to)` - Move the item at `from` to position `to`
+- `open_editor!(manager)` - Open the edit dialog for the selected item
+- `replace_selected!(manager, value)` - Replace the selected item, for an `OK` branch
 
 # Examples
 ```julia
@@ -75,6 +94,21 @@ manager.list.object  # the selected item's object
 
 # Cancel an add by returning nothing
 manager = ListManager(String[], session -> nothing)
+
+# Edit the selected item in an OK/Cancel dialog. The editor lives in edit_content,
+# is seeded on Open, and is committed on OK. Cancel needs no branch.
+editor = SLInput(""; label="Value")
+function edit_function(manager, action)
+    if action == Open
+        editor.value[] = manager.dialog.value[]      # already seeded from the selection
+    elseif action == OK
+        ShoelaceWidgets.replace_selected!(manager, editor.value[])
+    end
+end
+manager = ListManager(["alpha", "beta"], session -> "new";
+                      edit_function,
+                      edit_content = DOM.div(editor),
+                      dialog_label = "Edit item")
 ```
 """
 struct ListManager{T}
@@ -82,13 +116,14 @@ struct ListManager{T}
     add::SLButton
     delete::SLButton
     clear::SLButton
+    edit::Union{SLButton, Nothing}
     move_up::SLButton
     move_down::SLButton
+    dialog::Union{DialogManager, Nothing}
     add_function::Function
     item_function::Function
     get_function::Function
-    move_up_tooltip::String
-    move_down_tooltip::String
+    edit_function::Union{Function, Nothing}
     style::String
 end
 
@@ -113,25 +148,47 @@ function ListManager(values::Vector{T}, add_function::Function;
                      help::String="",
                      item_function::Function=default_item,
                      get_function::Function=default_get,
-                     add_label::String="add",
-                     delete_label::String="delete",
-                     clear_label::String="clear",
-                     move_up_tooltip::String="move up",
-                     move_down_tooltip::String="move down",
+                     edit_function::Union{Function, Nothing}=nothing,
+                     edit_content::Hyperscript.Node=DOM.div(),
+                     dialog_label::String="Edit",
+                     dialog_style::String="",
                      style::String="") where T
 
+    # the dialog callback needs the manager, which does not exist yet
+    manager = Ref{Any}(nothing)
+
+    # no edit_function means no edit button and no dialog at all
+    edit = isnothing(edit_function) ? nothing :
+           SLButton(sl_icon(; name="pencil"); variant="text", size="small", disabled=true)
+
+    dialog = isnothing(edit_function) ? nothing :
+             DialogManager(Observable{Union{T, Nothing}}(nothing), edit_content,
+                           function (d, action)
+                               m = manager[]
+                               # seed the dialog value from the selection on open
+                               if action == Open
+                                   i = selected_index(m)
+                                   d.value[] = isnothing(i) ? nothing : m.get_function(m.list.values[][i])
+                               end
+                               m.edit_function(m, action)
+                           end;
+                           label=dialog_label, style=dialog_style)
+
     x = ListManager{T}(SLList(SLListItem[]; label, help),
-                       SLButton(add_label; variant="text", size="small"),
-                       SLButton(delete_label; variant="text", size="small", disabled=true), # nothing is selected yet
-                       SLButton(clear_label; variant="text", size="small", disabled=true),  # populated by append! below
+                       SLButton(sl_icon(; name="plus-circle"); variant="text", size="small"),
+                       SLButton(sl_icon(; name="dash-circle"); variant="text", size="small", disabled=true), # nothing is selected yet
+                       SLButton(sl_icon(; name="x-circle"); variant="text", size="small", disabled=true),  # populated by append! below
+                       edit,
                        SLButton(sl_icon(; name="arrow-up"); variant="text", size="small", disabled=true),
                        SLButton(sl_icon(; name="arrow-down"); variant="text", size="small", disabled=true),
+                       dialog,
                        add_function,
                        item_function,
                        get_function,
-                       move_up_tooltip,
-                       move_down_tooltip,
+                       edit_function,
                        style)
+
+    manager[] = x
 
     # delete only applies to a selection, which deleting or clearing drops
     on(x.list.value) do _
@@ -162,6 +219,12 @@ function ListManager(values::Vector{T}, add_function::Function;
     on(x.move_down.value) do session
         isnothing(session) && return
         move_down!(x)
+    end
+
+    # the DialogManager routes OK and Cancel to edit_function itself
+    isnothing(x.edit) || on(x.edit.value) do session
+        isnothing(session) && return
+        open_editor!(x)
     end
 
     append!(x, values)
@@ -253,9 +316,39 @@ function move_down!(x::ListManager)
 end
 
 """
+    open_editor!(x::ListManager)
+
+Opens the edit dialog, which seeds `x.dialog.value` from the selected item and then runs
+`x.edit_function(x, Open)`. Does nothing when no `edit_function` was supplied or nothing is selected.
+"""
+function open_editor!(x::ListManager)
+    isnothing(x.dialog) && return x
+    isnothing(selected_index(x)) && return x
+    open!(x.dialog)
+    return x
+end
+
+"""
+    replace_selected!(x::ListManager, value)
+
+Replaces the selected item with `x.item_function(value)`, keeping its position and the selection.
+This is what an `edit_function` calls in its `OK` branch to commit an edit. Does nothing when there
+is no selection.
+"""
+function replace_selected!(x::ListManager, value)
+    i = selected_index(x)
+    isnothing(i) && return x
+    item = x.item_function(value)
+    item.index = i
+    x.list.values[][i] = item
+    notify(x.list.values)
+    return x
+end
+
+"""
     update_buttons!(x::ListManager)
 
-Syncs the delete, clear and reorder buttons with the current selection and list length.
+Syncs the delete, clear, edit and reorder buttons with the current selection and list length.
 """
 function update_buttons!(x::ListManager)
     i = selected_index(x)
@@ -263,6 +356,7 @@ function update_buttons!(x::ListManager)
     x.clear.disabled[] = isempty(x)
     x.move_up.disabled[] = isnothing(i) || (i == 1)
     x.move_down.disabled[] = isnothing(i) || (i == length(x))
+    isnothing(x.edit) || (x.edit.disabled[] = isnothing(i))
     return x
 end
 
@@ -297,8 +391,14 @@ Base.isempty(x::ListManager) = isempty(x.list.values[])
 
 function Bonito.jsrender(session::Session, x::ListManager)
     # NOTE: Shoelace tooltips do not fire on disabled elements, so these only show when enabled
-    buttons = DOM.div(x.add, x.delete, x.clear,
-                      sl_tooltip(x.move_up; content=x.move_up_tooltip),
-                      sl_tooltip(x.move_down; content=x.move_down_tooltip))
-    return Bonito.jsrender(session, DOM.div(x.list, buttons; style=x.style))
+    buttons = Any[sl_tooltip(x.add; content="add"), sl_tooltip(x.delete; content="remove"), sl_tooltip(x.clear; content="clear")]
+    isnothing(x.edit) || push!(buttons, sl_tooltip(x.edit; content="edit"))
+    push!(buttons, sl_tooltip(x.move_up; content="move up"))
+    push!(buttons, sl_tooltip(x.move_down; content="move down"))
+
+    # the dialog has to be in the document for it to be shown
+    children = Any[x.list, DOM.div(buttons...)]
+    isnothing(x.dialog) || push!(children, x.dialog)
+
+    return Bonito.jsrender(session, DOM.div(children...; style=x.style))
 end

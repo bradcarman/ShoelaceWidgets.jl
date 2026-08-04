@@ -1,7 +1,8 @@
 using Test
 using Bonito
 using ShoelaceWidgets
-using ShoelaceWidgets: get_values, delete_selected!, selected_index, move_up!, move_down!, moveat!
+using ShoelaceWidgets: get_values, delete_selected!, selected_index, move_up!, move_down!, moveat!,
+                       open_editor!, replace_selected!, accept!, reject!
 
 # ----------------------------------
 # TEST 1: default item_function/get_function
@@ -270,3 +271,115 @@ html = render_html(points)
 
 # the inline editor variant renders an SLInput per row
 @test occursin("sl-input", render_html(manager))
+
+# with no edit_function there is no edit button and no dialog
+@test isnothing(points.edit)
+@test isnothing(points.dialog)
+@test isnothing(points.edit_function)
+# NOTE: "sl-dialog" alone appears in the stylesheet, so match the opening tag
+@test !occursin("<sl-dialog", html)
+@test !occursin("pencil", html)
+
+# open_editor! is a harmless no-op without an edit_function
+points.list.index = 1
+open_editor!(points)
+@test isnothing(points.dialog)
+
+
+# ----------------------------------
+# TEST 5: edit button and DialogManager
+# ----------------------------------
+calls = Tuple{OpenOKCancel, Union{Int, Nothing}}[]
+edit_input = SLInput(""; label="Value")
+
+function edit_fn(m, action)
+    push!(calls, (action, selected_index(m)))
+    if action == Open
+        edit_input.value[] = m.dialog.value[]         # seeded from the selection
+    elseif action == OK
+        replace_selected!(m, edit_input.value[])
+    end
+end
+
+editable = ListManager(["a", "b", "c"], session -> "x";
+                       label="Editable",
+                       edit_function=edit_fn,
+                       edit_content=DOM.div(edit_input),
+                       dialog_label="Edit item")
+
+app = App() do session
+    DOM.html(
+        DOM.head(
+            get_shoelace()...
+        ),
+        DOM.body(
+            editable
+        )
+    )
+end
+
+@test !isnothing(editable.edit)
+@test editable.dialog isa DialogManager
+@test editable.edit_function === edit_fn
+
+# edit is selection scoped, like delete
+@test editable.edit.disabled[] == true
+@test isempty(calls)
+
+editable.list.index = 2
+@test editable.edit.disabled[] == false
+
+# opening seeds dialog.value from the selection, then runs the Open action
+open_editor!(editable)
+@test calls == [(Open, 2)]
+@test editable.dialog.open[] == true
+@test editable.dialog.value[] == "b"
+@test edit_input.value[] == "b"
+
+# OK commits through replace_selected! and closes
+edit_input.value[] = "BEE"
+accept!(editable.dialog)
+@test calls == [(Open, 2), (OK, 2)]
+@test get_values(editable) == ["a", "BEE", "c"]
+@test editable.dialog.open[] == false
+@test selected_index(editable) == 2                   # the selection survives the commit
+@test [item.index for item in editable.list.values[]] == [1, 2, 3]
+
+# Cancel discards the edit
+open_editor!(editable)
+@test editable.dialog.value[] == "BEE"
+edit_input.value[] = "discarded"
+reject!(editable.dialog)
+@test calls == [(Open, 2), (OK, 2), (Open, 2), (Cancel, 2)]
+@test get_values(editable) == ["a", "BEE", "c"]
+@test editable.dialog.open[] == false
+
+# no selection: the button disables and open_editor! is a no-op
+editable.list.index = 0
+@test isnothing(selected_index(editable))
+@test editable.edit.disabled[] == true
+open_editor!(editable)
+@test length(calls) == 4
+@test editable.dialog.open[] == false
+
+# replace_selected! is a no-op without a selection
+replace_selected!(editable, "ignored")
+@test get_values(editable) == ["a", "BEE", "c"]
+
+# deleting drops the selection, which disables edit again
+editable.list.index = 1
+@test editable.edit.disabled[] == false
+delete_selected!(editable)
+@test get_values(editable) == ["BEE", "c"]
+@test editable.edit.disabled[] == true
+
+# the dialog, its OK/Cancel footer and the pencil icon are rendered
+html = render_html(editable)
+@test occursin("<sl-dialog label=\"Edit item\"", html)
+@test occursin("class=\"dialog-manager\"", html)
+@test occursin("slot=\"footer\"", html)
+@test occursin("<sl-tooltip content=\"edit\"", html)
+@test occursin("name=\"pencil\"", html)
+
+# the edit button sits between clear and the arrows
+@test first(findfirst("name=\"pencil\"", html)) < first(findfirst("name=\"arrow-up\"", html))

@@ -36,3 +36,7 @@ end
 @testset "ListManager" begin
     include("list_manager.jl")
 end
+
+@testset "DialogManager" begin
+    include("dialog_manager.jl")
+end

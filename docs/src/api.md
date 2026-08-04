@@ -68,6 +68,13 @@ SLProgressBar
 SLAlert
 ```
 
+## Composite Components
+
+```@docs
+DialogManager
+ListManager
+```
+
 ## UI Element Functions
 
 ### Tab Components
