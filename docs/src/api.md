@@ -41,6 +41,14 @@ SLRadioGroup
 
 Also exists as `SLListItem` and `SLList`, providing a different selection styling.
 
+### List
+
+```@docs
+SLList
+```
+
+
+
 ### Dialog
 
 ```@docs
@@ -96,4 +104,24 @@ sl_card
 sl_checkbox
 sl_tooltip
 sl_copy_button
+```
+
+## Internals
+```@docs
+ShoelaceWidgets.reject! 
+ShoelaceWidgets.default_get 
+ShoelaceWidgets.open_editor! 
+ShoelaceWidgets.move_up! 
+ShoelaceWidgets.accept! 
+ShoelaceWidgets.default_item 
+ShoelaceWidgets.update_buttons! 
+ShoelaceWidgets.prevent_close_js 
+ShoelaceWidgets.open! 
+ShoelaceWidgets.OpenOKCancel
+ShoelaceWidgets.replace_selected! 
+ShoelaceWidgets.delete_selected! 
+ShoelaceWidgets.moveat! 
+ShoelaceWidgets.selected_index 
+ShoelaceWidgets.move_down! 
+ShoelaceWidgets.get_values 
 ```

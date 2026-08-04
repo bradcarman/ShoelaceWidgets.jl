@@ -2,7 +2,7 @@ using Test
 using Bonito
 using ShoelaceWidgets
 using ShoelaceWidgets: get_values, delete_selected!, selected_index, move_up!, move_down!, moveat!,
-                       open_editor!, replace_selected!, accept!, reject!
+                       open_editor!, replace_selected!, accept!, reject!, OpenOKCancel, Open, OK, Cancel
 
 # ----------------------------------
 # TEST 1: default item_function/get_function
