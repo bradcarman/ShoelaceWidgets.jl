@@ -21,6 +21,24 @@ export sl_tab_group, sl_tab, sl_tab_panel, sl_tag, sl_format_date, sl_spinner, s
 # ----------------------------------------
 const STYLE_CSS = """
     /* ---------------------------------------------------
+       Shoelace ships `.radio { align-items: top }`, which is
+       not a valid align-items value, so it is dropped and the
+       circle falls back to stretch (pinned to the top). That
+       is invisible for one line of text because the label
+       carries `line-height: var(--toggle-size)`, but any block
+       content (a div holding another widget) leaves the circle
+       stranded at the top. Center it, and drop the single-line
+       line-height so block content is not distorted.
+       --------------------------------------------------- */
+    sl-radio::part(base) {
+      align-items: center;
+    }
+
+    sl-radio::part(label) {
+      line-height: normal;
+    }
+
+    /* ---------------------------------------------------
        Core CSS to make sl-radio look like sl-tree-item
        --------------------------------------------------- */
 
@@ -773,12 +791,12 @@ radio2 = SLRadio("Option B"; object=2, disabled=true)
 ```
 """
 mutable struct SLRadio <: SLRadioLike
-    value::String
+    value::Union{String, Hyperscript.Node}
     disabled::Bool
     object::Any
     index::Int
 end
-SLRadio(value::String; disabled=false, object=nothing) = SLRadio(value, disabled, object, 0)
+SLRadio(value::Union{String, Hyperscript.Node}; disabled=false, object=nothing) = SLRadio(value, disabled, object, 0)
 
 mutable struct SLListItem <: SLRadioLike
     value::Union{String, Hyperscript.Node}

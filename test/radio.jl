@@ -37,4 +37,21 @@ popat!(radio, 2)
 radio.index=1
 radio.index=2
 
+
+option1 = SLRadio(DOM.div("option 1", SLSelect(["A", "B"]); style="display:flex; align-items: center; gap: 0.5rem"))
+option2 = SLRadio(DOM.div("option 2", SLSelect(["C", "D"]); style="display:flex; align-items: center; gap: 0.5rem"))
+
+
+radio = SLRadioGroup([option1, option2]; label="Complex Options")
+app = App() do session
+    DOM.html(
+        DOM.head(
+            get_shoelace()...
+        ),
+        DOM.body(
+            radio
+        )
+    )
+end
+
 @test true
