@@ -37,12 +37,13 @@ popat!(radio, 2)
 radio.index=1
 radio.index=2
 
+select1 = SLSelect(["A", "B"])
+option1 = SLRadio(DOM.div("option 1", select1; style="display:flex; align-items: center; gap: 0.5rem"); object=select1)
+option2 = SLRadio(DOM.div(SLSelect(["C", "D"]; label="option 2"); style="display:flex; align-items: center; gap: 0.5rem"))
+option3 = SLRadio(DOM.div(SLSelect(["C", "D"]; label="option 3")))
 
-option1 = SLRadio(DOM.div("option 1", SLSelect(["A", "B"]); style="display:flex; align-items: center; gap: 0.5rem"))
-option2 = SLRadio(DOM.div("option 2", SLSelect(["C", "D"]); style="display:flex; align-items: center; gap: 0.5rem"))
 
-
-radio = SLRadioGroup([option1, option2]; label="Complex Options")
+radio = SLRadioGroup([option1, option2, option3]; label="Complex Options")
 app = App() do session
     DOM.html(
         DOM.head(

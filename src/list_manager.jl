@@ -42,6 +42,7 @@ drops the selection.
 
 # Fields
 - `list::SLList` - The underlying list; use `list.index` and `list.object` to inspect the selection
+- `label::String` - Label text, rendered above the bordered list rather than inside it
 - `add::SLButton` - The add button
 - `delete::SLButton` - The delete button
 - `clear::SLButton` - The clear button
@@ -54,6 +55,8 @@ drops the selection.
 - `get_function::Function` - Maps an `SLListItem` back to its value, the inverse of `item_function`
 - `edit_function::Union{Function, Nothing}` - Called as `edit_function(manager, action)`
 - `style::String` - Inline CSS style applied to the wrapping element
+- `list_style::String` - Inline CSS style for the bordered, scrolling box around the items
+- `label_style::String` - Inline CSS style for the label above that box
 
 # Methods
 - `get_values(manager)` - Read the current values as a `Vector{T}`
@@ -113,6 +116,7 @@ manager = ListManager(["alpha", "beta"], session -> "new";
 """
 struct ListManager{T}
     list::SLList
+    label::String
     add::SLButton
     delete::SLButton
     clear::SLButton
@@ -125,6 +129,8 @@ struct ListManager{T}
     get_function::Function
     edit_function::Union{Function, Nothing}
     style::String
+    list_style::String
+    label_style::String
 end
 
 """
@@ -152,7 +158,9 @@ function ListManager(values::Vector{T}, add_function::Function;
                      edit_content::Hyperscript.Node=DOM.div(),
                      dialog_label::String="Edit",
                      dialog_style::String="",
-                     style::String="") where T
+                     style::String="",
+                     list_style="max-height: 40vh; min-height: 12pt; overflow-y: auto; padding: 5px; border: 1px solid lightgray;",
+                     label_style="display: inline-block; color: var(--sl-input-label-color); font-size: var(--sl-input-label-font-size-medium); margin-bottom: var(--sl-spacing-3x-small);") where T
 
     # the dialog callback needs the manager, which does not exist yet
     manager = Ref{Any}(nothing)
@@ -174,7 +182,10 @@ function ListManager(values::Vector{T}, add_function::Function;
                            end;
                            label=dialog_label, style=dialog_style)
 
-    x = ListManager{T}(SLList(SLListItem[]; label, help),
+    # the label is rendered above the bordered list rather than passed to SLList,
+    # which would place it inside the border
+    x = ListManager{T}(SLList(SLListItem[]; help),
+                       label,
                        SLButton(sl_icon(; name="plus-circle"); variant="text", size="small"),
                        SLButton(sl_icon(; name="dash-circle"); variant="text", size="small", disabled=true), # nothing is selected yet
                        SLButton(sl_icon(; name="x-circle"); variant="text", size="small", disabled=true),  # populated by append! below
@@ -186,7 +197,9 @@ function ListManager(values::Vector{T}, add_function::Function;
                        item_function,
                        get_function,
                        edit_function,
-                       style)
+                       style,
+                       list_style,
+                       label_style)
 
     manager[] = x
 
@@ -391,13 +404,21 @@ Base.isempty(x::ListManager) = isempty(x.list.values[])
 
 function Bonito.jsrender(session::Session, x::ListManager)
     # NOTE: Shoelace tooltips do not fire on disabled elements, so these only show when enabled
-    buttons = Any[sl_tooltip(x.add; content="add"), sl_tooltip(x.delete; content="remove"), sl_tooltip(x.clear; content="clear")]
+    buttons = [sl_tooltip(x.add; content="add"), sl_tooltip(x.delete; content="remove"), sl_tooltip(x.clear; content="clear")]
     isnothing(x.edit) || push!(buttons, sl_tooltip(x.edit; content="edit"))
     push!(buttons, sl_tooltip(x.move_up; content="move up"))
     push!(buttons, sl_tooltip(x.move_down; content="move down"))
 
+    # the border belongs to this wrapper, so the label goes above it rather than
+    # inside the sl-radio-group
+    scroll = DOM.div(x.list; style=x.list_style)
+
+    children = Any[]
+    isempty(x.label) || push!(children, DOM.div(x.label; style=x.label_style))
+    push!(children, scroll)
+    push!(children, DOM.div(buttons...))
+
     # the dialog has to be in the document for it to be shown
-    children = Any[x.list, DOM.div(buttons...)]
     isnothing(x.dialog) || push!(children, x.dialog)
 
     return Bonito.jsrender(session, DOM.div(children...; style=x.style))
