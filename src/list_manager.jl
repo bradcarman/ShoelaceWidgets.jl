@@ -5,9 +5,22 @@
 # Matches Shoelace's own form control labels, so the label rendered above the
 # bordered list looks native next to every other widget's label.
 
+"""
+    AddMode
+
+Selects how a [`ListManager`](@ref) interprets its `add_function`:
+
+- `FunctionMode` - `add_function(session)` returns the value to append
+- `DialogMode` - `add_function(manager, action)` drives an OK/Cancel dialog
+
+Named `FunctionMode` rather than `Function` because a bare `Function` would collide with
+`Base.Function`, which this module uses throughout in type annotations.
+"""
+@enum AddMode FunctionMode DialogMode
+
 
 """
-    ListManager(values::Vector{T}; add_function=nothing, label="", help="", item_function=default_item, get_function=default_get, style="")
+    ListManager(values::Vector{T}; add_function=nothing, add_mode=FunctionMode, label="", help="", item_function=default_item, get_function=default_get, style="")
 
 Creates a composite control that pairs an [`SLList`](@ref) with add, delete, clear and reorder
 buttons, managing a list of arbitrary Julia values.
@@ -17,18 +30,18 @@ itself is the source of truth from then on, so an item may hold live sub-widgets
 for inline editing, for example). Call [`get_values`](@ref) to read the current values back out;
 it applies `get_function` to every item and returns a `Vector{T}`.
 
-There are two ways to add an item, and one of them should be supplied:
+`add_function` drives the add button, and `add_mode` (an [`AddMode`](@ref)) decides how it is called:
 
-- `add_function(session)` is called with the active `Bonito.Session` when the add button is clicked
-  and returns the value to append, or `nothing` to cancel. Good for values needing no input.
-- `add_dialog_function(manager, action)` instead opens an OK/Cancel dialog whose body is the
-  `add_content` node, for building a composite value field by field. It is called with an
+- `FunctionMode` (the default) calls `add_function(session)` with the active `Bonito.Session` when
+  the button is clicked. It returns the value to append, or `nothing` to cancel. Good for values
+  needing no input.
+- `DialogMode` instead opens an OK/Cancel dialog whose body is the `add_content` node, for building
+  a composite value field by field, and calls `add_function(manager, action)` with an
   [`OpenOKCancel`](@ref): on `Open` initialize your editors (nothing is seeded, since a new value has
   no prior state), and on `OK` assemble the value and `push!(manager, value)` yourself. `Cancel`
   normally needs no branch, as nothing was appended.
 
-Supplying `add_dialog_function` takes precedence over `add_function`. Supplying neither leaves the
-add button disabled, since clicking it would do nothing.
+Leaving `add_function` as `nothing` disables the add button, since clicking it would do nothing.
 
 The move up and move down buttons reorder the list, and the selection follows the item as it moves,
 so the same item can be walked to either end with repeated clicks.
@@ -63,12 +76,12 @@ drops the selection.
 - `move_up::SLButton` - The move up button, an `sl_icon` arrow
 - `move_down::SLButton` - The move down button, an `sl_icon` arrow
 - `dialog::Union{DialogManager, Nothing}` - The OK/Cancel edit dialog, or `nothing`
-- `add_dialog::Union{DialogManager, Nothing}` - The OK/Cancel add dialog, or `nothing`
-- `add_function::Union{Function, Nothing}` - Called as `add_function(session)`, returns a value or `nothing`
+- `add_dialog::Union{DialogManager, Nothing}` - The OK/Cancel add dialog, or `nothing` in `FunctionMode`
+- `add_function::Union{Function, Nothing}` - Called per `add_mode`, or `nothing` to disable adding
+- `add_mode::AddMode` - `FunctionMode` or `DialogMode`
 - `item_function::Function` - Maps a value to the `SLListItem` used to display it
 - `get_function::Function` - Maps an `SLListItem` back to its value, the inverse of `item_function`
 - `edit_function::Union{Function, Nothing}` - Called as `edit_function(manager, action)`
-- `add_dialog_function::Union{Function, Nothing}` - Called as `add_dialog_function(manager, action)`
 - `style::String` - Inline CSS style applied to the wrapping element
 - `list_style::String` - Inline CSS style for the bordered, scrolling box around the items
 
@@ -118,7 +131,7 @@ manager = ListManager(String[]; add_function = session -> nothing)
 # so Open initializes the editors and OK assembles the value and pushes it.
 xin = SLInput(0.0; label="x")
 yin = SLInput(0.0; label="y")
-function add_dialog_function(manager, action)
+function add_function(manager, action)
     if action == Open
         xin.value[] = 0.0
         yin.value[] = 0.0
@@ -127,9 +140,10 @@ function add_dialog_function(manager, action)
     end
 end
 manager = ListManager(Point[];
-                      add_dialog_function,
+                      add_function,
+                      add_mode = ShoelaceWidgets.DialogMode,
                       add_content = DOM.div(xin, yin),
-                      add_dialog_label = "Add point",
+                      add_label = "Add point",
                       item_function = p -> SLListItem("(\$(p.x), \$(p.y))"; object=p))
 
 # Edit the selected item in an OK/Cancel dialog. The editor lives in edit_content,
@@ -161,10 +175,10 @@ struct ListManager{T}
     dialog::Union{DialogManager, Nothing}
     add_dialog::Union{DialogManager, Nothing}
     add_function::Union{Function, Nothing}
+    add_mode::AddMode
     item_function::Function
     get_function::Function
     edit_function::Union{Function, Nothing}
-    add_dialog_function::Union{Function, Nothing}
     style::String
     list_style::String
 end
@@ -186,19 +200,19 @@ Default `get_function` for [`ListManager`](@ref): returns the item's `object`, w
 default_get(item::SLListItem) = item.object
 
 function ListManager(values::Vector{T};
-                     add_function::Union{Function, Nothing}=nothing,
+                     add_function::Union{Function, Nothing}=nothing, #add_function(session) or add_function(manager, action)
+                     add_mode::AddMode=FunctionMode,
                      label::String="",
                      help::String="",
                      item_function::Function=default_item,
                      get_function::Function=default_get,
-                     edit_function::Union{Function, Nothing}=nothing,
+                     edit_function::Union{Function, Nothing}=nothing, #edit_function(manager, action)
                      edit_content::Hyperscript.Node=DOM.div(),
-                     add_dialog_function::Union{Function, Nothing}=nothing,
                      add_content::Hyperscript.Node=DOM.div(),
                      dialog_label::String="Edit",
-                     add_dialog_label::String="Add",
-                     dialog_style="--width: 75vw;",
+                     add_label::String="Add",
                      style::String="",
+                     dialog_style="--width: 75vw;",
                      list_style="height: 40vh; overflow-y: auto; padding: 5px; border: 1px solid lightgray;") where T
 
     # the dialog callback needs the manager, which does not exist yet
@@ -223,14 +237,14 @@ function ListManager(values::Vector{T};
 
     # the add dialog builds a brand new value, so there is nothing to seed from;
     # initializing the editors is the callback's job
-    add_dialog = isnothing(add_dialog_function) ? nothing :
+    add_dialog = (add_mode != DialogMode || isnothing(add_function)) ? nothing :
                  DialogManager(Observable{Union{T, Nothing}}(nothing), add_content,
                                function (d, action)
                                    m = manager[]
                                    action == Open && (d.value[] = nothing)
-                                   m.add_dialog_function(m, action)
+                                   m.add_function(m, action)
                                end;
-                               label=add_dialog_label, style=dialog_style)
+                               label=add_label, style=dialog_style)
 
     # the label is rendered above the bordered list rather than passed to SLList,
     # which would place it inside the border
@@ -245,10 +259,10 @@ function ListManager(values::Vector{T};
                        dialog,
                        add_dialog,
                        add_function,
+                       add_mode,
                        item_function,
                        get_function,
                        edit_function,
-                       add_dialog_function,
                        style,
                        list_style)
 
@@ -256,7 +270,7 @@ function ListManager(values::Vector{T};
 
     # nothing is wired to the add button, so do not leave it looking clickable.
     # Set it back to false yourself if you are wiring `add.value` by hand.
-    if isnothing(add_function) && isnothing(add_dialog_function)
+    if isnothing(add_function)
         x.add.disabled[] = true
     end
 
@@ -265,12 +279,13 @@ function ListManager(values::Vector{T};
         update_buttons!(x)
     end
 
-    # a configured add dialog takes precedence over add_function
+    # add_mode decides how add_function is called
     on(x.add.value) do session
         isnothing(session) && return
-        if !isnothing(x.add_dialog)
+        isnothing(x.add_function) && return
+        if x.add_mode == DialogMode
             open_adder!(x)
-        elseif !isnothing(x.add_function)
+        else
             value = x.add_function(session)
             isnothing(value) || push!(x, value)
         end

@@ -3,7 +3,7 @@ using Bonito
 using ShoelaceWidgets
 using ShoelaceWidgets: get_values, delete_selected!, selected_index, move_up!, move_down!, moveat!,
                        open_editor!, open_adder!, replace_selected!, accept!, reject!,
-                       OpenOKCancel, Open, OK, Cancel
+                       OpenOKCancel, Open, OK, Cancel, AddMode, FunctionMode, DialogMode
 
 # ----------------------------------
 # TEST 1: default item_function/get_function
@@ -405,9 +405,10 @@ end
 
 composite = ListManager(Point[];
                         label="Points",
-                        add_dialog_function,
+                        add_function = add_dialog_function,
+                        add_mode = DialogMode,
                         add_content=DOM.div(xin, yin),
-                        add_dialog_label="Add point",
+                        add_label="Add point",
                         item_function = p -> SLListItem("($(p.x), $(p.y))"; object=p))
 
 
@@ -427,9 +428,10 @@ end
 
 
 @test composite.add_dialog isa DialogManager
+@test composite.add_mode == DialogMode
 @test isnothing(composite.dialog)                 # no edit_function given
-@test isnothing(composite.add_function)
-@test composite.add.disabled[] == false           # the dialog wires the button
+@test composite.add_function === add_dialog_function
+@test composite.add.disabled[] == false           # add_function wires the button
 @test isempty(add_calls)
 @test isempty(composite)
 
@@ -472,20 +474,26 @@ html = render_html(composite)
 @test occursin("<sl-dialog label=\"Add point\"", html)
 @test occursin("name=\"plus-circle\"", html)
 
-# with no add_function and no add_dialog_function the add button is disabled
+# with no add_function the add button is disabled and no dialog is built
 inert = ListManager(["a"]; label="Inert")
 @test isnothing(inert.add_dialog)
 @test isnothing(inert.add_function)
+@test inert.add_mode == FunctionMode              # the default
 @test inert.add.disabled[] == true
 open_adder!(inert)                                # harmless no-op
 @test get_values(inert) == ["a"]
 
-# an add dialog takes precedence over add_function
-both = ListManager(String[];
-                   add_function = session -> "from add_function",
-                   add_dialog_function = (m, action) -> action == OK && push!(m, "from dialog"),
-                   add_content = DOM.div())
-open_adder!(both)
-accept!(both.add_dialog)
-@test get_values(both) == ["from dialog"]
-@test !isnothing(both.add_function)               # still stored, just not used
+# DialogMode with no add_function builds no dialog either
+no_fn = ListManager(["a"]; add_mode=DialogMode, add_content=DOM.div())
+@test isnothing(no_fn.add_dialog)
+@test no_fn.add.disabled[] == true
+
+# FunctionMode never builds a dialog, even with add_content supplied
+fn_mode = ListManager(String[];
+                      add_function = session -> "from add_function",
+                      add_content = DOM.div())
+@test isnothing(fn_mode.add_dialog)
+@test fn_mode.add_mode == FunctionMode
+open_adder!(fn_mode)                              # no dialog to open
+@test isempty(fn_mode)
+@test !occursin("<sl-dialog", render_html(fn_mode))
