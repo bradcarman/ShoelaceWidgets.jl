@@ -17,6 +17,7 @@ export ListManager, DialogManager
 export sl_tab_group, sl_tab, sl_tab_panel, sl_tag, sl_format_date, sl_spinner, sl_icon, sl_card, sl_checkbox, sl_tooltip, sl_copy_button
 
 
+const LABEL_STYLE = "display: inline-block; color: var(--sl-input-label-color); font-size: var(--sl-input-label-font-size-medium); margin-bottom: var(--sl-spacing-3x-small);"
 
 # ----------------------------------------
 const STYLE_CSS = """

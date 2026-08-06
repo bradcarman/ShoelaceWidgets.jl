@@ -2,13 +2,14 @@ using Test
 using Bonito
 using ShoelaceWidgets
 using ShoelaceWidgets: get_values, delete_selected!, selected_index, move_up!, move_down!, moveat!,
-                       open_editor!, replace_selected!, accept!, reject!, OpenOKCancel, Open, OK, Cancel
+                       open_editor!, open_adder!, replace_selected!, accept!, reject!,
+                       OpenOKCancel, Open, OK, Cancel
 
 # ----------------------------------
 # TEST 1: default item_function/get_function
 # ----------------------------------
 names = ["alpha", "beta"]
-manager = ListManager(names, session -> "item $(length(manager) + 1)"; label="Items")
+manager = ListManager(names; add_function = session -> "item $(length(manager) + 1)", label="Items")
 
 app = App() do session
     DOM.html(
@@ -84,7 +85,7 @@ manager.add.value[] = nothing
 # ----------------------------------
 # TEST 1b: reordering
 # ----------------------------------
-ordered = ListManager(["a", "b", "c"], session -> "x"; label="Ordered")
+ordered = ListManager(["a", "b", "c"]; add_function = session -> "x", label="Ordered")
 
 app = App() do session
     DOM.html(
@@ -172,7 +173,7 @@ function get_function(item::SLListItem)
     return input.value[]
 end
 
-manager = ListManager(names, session -> "item $(length(manager) + 1)"; label="Items", item_function, get_function)
+manager = ListManager(names; add_function = session -> "item $(length(manager) + 1)", label="Items", item_function, get_function)
 
 app = App() do session
     DOM.html(
@@ -223,7 +224,7 @@ struct Point
     y::Float64
 end
 
-points = ListManager(Point[], session -> Point(1.0, 2.0);
+points = ListManager(Point[]; add_function = session -> Point(1.0, 2.0),
                      label="Points",
                      item_function = p -> SLListItem(DOM.div("($(p.x), $(p.y))"); object=p))
 
@@ -301,7 +302,7 @@ function edit_fn(m, action)
     end
 end
 
-editable = ListManager(["a", "b", "c"], session -> "x";
+editable = ListManager(["a", "b", "c"]; add_function = session -> "x",
                        label="Editable",
                        edit_function=edit_fn,
                        edit_content=DOM.div(edit_input),
@@ -383,3 +384,108 @@ html = render_html(editable)
 
 # the edit button sits between clear and the arrows
 @test first(findfirst("name=\"pencil\"", html)) < first(findfirst("name=\"arrow-up\"", html))
+
+
+# ----------------------------------
+# TEST 6: add dialog for a composite type
+# ----------------------------------
+add_calls = OpenOKCancel[]
+xin = SLInput(0.0; label="x")
+yin = SLInput(0.0; label="y")
+
+function add_dialog_function(m, action)
+    push!(add_calls, action)
+    if action == Open
+        xin.value[] = 0.0
+        yin.value[] = 0.0
+    elseif action == OK
+        push!(m, Point(xin.value[], yin.value[]))
+    end
+end
+
+composite = ListManager(Point[];
+                        label="Points",
+                        add_dialog_function,
+                        add_content=DOM.div(xin, yin),
+                        add_dialog_label="Add point",
+                        item_function = p -> SLListItem("($(p.x), $(p.y))"; object=p))
+
+
+app = App() do session
+    DOM.html(
+        DOM.head(
+            get_shoelace()...
+        ),
+        DOM.body(
+            composite
+        )
+    )
+end
+
+
+
+
+
+@test composite.add_dialog isa DialogManager
+@test isnothing(composite.dialog)                 # no edit_function given
+@test isnothing(composite.add_function)
+@test composite.add.disabled[] == false           # the dialog wires the button
+@test isempty(add_calls)
+@test isempty(composite)
+
+# opening does not need a selection, unlike the editor
+open_adder!(composite)
+@test add_calls == [Open]
+@test composite.add_dialog.open[] == true
+@test xin.value[] == 0.0
+
+# OK appends whatever the callback assembled
+xin.value[] = 3.0
+yin.value[] = 4.0
+accept!(composite.add_dialog)
+@test add_calls == [Open, OK]
+@test get_values(composite) == [Point(3.0, 4.0)]
+@test composite.add_dialog.open[] == false
+
+# the editors are reinitialized on the next open, not left holding the last value
+open_adder!(composite)
+@test xin.value[] == 0.0
+@test composite.add_dialog.value[] === nothing    # nothing is seeded for a new value
+
+# Cancel appends nothing
+xin.value[] = 9.0
+yin.value[] = 9.0
+reject!(composite.add_dialog)
+@test add_calls == [Open, OK, Open, Cancel]
+@test get_values(composite) == [Point(3.0, 4.0)]
+
+# a second add appends rather than replacing
+open_adder!(composite)
+xin.value[] = 5.0
+yin.value[] = 6.0
+accept!(composite.add_dialog)
+@test get_values(composite) == [Point(3.0, 4.0), Point(5.0, 6.0)]
+@test [item.index for item in composite.list.values[]] == [1, 2]
+
+# the add dialog renders alongside the list
+html = render_html(composite)
+@test occursin("<sl-dialog label=\"Add point\"", html)
+@test occursin("name=\"plus-circle\"", html)
+
+# with no add_function and no add_dialog_function the add button is disabled
+inert = ListManager(["a"]; label="Inert")
+@test isnothing(inert.add_dialog)
+@test isnothing(inert.add_function)
+@test inert.add.disabled[] == true
+open_adder!(inert)                                # harmless no-op
+@test get_values(inert) == ["a"]
+
+# an add dialog takes precedence over add_function
+both = ListManager(String[];
+                   add_function = session -> "from add_function",
+                   add_dialog_function = (m, action) -> action == OK && push!(m, "from dialog"),
+                   add_content = DOM.div())
+open_adder!(both)
+accept!(both.add_dialog)
+@test get_values(both) == ["from dialog"]
+@test !isnothing(both.add_function)               # still stored, just not used

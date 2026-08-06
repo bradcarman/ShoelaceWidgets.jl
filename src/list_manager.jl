@@ -2,8 +2,12 @@
 # List Manager
 # ----------------------------------------
 
+# Matches Shoelace's own form control labels, so the label rendered above the
+# bordered list looks native next to every other widget's label.
+
+
 """
-    ListManager(values::Vector{T}, add_function; label="", help="", item_function=default_item, get_function=default_get, style="")
+    ListManager(values::Vector{T}; add_function=nothing, label="", help="", item_function=default_item, get_function=default_get, style="")
 
 Creates a composite control that pairs an [`SLList`](@ref) with add, delete, clear and reorder
 buttons, managing a list of arbitrary Julia values.
@@ -13,9 +17,18 @@ itself is the source of truth from then on, so an item may hold live sub-widgets
 for inline editing, for example). Call [`get_values`](@ref) to read the current values back out;
 it applies `get_function` to every item and returns a `Vector{T}`.
 
-`add_function` is called with the active `Bonito.Session` when the add button is clicked and should
-return the new value to append. Returning `nothing` cancels the add, which is useful when the add
-flow is driven by an [`SLDialog`](@ref) the user may dismiss.
+There are two ways to add an item, and one of them should be supplied:
+
+- `add_function(session)` is called with the active `Bonito.Session` when the add button is clicked
+  and returns the value to append, or `nothing` to cancel. Good for values needing no input.
+- `add_dialog_function(manager, action)` instead opens an OK/Cancel dialog whose body is the
+  `add_content` node, for building a composite value field by field. It is called with an
+  [`OpenOKCancel`](@ref): on `Open` initialize your editors (nothing is seeded, since a new value has
+  no prior state), and on `OK` assemble the value and `push!(manager, value)` yourself. `Cancel`
+  normally needs no branch, as nothing was appended.
+
+Supplying `add_dialog_function` takes precedence over `add_function`. Supplying neither leaves the
+add button disabled, since clicking it would do nothing.
 
 The move up and move down buttons reorder the list, and the selection follows the item as it moves,
 so the same item can be walked to either end with repeated clicks.
@@ -50,13 +63,14 @@ drops the selection.
 - `move_up::SLButton` - The move up button, an `sl_icon` arrow
 - `move_down::SLButton` - The move down button, an `sl_icon` arrow
 - `dialog::Union{DialogManager, Nothing}` - The OK/Cancel edit dialog, or `nothing`
-- `add_function::Function` - Called as `add_function(session)`, returns a new value or `nothing`
+- `add_dialog::Union{DialogManager, Nothing}` - The OK/Cancel add dialog, or `nothing`
+- `add_function::Union{Function, Nothing}` - Called as `add_function(session)`, returns a value or `nothing`
 - `item_function::Function` - Maps a value to the `SLListItem` used to display it
 - `get_function::Function` - Maps an `SLListItem` back to its value, the inverse of `item_function`
 - `edit_function::Union{Function, Nothing}` - Called as `edit_function(manager, action)`
+- `add_dialog_function::Union{Function, Nothing}` - Called as `add_dialog_function(manager, action)`
 - `style::String` - Inline CSS style applied to the wrapping element
 - `list_style::String` - Inline CSS style for the bordered, scrolling box around the items
-- `label_style::String` - Inline CSS style for the label above that box
 
 # Methods
 - `get_values(manager)` - Read the current values as a `Vector{T}`
@@ -66,17 +80,18 @@ drops the selection.
 - `empty!(manager)` - Remove all items
 - `moveat!(manager, from, to)` - Move the item at `from` to position `to`
 - `open_editor!(manager)` - Open the edit dialog for the selected item
+- `open_adder!(manager)` - Open the add dialog
 - `replace_selected!(manager, value)` - Replace the selected item, for an `OK` branch
 
 # Examples
 ```julia
 # Read-only list of strings, adding a numbered entry on each click
-manager = ListManager(["alpha", "beta"], session -> "new item"; label="Items")
+manager = ListManager(["alpha", "beta"]; add_function = session -> "new item", label="Items")
 ShoelaceWidgets.get_values(manager)  # ["alpha", "beta"]
 
 # Editable list: each item renders an SLInput, and get_function reads it back
-item_function(value) = SLListItem(DOM.div(SLInput(value)); object=SLInput(value))
-manager = ListManager(["alpha", "beta"], session -> "";
+manager = ListManager(["alpha", "beta"];
+                      add_function = session -> "",
                       label="Items",
                       item_function = value -> (input = SLInput(value);
                                                 SLListItem(DOM.div(input); object=input)),
@@ -87,7 +102,8 @@ ShoelaceWidgets.get_values(manager)  # reflects whatever was typed
 
 # Any element type works
 struct Point; x::Float64; y::Float64; end
-manager = ListManager(Point[], session -> Point(rand(), rand());
+manager = ListManager(Point[];
+                      add_function = session -> Point(rand(), rand()),
                       label="Points",
                       item_function = p -> SLListItem(sl_tag("(\$(p.x), \$(p.y))"); object=p))
 
@@ -96,7 +112,25 @@ manager.list.index   # selected index, or nothing
 manager.list.object  # the selected item's object
 
 # Cancel an add by returning nothing
-manager = ListManager(String[], session -> nothing)
+manager = ListManager(String[]; add_function = session -> nothing)
+
+# Build a composite value field by field in an OK/Cancel dialog. Nothing is seeded,
+# so Open initializes the editors and OK assembles the value and pushes it.
+xin = SLInput(0.0; label="x")
+yin = SLInput(0.0; label="y")
+function add_dialog_function(manager, action)
+    if action == Open
+        xin.value[] = 0.0
+        yin.value[] = 0.0
+    elseif action == OK
+        push!(manager, Point(xin.value[], yin.value[]))
+    end
+end
+manager = ListManager(Point[];
+                      add_dialog_function,
+                      add_content = DOM.div(xin, yin),
+                      add_dialog_label = "Add point",
+                      item_function = p -> SLListItem("(\$(p.x), \$(p.y))"; object=p))
 
 # Edit the selected item in an OK/Cancel dialog. The editor lives in edit_content,
 # is seeded on Open, and is committed on OK. Cancel needs no branch.
@@ -108,7 +142,8 @@ function edit_function(manager, action)
         ShoelaceWidgets.replace_selected!(manager, editor.value[])
     end
 end
-manager = ListManager(["alpha", "beta"], session -> "new";
+manager = ListManager(["alpha", "beta"];
+                      add_function = session -> "new",
                       edit_function,
                       edit_content = DOM.div(editor),
                       dialog_label = "Edit item")
@@ -124,13 +159,14 @@ struct ListManager{T}
     move_up::SLButton
     move_down::SLButton
     dialog::Union{DialogManager, Nothing}
-    add_function::Function
+    add_dialog::Union{DialogManager, Nothing}
+    add_function::Union{Function, Nothing}
     item_function::Function
     get_function::Function
     edit_function::Union{Function, Nothing}
+    add_dialog_function::Union{Function, Nothing}
     style::String
     list_style::String
-    label_style::String
 end
 
 """
@@ -149,18 +185,21 @@ Default `get_function` for [`ListManager`](@ref): returns the item's `object`, w
 """
 default_get(item::SLListItem) = item.object
 
-function ListManager(values::Vector{T}, add_function::Function;
+function ListManager(values::Vector{T};
+                     add_function::Union{Function, Nothing}=nothing,
                      label::String="",
                      help::String="",
                      item_function::Function=default_item,
                      get_function::Function=default_get,
                      edit_function::Union{Function, Nothing}=nothing,
                      edit_content::Hyperscript.Node=DOM.div(),
+                     add_dialog_function::Union{Function, Nothing}=nothing,
+                     add_content::Hyperscript.Node=DOM.div(),
                      dialog_label::String="Edit",
-                     dialog_style::String="",
+                     add_dialog_label::String="Add",
+                     dialog_style="--width: 75vw;",
                      style::String="",
-                     list_style="max-height: 40vh; min-height: 12pt; overflow-y: auto; padding: 5px; border: 1px solid lightgray;",
-                     label_style="display: inline-block; color: var(--sl-input-label-color); font-size: var(--sl-input-label-font-size-medium); margin-bottom: var(--sl-spacing-3x-small);") where T
+                     list_style="height: 40vh; overflow-y: auto; padding: 5px; border: 1px solid lightgray;") where T
 
     # the dialog callback needs the manager, which does not exist yet
     manager = Ref{Any}(nothing)
@@ -182,6 +221,17 @@ function ListManager(values::Vector{T}, add_function::Function;
                            end;
                            label=dialog_label, style=dialog_style)
 
+    # the add dialog builds a brand new value, so there is nothing to seed from;
+    # initializing the editors is the callback's job
+    add_dialog = isnothing(add_dialog_function) ? nothing :
+                 DialogManager(Observable{Union{T, Nothing}}(nothing), add_content,
+                               function (d, action)
+                                   m = manager[]
+                                   action == Open && (d.value[] = nothing)
+                                   m.add_dialog_function(m, action)
+                               end;
+                               label=add_dialog_label, style=dialog_style)
+
     # the label is rendered above the bordered list rather than passed to SLList,
     # which would place it inside the border
     x = ListManager{T}(SLList(SLListItem[]; help),
@@ -193,25 +243,37 @@ function ListManager(values::Vector{T}, add_function::Function;
                        SLButton(sl_icon(; name="arrow-up"); variant="text", size="small", disabled=true),
                        SLButton(sl_icon(; name="arrow-down"); variant="text", size="small", disabled=true),
                        dialog,
+                       add_dialog,
                        add_function,
                        item_function,
                        get_function,
                        edit_function,
+                       add_dialog_function,
                        style,
-                       list_style,
-                       label_style)
+                       list_style)
 
     manager[] = x
+
+    # nothing is wired to the add button, so do not leave it looking clickable.
+    # Set it back to false yourself if you are wiring `add.value` by hand.
+    if isnothing(add_function) && isnothing(add_dialog_function)
+        x.add.disabled[] = true
+    end
 
     # delete only applies to a selection, which deleting or clearing drops
     on(x.list.value) do _
         update_buttons!(x)
     end
 
+    # a configured add dialog takes precedence over add_function
     on(x.add.value) do session
         isnothing(session) && return
-        value = x.add_function(session)
-        isnothing(value) || push!(x, value)
+        if !isnothing(x.add_dialog)
+            open_adder!(x)
+        elseif !isnothing(x.add_function)
+            value = x.add_function(session)
+            isnothing(value) || push!(x, value)
+        end
     end
 
     on(x.delete.value) do session
@@ -342,6 +404,18 @@ function open_editor!(x::ListManager)
 end
 
 """
+    open_adder!(x::ListManager)
+
+Opens the add dialog, which runs `x.add_dialog_function(x, Open)`. Unlike the editor this needs no
+selection. Does nothing when no `add_dialog_function` was supplied.
+"""
+function open_adder!(x::ListManager)
+    isnothing(x.add_dialog) && return x
+    open!(x.add_dialog)
+    return x
+end
+
+"""
     replace_selected!(x::ListManager, value)
 
 Replaces the selected item with `x.item_function(value)`, keeping its position and the selection.
@@ -414,12 +488,13 @@ function Bonito.jsrender(session::Session, x::ListManager)
     scroll = DOM.div(x.list; style=x.list_style)
 
     children = Any[]
-    isempty(x.label) || push!(children, DOM.div(x.label; style=x.label_style))
+    isempty(x.label) || push!(children, DOM.div(x.label; style=LABEL_STYLE))
     push!(children, scroll)
     push!(children, DOM.div(buttons...))
 
-    # the dialog has to be in the document for it to be shown
+    # the dialogs have to be in the document for them to be shown
     isnothing(x.dialog) || push!(children, x.dialog)
+    isnothing(x.add_dialog) || push!(children, x.add_dialog)
 
     return Bonito.jsrender(session, DOM.div(children...; style=x.style))
 end
