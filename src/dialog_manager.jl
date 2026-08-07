@@ -89,31 +89,31 @@ app = App() do session
 end
 ```
 """
-struct DialogManager{T}
-    value::Observable{T}
-    content::Hyperscript.Node
+struct DialogManager
+    value::Observable{Hyperscript.Node}
     ok::SLButton
     cancel::SLButton
     open::Observable{Bool}
-    label::String
     dialog_function::Function
+    label::String
     style::String
 end
 
-function DialogManager(value::Observable{T}, content::Hyperscript.Node, dialog_function::Function;
+function DialogManager(value::Hyperscript.Node, dialog_function::Function;
                        label::String="",
                        ok_label::String="OK",
                        cancel_label::String="Cancel",
-                       style::String="") where T
+                       style::String="")
 
-    x = DialogManager{T}(value,
-                         content,
-                         SLButton(ok_label; variant="primary"),
-                         SLButton(cancel_label),
-                         Observable(false),
-                         label,
-                         dialog_function,
-                         style)
+    x = DialogManager(  
+                        Observable(value),
+                        SLButton(ok_label; variant="primary"),
+                        SLButton(cancel_label),
+                        Observable(false),
+                        dialog_function,
+                        label,
+                        style
+                        )
 
     # opening runs the Open action, whether through open! or by setting the Observable directly
     on(x.open) do isopen
@@ -133,8 +133,8 @@ function DialogManager(value::Observable{T}, content::Hyperscript.Node, dialog_f
     return x
 end
 
-DialogManager(value::T, content::Hyperscript.Node, dialog_function::Function; kw...) where T =
-    DialogManager(Observable(value), content, dialog_function; kw...)
+# DialogManager(value::T, content::Hyperscript.Node, dialog_function::Function; kw...) where T =
+#     DialogManager(Observable(value), content, dialog_function; kw...)
 
 """
     open!(x::DialogManager)
@@ -185,7 +185,7 @@ prevent_close_js() = js"""
 
 function Bonito.jsrender(session::Session, x::DialogManager)
 
-    dom = sl_dialog(x.content,
+    dom = sl_dialog(x.value[],
                     DOM.div(x.cancel, x.ok;
                             slot="footer",
                             style="display: flex; gap: var(--sl-spacing-x-small); justify-content: flex-end");

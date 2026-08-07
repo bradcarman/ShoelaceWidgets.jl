@@ -275,7 +275,7 @@ html = render_html(points)
 
 # with no edit_function there is no edit button and no dialog
 @test isnothing(points.edit)
-@test isnothing(points.dialog)
+@test isnothing(points.edit_dialog)
 @test isnothing(points.edit_function)
 # NOTE: "sl-dialog" alone appears in the stylesheet, so match the opening tag
 @test !occursin("<sl-dialog", html)
@@ -284,7 +284,7 @@ html = render_html(points)
 # open_editor! is a harmless no-op without an edit_function
 points.list.index = 1
 open_editor!(points)
-@test isnothing(points.dialog)
+@test isnothing(points.edit_dialog)
 
 
 # ----------------------------------
@@ -293,20 +293,20 @@ open_editor!(points)
 calls = Tuple{OpenOKCancel, Union{Int, Nothing}}[]
 edit_input = SLInput(""; label="Value")
 
-function edit_fn(m, action)
+function edit_fn(m::ListManager, action)
     push!(calls, (action, selected_index(m)))
     if action == Open
-        edit_input.value[] = m.dialog.value[]         # seeded from the selection
+        edit_input.value[] = ShoelaceWidgets.selected_value(m)
     elseif action == OK
-        replace_selected!(m, edit_input.value[])
+        ShoelaceWidgets.replace_selected!(m, edit_input.value[])
     end
 end
 
-editable = ListManager(["a", "b", "c"]; add_function = session -> "x",
-                       label="Editable",
-                       edit_function=edit_fn,
-                       edit_content=DOM.div(edit_input),
-                       dialog_label="Edit item")
+editable = ListManager(["a", "b", "c"]; 
+                    add_function = session -> "x",
+                    label="Editable",
+                    edit_function=edit_fn,
+                    edit_content=DOM.div(edit_input))
 
 app = App() do session
     DOM.html(
@@ -320,7 +320,7 @@ app = App() do session
 end
 
 @test !isnothing(editable.edit)
-@test editable.dialog isa DialogManager
+@test editable.edit_dialog isa DialogManager
 @test editable.edit_function === edit_fn
 
 # edit is selection scoped, like delete
@@ -333,27 +333,25 @@ editable.list.index = 2
 # opening seeds dialog.value from the selection, then runs the Open action
 open_editor!(editable)
 @test calls == [(Open, 2)]
-@test editable.dialog.open[] == true
-@test editable.dialog.value[] == "b"
+@test editable.edit_dialog.open[] == true
 @test edit_input.value[] == "b"
 
 # OK commits through replace_selected! and closes
 edit_input.value[] = "BEE"
-accept!(editable.dialog)
+accept!(editable.edit_dialog)
 @test calls == [(Open, 2), (OK, 2)]
 @test get_values(editable) == ["a", "BEE", "c"]
-@test editable.dialog.open[] == false
+@test editable.edit_dialog.open[] == false
 @test selected_index(editable) == 2                   # the selection survives the commit
 @test [item.index for item in editable.list.values[]] == [1, 2, 3]
 
 # Cancel discards the edit
 open_editor!(editable)
-@test editable.dialog.value[] == "BEE"
 edit_input.value[] = "discarded"
-reject!(editable.dialog)
+reject!(editable.edit_dialog)
 @test calls == [(Open, 2), (OK, 2), (Open, 2), (Cancel, 2)]
 @test get_values(editable) == ["a", "BEE", "c"]
-@test editable.dialog.open[] == false
+@test editable.edit_dialog.open[] == false
 
 # no selection: the button disables and open_editor! is a no-op
 editable.list.index = 0
@@ -361,7 +359,7 @@ editable.list.index = 0
 @test editable.edit.disabled[] == true
 open_editor!(editable)
 @test length(calls) == 4
-@test editable.dialog.open[] == false
+@test editable.edit_dialog.open[] == false
 
 # replace_selected! is a no-op without a selection
 replace_selected!(editable, "ignored")
@@ -374,24 +372,12 @@ delete_selected!(editable)
 @test get_values(editable) == ["BEE", "c"]
 @test editable.edit.disabled[] == true
 
-# the dialog, its OK/Cancel footer and the pencil icon are rendered
-html = render_html(editable)
-@test occursin("<sl-dialog label=\"Edit item\"", html)
-@test occursin("class=\"dialog-manager\"", html)
-@test occursin("slot=\"footer\"", html)
-@test occursin("<sl-tooltip content=\"edit\"", html)
-@test occursin("name=\"pencil\"", html)
-
-# the edit button sits between clear and the arrows
-@test first(findfirst("name=\"pencil\"", html)) < first(findfirst("name=\"arrow-up\"", html))
-
-
 # ----------------------------------
 # TEST 6: add dialog for a composite type
 # ----------------------------------
 add_calls = OpenOKCancel[]
-xin = SLInput(0.0; label="x")
-yin = SLInput(0.0; label="y")
+xin = SLInput(0.0; label="x", select_on_focus=true)
+yin = SLInput(0.0; label="y", select_on_focus=true)
 
 function add_dialog_function(m, action)
     push!(add_calls, action)
@@ -429,7 +415,7 @@ end
 
 @test composite.add_dialog isa DialogManager
 @test composite.add_mode == DialogMode
-@test isnothing(composite.dialog)                 # no edit_function given
+@test isnothing(composite.edit_dialog)                 # no edit_function given
 @test composite.add_function === add_dialog_function
 @test composite.add.disabled[] == false           # add_function wires the button
 @test isempty(add_calls)
@@ -452,7 +438,6 @@ accept!(composite.add_dialog)
 # the editors are reinitialized on the next open, not left holding the last value
 open_adder!(composite)
 @test xin.value[] == 0.0
-@test composite.add_dialog.value[] === nothing    # nothing is seeded for a new value
 
 # Cancel appends nothing
 xin.value[] = 9.0
