@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Composite Controls · ShoelaceWidgets.jl</title><meta name="title" content="Composite Controls · ShoelaceWidgets.jl"/><meta property="og:title" content="Composite Controls · ShoelaceWidgets.jl"/><meta property="twitter:title" content="Composite Controls · ShoelaceWidgets.jl"/><meta name="description" content="Documentation for ShoelaceWidgets.jl."/><meta property="og:description" content="Documentation for ShoelaceWidgets.jl."/><meta property="twitter:description" content="Documentation for ShoelaceWidgets.jl."/><meta property="og:url" content="https://bradcarman.github.io/ShoelaceWidgets.jl/composites/"/><meta property="twitter:url" content="https://bradcarman.github.io/ShoelaceWidgets.jl/composites/"/><link rel="canonical" href="https://bradcarman.github.io/ShoelaceWidgets.jl/composites/"/><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../search_index.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../">ShoelaceWidgets.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../">Home</a></li><li class="is-active"><a class="tocitem" href>Composite Controls</a><ul class="internal"><li><a class="tocitem" href="#ListManager"><span>ListManager</span></a></li><li><a class="tocitem" href="#DialogManager"><span>DialogManager</span></a></li></ul></li><li><a class="tocitem" href="../api/">API Reference</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Composite Controls</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Composite Controls</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/bradcarman/ShoelaceWidgets.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/bradcarman/ShoelaceWidgets.jl/blob/main/docs/src/composites.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Composite-Controls"><a class="docs-heading-anchor" href="#Composite-Controls">Composite Controls</a><a id="Composite-Controls-1"></a><a class="docs-heading-anchor-permalink" href="#Composite-Controls" title="Permalink"></a></h1><p>Most widgets in ShoelaceWidgets map one-to-one onto a Shoelace element. The two on this page do not: they assemble several widgets into a single control with its own behaviour.</p><ul><li><a href="#ListManager"><code>ListManager</code></a> — an <a href="../api/#ShoelaceWidgets.SLList"><code>SLList</code></a> plus add, delete, clear, edit and reorder buttons, managing a <code>Vector{T}</code> for any <code>T</code>.</li><li><a href="#DialogManager"><code>DialogManager</code></a> — a modal dialog with OK and Cancel buttons that cannot be dismissed any other way.</li></ul><pre><code class="language-julia hljs">using ShoelaceWidgets
+using Bonito</code></pre><h2 id="ListManager"><a class="docs-heading-anchor" href="#ListManager">ListManager</a><a id="ListManager-1"></a><a class="docs-heading-anchor-permalink" href="#ListManager" title="Permalink"></a></h2><h3 id="A-simple-list"><a class="docs-heading-anchor" href="#A-simple-list">A simple list</a><a id="A-simple-list-1"></a><a class="docs-heading-anchor-permalink" href="#A-simple-list" title="Permalink"></a></h3><p>The list is seeded from a vector, and <code>add_function</code> is called with the active session each time the add button is clicked. Whatever it returns is appended; returning <code>nothing</code> cancels the add.</p><pre><code class="language-julia hljs">manager = ListManager([&quot;alpha&quot;, &quot;beta&quot;];
+                      label = &quot;Items&quot;,
+                      add_function = session -&gt; &quot;item $(length(manager) + 1)&quot;)
+
+app = App() do session
+    DOM.html(
+        DOM.head(get_shoelace()...),
+        DOM.body(manager)
+    )
+end</code></pre><div><div class="bonito-fragment" id="12789bf3-86d8-4318-bebf-4daaf6f650e1" data-jscall-id="root"><div><script src="../../../../.julia/packages/Bonito/OJTyF/js_dependencies/Bonito.bundled.js" type="module"></script><style></style></div><div><script type="module">Bonito.init_session("12789bf3-86d8-4318-bebf-4daaf6f650e1", Bonito.fetch_binary('bonito/bin/19474840b2e9cbd47764a8ad63c2ff7b9c42ff6f-2125825287991473258.bin'), "root", false);
+</script><div></div></div></div><div class="bonito-fragment" id="58b22bc4-13d5-4ed7-9faa-9ad4d4f9f416" data-jscall-id="subsession-application-dom"><div><style></style></div><div><script type="module">Bonito.init_session("58b22bc4-13d5-4ed7-9faa-9ad4d4f9f416", Bonito.fetch_binary('bonito/bin/3caa83c3ede33782133e70afd7d0103192fa3015-9108401846049460944.bin'), "sub", false);
+</script><div data-jscall-id="1"><div data-jscall-id="2"><meta charset="UTF-8" data-jscall-id="3" /><link rel="stylesheet" data-jscall-id="4" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/themes/light.css" /><script data-jscall-id="5" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/shoelace-autoloader.js" type="module"></script><style data-jscall-id="6">    /* ---------------------------------------------------
+       Shoelace ships `.radio { align-items: top }`, which is
+       not a valid align-items value, so it is dropped and the
+       circle falls back to stretch (pinned to the top). That
+       is invisible for one line of text because the label
+       carries `line-height: var(--toggle-size)`, but any block
+       content (a div holding another widget) leaves the circle
+       stranded at the top. Center it, and drop the single-line
+       line-height so block content is not distorted.
+       --------------------------------------------------- */
+    sl-radio::part(base) {
+      align-items: center;
+    }
+
+    sl-radio::part(label) {
+      line-height: normal;
+    }
+
+    /* ---------------------------------------------------
+       Core CSS to make sl-radio look like sl-tree-item
+       --------------------------------------------------- */
+
+    /* Force the host element to be block level so it stacks properly */
+    sl-radio.tree-style {
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    /* 1. Base styling for the "row" */
+    sl-radio.tree-style::part(base) {
+      padding: var(--sl-spacing-x-small) var(--sl-spacing-small);
+      border-radius: var(--sl-border-radius-medium);
+      transition: background-color 150ms ease, color 150ms ease;
+      width: 100%; /* Makes it stretch like a tree node */
+      box-sizing: border-box;
+      cursor: pointer;
+    }
+
+    /* 2. Hover effect */
+    sl-radio.tree-style:hover::part(base) {
+      background-color: var(--sl-color-neutral-100);
+    }
+
+    /* 3. The "Selected" state highlight */
+    sl-radio.tree-style[checked]::part(base),
+    sl-radio.tree-style[aria-checked="true"]::part(base) {
+      background-color: var(--sl-color-primary-100);
+      color: var(--sl-color-primary-700);
+    }
+
+    /* Hide the little radio circle completely */
+    sl-radio.tree-style-hidden-circle::part(control) {
+      display: none;
+    }
+
+    /* Remove the gap between the hidden circle and the label */
+    sl-radio.tree-style-hidden-circle::part(base) {
+      gap: 0;
+      /* Make the left side flat for the bar, keep right side rounded */
+      border-radius: 0 var(--sl-border-radius-medium) var(--sl-border-radius-medium) 0;
+      /* Invisible border to prevent text shifting on selection */
+      border-left: 4px solid transparent; 
+    }
+
+    /* Add the blue bar indicator when checked */
+    sl-radio.tree-style-hidden-circle[checked]::part(base),
+    sl-radio.tree-style-hidden-circle[aria-checked="true"]::part(base) {
+      border-left-color: var(--sl-color-primary-600);
+    }
+
+    /* Ensure no stray padding exists on the label */
+    sl-radio.tree-style-hidden-circle::part(label) {
+      padding-inline-start: 0;
+      /* Make the label take up full width for a bigger click target */
+      width: 100%;
+    }
+
+    /* ---------------------------------------------------
+       DialogManager: OK and Cancel are the only way out, so
+       remove the header close button rather than leave a
+       control that does nothing
+       --------------------------------------------------- */
+    sl-dialog.dialog-manager::part(close-button) {
+      display: none;
+    }
+</style></div><div data-jscall-id="7"><div style="" data-jscall-id="8"><div style="display: inline-block; color: var(--sl-input-label-color); font-size: var(--sl-input-label-font-size-medium); margin-bottom: var(--sl-spacing-3x-small);" data-jscall-id="9">Items</div><div style="height: 40vh; overflow-y: auto; padding: 5px; border: 1px solid lightgray;" data-jscall-id="10"><sl-radio-group label="" style="" data-jscall-id="11" value="0"><div data-jscall-id="15"><div class="bonito-fragment" id="76c61a1d-6991-4f61-95d8-d8f024464ec1" data-jscall-id="subsession-application-dom"><div data-jscall-id="16"><style data-jscall-id="17"></style></div><div data-jscall-id="18"><script data-jscall-id="19" type="module">Bonito.init_session("76c61a1d-6991-4f61-95d8-d8f024464ec1", null, "sub", false);
+</script><span data-jscall-id="12"><sl-radio class="tree-style tree-style-hidden-circle" data-jscall-id="13" value="1">alpha</sl-radio><sl-radio class="tree-style tree-style-hidden-circle" data-jscall-id="14" value="2">beta</sl-radio></span></div></div></div><div data-jscall-id="20" slot="help-text"></div></sl-radio-group></div><div data-jscall-id="21"><sl-tooltip content="add" data-jscall-id="22"><sl-button onclick="" variant="text" style="" data-jscall-id="23" size="small"><sl-icon name="plus-circle" data-jscall-id="24"></sl-icon></sl-button></sl-tooltip><sl-tooltip content="remove" data-jscall-id="25"><sl-button onclick="" variant="text" style="" data-jscall-id="26" disabled="true" size="small"><sl-icon name="dash-circle" data-jscall-id="27"></sl-icon></sl-button></sl-tooltip><sl-tooltip content="clear" data-jscall-id="28"><sl-button onclick="" variant="text" style="" data-jscall-id="29" size="small"><sl-icon name="x-circle" data-jscall-id="30"></sl-icon></sl-button></sl-tooltip><sl-tooltip content="move up" data-jscall-id="31"><sl-button onclick="" variant="text" style="" data-jscall-id="32" disabled="true" size="small"><sl-icon name="arrow-up" data-jscall-id="33"></sl-icon></sl-button></sl-tooltip><sl-tooltip content="move down" data-jscall-id="34"><sl-button onclick="" variant="text" style="" data-jscall-id="35" disabled="true" size="small"><sl-icon name="arrow-down" data-jscall-id="36"></sl-icon></sl-button></sl-tooltip></div></div></div></div></div></div></div><p>Read the contents back at any time with <code>get_values</code>:</p><pre><code class="language-julia hljs">ShoelaceWidgets.get_values(manager)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">2-element Vector{String}:
+ &quot;alpha&quot;
+ &quot;beta&quot;</code></pre><p>The list itself is the source of truth, not the vector you passed in — that vector is never mutated. Mutate the control instead, with <code>push!</code>, <code>append!</code>, <code>deleteat!</code>, <code>empty!</code> and <code>moveat!</code>:</p><pre><code class="language-julia hljs">push!(manager, &quot;gamma&quot;)
+ShoelaceWidgets.get_values(manager)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">3-element Vector{String}:
+ &quot;alpha&quot;
+ &quot;beta&quot;
+ &quot;gamma&quot;</code></pre><h3 id="Rows-holding-live-widgets"><a class="docs-heading-anchor" href="#Rows-holding-live-widgets">Rows holding live widgets</a><a id="Rows-holding-live-widgets-1"></a><a class="docs-heading-anchor-permalink" href="#Rows-holding-live-widgets" title="Permalink"></a></h3><p><code>item_function</code> maps a value to the <a href="../api/#ShoelaceWidgets.SLListItem"><code>SLListItem</code></a> that displays it, and <code>get_function</code> maps that item back to a value. Because rows can contain any widget, an item can hold its own editor — <code>get_values</code> then reflects whatever the user typed.</p><pre><code class="language-julia hljs">function item_function(value)
+    input = SLInput(value)
+    return SLListItem(DOM.div(input); object = input)
+end
+
+get_function(item::SLListItem) = item.object.value[]
+
+editable = ListManager([&quot;alpha&quot;, &quot;beta&quot;];
+                       label = &quot;Editable items&quot;,
+                       add_function = session -&gt; &quot;new&quot;,
+                       item_function,
+                       get_function)
+
+app = App() do session
+    DOM.html(
+        DOM.head(get_shoelace()...),
+        DOM.body(editable)
+    )
+end</code></pre><div class="bonito-fragment" id="3f3a3e66-6430-4e7a-a454-917d59b44707" data-jscall-id="subsession-application-dom"><div><style></style></div><div><script type="module">Bonito.init_session("3f3a3e66-6430-4e7a-a454-917d59b44707", Bonito.fetch_binary('bonito/bin/ed6719b54231dcd10785d71a4afcde38b4ef1fec-15971488245204393717.bin'), "sub", false);
+</script><div data-jscall-id="44"><div data-jscall-id="45"><meta charset="UTF-8" data-jscall-id="46" /><link rel="stylesheet" data-jscall-id="47" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/themes/light.css" /><script data-jscall-id="48" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/shoelace-autoloader.js" type="module"></script><style data-jscall-id="49">    /* ---------------------------------------------------
+       Shoelace ships `.radio { align-items: top }`, which is
+       not a valid align-items value, so it is dropped and the
+       circle falls back to stretch (pinned to the top). That
+       is invisible for one line of text because the label
+       carries `line-height: var(--toggle-size)`, but any block
+       content (a div holding another widget) leaves the circle
+       stranded at the top. Center it, and drop the single-line
+       line-height so block content is not distorted.
+       --------------------------------------------------- */
+    sl-radio::part(base) {
+      align-items: center;
+    }
+
+    sl-radio::part(label) {
+      line-height: normal;
+    }
+
+    /* ---------------------------------------------------
+       Core CSS to make sl-radio look like sl-tree-item
+       --------------------------------------------------- */
+
+    /* Force the host element to be block level so it stacks properly */
+    sl-radio.tree-style {
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    /* 1. Base styling for the "row" */
+    sl-radio.tree-style::part(base) {
+      padding: var(--sl-spacing-x-small) var(--sl-spacing-small);
+      border-radius: var(--sl-border-radius-medium);
+      transition: background-color 150ms ease, color 150ms ease;
+      width: 100%; /* Makes it stretch like a tree node */
+      box-sizing: border-box;
+      cursor: pointer;
+    }
+
+    /* 2. Hover effect */
+    sl-radio.tree-style:hover::part(base) {
+      background-color: var(--sl-color-neutral-100);
+    }
+
+    /* 3. The "Selected" state highlight */
+    sl-radio.tree-style[checked]::part(base),
+    sl-radio.tree-style[aria-checked="true"]::part(base) {
+      background-color: var(--sl-color-primary-100);
+      color: var(--sl-color-primary-700);
+    }
+
+    /* Hide the little radio circle completely */
+    sl-radio.tree-style-hidden-circle::part(control) {
+      display: none;
+    }
+
+    /* Remove the gap between the hidden circle and the label */
+    sl-radio.tree-style-hidden-circle::part(base) {
+      gap: 0;
+      /* Make the left side flat for the bar, keep right side rounded */
+      border-radius: 0 var(--sl-border-radius-medium) var(--sl-border-radius-medium) 0;
+      /* Invisible border to prevent text shifting on selection */
+      border-left: 4px solid transparent; 
+    }
+
+    /* Add the blue bar indicator when checked */
+    sl-radio.tree-style-hidden-circle[checked]::part(base),
+    sl-radio.tree-style-hidden-circle[aria-checked="true"]::part(base) {
+      border-left-color: var(--sl-color-primary-600);
+    }
+
+    /* Ensure no stray padding exists on the label */
+    sl-radio.tree-style-hidden-circle::part(label) {
+      padding-inline-start: 0;
+      /* Make the label take up full width for a bigger click target */
+      width: 100%;
+    }
+
+    /* ---------------------------------------------------
+       DialogManager: OK and Cancel are the only way out, so
+       remove the header close button rather than leave a
+       control that does nothing
+       --------------------------------------------------- */
+    sl-dialog.dialog-manager::part(close-button) {
+      display: none;
+    }
+</style></div><div data-jscall-id="50"><div style="" data-jscall-id="51"><div style="display: inline-block; color: var(--sl-input-label-color); font-size: var(--sl-input-label-font-size-medium); margin-bottom: var(--sl-spacing-3x-small);" data-jscall-id="52">Editable items</div><div style="height: 40vh; overflow-y: auto; padding: 5px; border: 1px solid lightgray;" data-jscall-id="53"><sl-radio-group label="" style="" data-jscall-id="54" value="0"><div data-jscall-id="64"><div class="bonito-fragment" id="4d5dd9c3-9b90-49b7-b5bf-89dda1b2b550" data-jscall-id="subsession-application-dom"><div data-jscall-id="65"><style data-jscall-id="66"></style></div><div data-jscall-id="67"><script data-jscall-id="68" type="module">Bonito.init_session("4d5dd9c3-9b90-49b7-b5bf-89dda1b2b550", Bonito.fetch_binary('bonito/bin/2f4a28d29cd87923fb69c24ff4f42caca79604d4-17519934135380462034.bin'), "sub", false);
+</script><span data-jscall-id="55"><sl-radio class="tree-style tree-style-hidden-circle" data-jscall-id="56" value="1"><div data-jscall-id="57"><sl-input label="" style="" data-jscall-id="58" value="alpha" placeholder="" type=""><div data-jscall-id="59" slot="help-text"></div></sl-input></div></sl-radio><sl-radio class="tree-style tree-style-hidden-circle" data-jscall-id="60" value="2"><div data-jscall-id="61"><sl-input label="" style="" data-jscall-id="62" value="beta" placeholder="" type=""><div data-jscall-id="63" slot="help-text"></div></sl-input></div></sl-radio></span></div></div></div><div data-jscall-id="69" slot="help-text"></div></sl-radio-group></div><div data-jscall-id="70"><sl-tooltip content="add" data-jscall-id="71"><sl-button onclick="" variant="text" style="" data-jscall-id="72" size="small"><sl-icon name="plus-circle" data-jscall-id="73"></sl-icon></sl-button></sl-tooltip><sl-tooltip content="remove" data-jscall-id="74"><sl-button onclick="" variant="text" style="" data-jscall-id="75" disabled="true" size="small"><sl-icon name="dash-circle" data-jscall-id="76"></sl-icon></sl-button></sl-tooltip><sl-tooltip content="clear" data-jscall-id="77"><sl-button onclick="" variant="text" style="" data-jscall-id="78" size="small"><sl-icon name="x-circle" data-jscall-id="79"></sl-icon></sl-button></sl-tooltip><sl-tooltip content="move up" data-jscall-id="80"><sl-button onclick="" variant="text" style="" data-jscall-id="81" disabled="true" size="small"><sl-icon name="arrow-up" data-jscall-id="82"></sl-icon></sl-button></sl-tooltip><sl-tooltip content="move down" data-jscall-id="83"><sl-button onclick="" variant="text" style="" data-jscall-id="84" disabled="true" size="small"><sl-icon name="arrow-down" data-jscall-id="85"></sl-icon></sl-button></sl-tooltip></div></div></div></div></div></div><p>Reordering moves rows without rebuilding them, so each row keeps its own live editor and whatever was typed into it survives the move.</p><h3 id="Building-a-composite-value-in-a-dialog"><a class="docs-heading-anchor" href="#Building-a-composite-value-in-a-dialog">Building a composite value in a dialog</a><a id="Building-a-composite-value-in-a-dialog-1"></a><a class="docs-heading-anchor-permalink" href="#Building-a-composite-value-in-a-dialog" title="Permalink"></a></h3><p>For a type with several fields, a single click cannot produce a value — the user has to fill it in. Setting <code>add_mode</code> to <code>DialogMode</code> changes <code>add_function</code>&#39;s contract from <code>add_function(session)</code> to <code>add_function(manager, action)</code>, where <code>action</code> is an <a href="../api/#ShoelaceWidgets.OpenOKCancel"><code>OpenOKCancel</code></a>. The add button then opens an OK/Cancel dialog whose body is <code>add_content</code>.</p><p>Initialize the editors on <code>Open</code>, and assemble the value and <code>push!</code> it on <code>OK</code>. <code>Cancel</code> needs no branch, because nothing is appended until the <code>OK</code> branch runs.</p><pre><code class="language-julia hljs">struct Point
+    x::Float64
+    y::Float64
+end
+
+xin = SLInput(0.0; label = &quot;x&quot;)
+yin = SLInput(0.0; label = &quot;y&quot;)
+
+function add_point(manager, action)
+    if action == ShoelaceWidgets.Open
+        xin.value[] = 0.0
+        yin.value[] = 0.0
+    elseif action == ShoelaceWidgets.OK
+        push!(manager, Point(xin.value[], yin.value[]))
+    end
+end
+
+points = ListManager(Point[];
+                     label = &quot;Points&quot;,
+                     add_mode = ShoelaceWidgets.DialogMode,
+                     add_function = add_point,
+                     add_content = DOM.div(xin, yin),
+                     add_label = &quot;Add point&quot;,
+                     item_function = p -&gt; SLListItem(&quot;($(p.x), $(p.y))&quot;; object = p))
+
+app = App() do session
+    DOM.html(
+        DOM.head(get_shoelace()...),
+        DOM.body(points)
+    )
+end</code></pre><div class="bonito-fragment" id="042dee20-1ee8-47fe-8145-cf70978e6e1e" data-jscall-id="subsession-application-dom"><div><style></style></div><div><script type="module">Bonito.init_session("042dee20-1ee8-47fe-8145-cf70978e6e1e", Bonito.fetch_binary('bonito/bin/9044edace15058067ffcc23ed8f2553c9454b334-12212995863135639781.bin'), "sub", false);
+</script><div data-jscall-id="86"><div data-jscall-id="87"><meta charset="UTF-8" data-jscall-id="88" /><link rel="stylesheet" data-jscall-id="89" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/themes/light.css" /><script data-jscall-id="90" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/shoelace-autoloader.js" type="module"></script><style data-jscall-id="91">    /* ---------------------------------------------------
+       Shoelace ships `.radio { align-items: top }`, which is
+       not a valid align-items value, so it is dropped and the
+       circle falls back to stretch (pinned to the top). That
+       is invisible for one line of text because the label
+       carries `line-height: var(--toggle-size)`, but any block
+       content (a div holding another widget) leaves the circle
+       stranded at the top. Center it, and drop the single-line
+       line-height so block content is not distorted.
+       --------------------------------------------------- */
+    sl-radio::part(base) {
+      align-items: center;
+    }
+
+    sl-radio::part(label) {
+      line-height: normal;
+    }
+
+    /* ---------------------------------------------------
+       Core CSS to make sl-radio look like sl-tree-item
+       --------------------------------------------------- */
+
+    /* Force the host element to be block level so it stacks properly */
+    sl-radio.tree-style {
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    /* 1. Base styling for the "row" */
+    sl-radio.tree-style::part(base) {
+      padding: var(--sl-spacing-x-small) var(--sl-spacing-small);
+      border-radius: var(--sl-border-radius-medium);
+      transition: background-color 150ms ease, color 150ms ease;
+      width: 100%; /* Makes it stretch like a tree node */
+      box-sizing: border-box;
+      cursor: pointer;
+    }
+
+    /* 2. Hover effect */
+    sl-radio.tree-style:hover::part(base) {
+      background-color: var(--sl-color-neutral-100);
+    }
+
+    /* 3. The "Selected" state highlight */
+    sl-radio.tree-style[checked]::part(base),
+    sl-radio.tree-style[aria-checked="true"]::part(base) {
+      background-color: var(--sl-color-primary-100);
+      color: var(--sl-color-primary-700);
+    }
+
+    /* Hide the little radio circle completely */
+    sl-radio.tree-style-hidden-circle::part(control) {
+      display: none;
+    }
+
+    /* Remove the gap between the hidden circle and the label */
+    sl-radio.tree-style-hidden-circle::part(base) {
+      gap: 0;
+      /* Make the left side flat for the bar, keep right side rounded */
+      border-radius: 0 var(--sl-border-radius-medium) var(--sl-border-radius-medium) 0;
+      /* Invisible border to prevent text shifting on selection */
+      border-left: 4px solid transparent; 
+    }
+
+    /* Add the blue bar indicator when checked */
+    sl-radio.tree-style-hidden-circle[checked]::part(base),
+    sl-radio.tree-style-hidden-circle[aria-checked="true"]::part(base) {
+      border-left-color: var(--sl-color-primary-600);
+    }
+
+    /* Ensure no stray padding exists on the label */
+    sl-radio.tree-style-hidden-circle::part(label) {
+      padding-inline-start: 0;
+      /* Make the label take up full width for a bigger click target */
+      width: 100%;
+    }
+
+    /* ---------------------------------------------------
+       DialogManager: OK and Cancel are the only way out, so
+       remove the header close button rather than leave a
+       control that does nothing
+       --------------------------------------------------- */
+    sl-dialog.dialog-manager::part(close-button) {
+      display: none;
+    }
+</style></div><div data-jscall-id="92"><div style="" data-jscall-id="93"><div style="display: inline-block; color: var(--sl-input-label-color); font-size: var(--sl-input-label-font-size-medium); margin-bottom: var(--sl-spacing-3x-small);" data-jscall-id="94">Points</div><div style="height: 40vh; overflow-y: auto; padding: 5px; border: 1px solid lightgray;" data-jscall-id="95"><sl-radio-group label="" style="" data-jscall-id="96" value="0"><div data-jscall-id="98"><div class="bonito-fragment" id="e3129da5-41f3-481e-8780-dcd28774c19b" data-jscall-id="subsession-application-dom"><div data-jscall-id="99"><style data-jscall-id="100"></style></div><div data-jscall-id="101"><script data-jscall-id="102" type="module">Bonito.init_session("e3129da5-41f3-481e-8780-dcd28774c19b", null, "sub", false);
+</script><span data-jscall-id="97"></span></div></div></div><div data-jscall-id="103" slot="help-text"></div></sl-radio-group></div><div data-jscall-id="104"><sl-tooltip content="add" data-jscall-id="105"><sl-button onclick="" variant="text" style="" data-jscall-id="106" size="small"><sl-icon name="plus-circle" data-jscall-id="107"></sl-icon></sl-button></sl-tooltip><sl-tooltip content="remove" data-jscall-id="108"><sl-button onclick="" variant="text" style="" data-jscall-id="109" disabled="true" size="small"><sl-icon name="dash-circle" data-jscall-id="110"></sl-icon></sl-button></sl-tooltip><sl-tooltip content="clear" data-jscall-id="111"><sl-button onclick="" variant="text" style="" data-jscall-id="112" disabled="true" size="small"><sl-icon name="x-circle" data-jscall-id="113"></sl-icon></sl-button></sl-tooltip><sl-tooltip content="move up" data-jscall-id="114"><sl-button onclick="" variant="text" style="" data-jscall-id="115" disabled="true" size="small"><sl-icon name="arrow-up" data-jscall-id="116"></sl-icon></sl-button></sl-tooltip><sl-tooltip content="move down" data-jscall-id="117"><sl-button onclick="" variant="text" style="" data-jscall-id="118" disabled="true" size="small"><sl-icon name="arrow-down" data-jscall-id="119"></sl-icon></sl-button></sl-tooltip></div><sl-dialog label="Add point" class="dialog-manager" style="--width: 75vw;" data-jscall-id="120"><div data-jscall-id="121"><sl-input label="x" style="" data-jscall-id="122" clearable value="0.0" placeholder="" type="number"><div data-jscall-id="123" slot="help-text"></div></sl-input><sl-input label="y" style="" data-jscall-id="124" clearable value="0.0" placeholder="" type="number"><div data-jscall-id="125" slot="help-text"></div></sl-input></div><div style="display: flex; gap: var(--sl-spacing-x-small); justify-content: flex-end" data-jscall-id="126" slot="footer"><sl-button onclick="" style="" data-jscall-id="127">Cancel</sl-button><sl-button onclick="" variant="primary" style="" data-jscall-id="128">OK</sl-button></div></sl-dialog></div></div></div></div></div><h3 id="Editing-the-selected-item"><a class="docs-heading-anchor" href="#Editing-the-selected-item">Editing the selected item</a><a id="Editing-the-selected-item-1"></a><a class="docs-heading-anchor-permalink" href="#Editing-the-selected-item" title="Permalink"></a></h3><p><code>edit_function</code> adds a pencil button, disabled until something is selected, that opens a second dialog with body <code>edit_content</code>. It takes the same <code>(manager, action)</code> contract. Seed the editors from the selection on <code>Open</code>, and commit with <code>replace_selected!</code> on <code>OK</code>.</p><pre><code class="language-julia hljs">ex = SLInput(0.0; label = &quot;x&quot;)
+ey = SLInput(0.0; label = &quot;y&quot;)
+
+function edit_point(manager, action)
+    if action == ShoelaceWidgets.Open
+        p = manager.list.object
+        ex.value[] = p.x
+        ey.value[] = p.y
+    elseif action == ShoelaceWidgets.OK
+        ShoelaceWidgets.replace_selected!(manager, Point(ex.value[], ey.value[]))
+    end
+end
+
+editable_points = ListManager([Point(1.0, 2.0), Point(3.0, 4.0)];
+                              label = &quot;Points&quot;,
+                              edit_function = edit_point,
+                              edit_content = DOM.div(ex, ey),
+                              dialog_label = &quot;Edit point&quot;,
+                              item_function = p -&gt; SLListItem(&quot;($(p.x), $(p.y))&quot;; object = p))
+
+app = App() do session
+    DOM.html(
+        DOM.head(get_shoelace()...),
+        DOM.body(editable_points)
+    )
+end</code></pre><div class="bonito-fragment" id="33491858-b0a0-41d4-94f6-34001b5fb367" data-jscall-id="subsession-application-dom"><div><style></style></div><div><script type="module">Bonito.init_session("33491858-b0a0-41d4-94f6-34001b5fb367", Bonito.fetch_binary('bonito/bin/00720b84debe19949f82aa4f82af5d524c395650-18441900603316469205.bin'), "sub", false);
+</script><div data-jscall-id="129"><div data-jscall-id="130"><meta charset="UTF-8" data-jscall-id="131" /><link rel="stylesheet" data-jscall-id="132" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/themes/light.css" /><script data-jscall-id="133" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/shoelace-autoloader.js" type="module"></script><style data-jscall-id="134">    /* ---------------------------------------------------
+       Shoelace ships `.radio { align-items: top }`, which is
+       not a valid align-items value, so it is dropped and the
+       circle falls back to stretch (pinned to the top). That
+       is invisible for one line of text because the label
+       carries `line-height: var(--toggle-size)`, but any block
+       content (a div holding another widget) leaves the circle
+       stranded at the top. Center it, and drop the single-line
+       line-height so block content is not distorted.
+       --------------------------------------------------- */
+    sl-radio::part(base) {
+      align-items: center;
+    }
+
+    sl-radio::part(label) {
+      line-height: normal;
+    }
+
+    /* ---------------------------------------------------
+       Core CSS to make sl-radio look like sl-tree-item
+       --------------------------------------------------- */
+
+    /* Force the host element to be block level so it stacks properly */
+    sl-radio.tree-style {
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    /* 1. Base styling for the "row" */
+    sl-radio.tree-style::part(base) {
+      padding: var(--sl-spacing-x-small) var(--sl-spacing-small);
+      border-radius: var(--sl-border-radius-medium);
+      transition: background-color 150ms ease, color 150ms ease;
+      width: 100%; /* Makes it stretch like a tree node */
+      box-sizing: border-box;
+      cursor: pointer;
+    }
+
+    /* 2. Hover effect */
+    sl-radio.tree-style:hover::part(base) {
+      background-color: var(--sl-color-neutral-100);
+    }
+
+    /* 3. The "Selected" state highlight */
+    sl-radio.tree-style[checked]::part(base),
+    sl-radio.tree-style[aria-checked="true"]::part(base) {
+      background-color: var(--sl-color-primary-100);
+      color: var(--sl-color-primary-700);
+    }
+
+    /* Hide the little radio circle completely */
+    sl-radio.tree-style-hidden-circle::part(control) {
+      display: none;
+    }
+
+    /* Remove the gap between the hidden circle and the label */
+    sl-radio.tree-style-hidden-circle::part(base) {
+      gap: 0;
+      /* Make the left side flat for the bar, keep right side rounded */
+      border-radius: 0 var(--sl-border-radius-medium) var(--sl-border-radius-medium) 0;
+      /* Invisible border to prevent text shifting on selection */
+      border-left: 4px solid transparent; 
+    }
+
+    /* Add the blue bar indicator when checked */
+    sl-radio.tree-style-hidden-circle[checked]::part(base),
+    sl-radio.tree-style-hidden-circle[aria-checked="true"]::part(base) {
+      border-left-color: var(--sl-color-primary-600);
+    }
+
+    /* Ensure no stray padding exists on the label */
+    sl-radio.tree-style-hidden-circle::part(label) {
+      padding-inline-start: 0;
+      /* Make the label take up full width for a bigger click target */
+      width: 100%;
+    }
+
+    /* ---------------------------------------------------
+       DialogManager: OK and Cancel are the only way out, so
+       remove the header close button rather than leave a
+       control that does nothing
+       --------------------------------------------------- */
+    sl-dialog.dialog-manager::part(close-button) {
+      display: none;
+    }
+</style></div><div data-jscall-id="135"><div style="" data-jscall-id="136"><div style="display: inline-block; color: var(--sl-input-label-color); font-size: var(--sl-input-label-font-size-medium); margin-bottom: var(--sl-spacing-3x-small);" data-jscall-id="137">Points</div><div style="height: 40vh; overflow-y: auto; padding: 5px; border: 1px solid lightgray;" data-jscall-id="138"><sl-radio-group label="" style="" data-jscall-id="139" value="0"><div data-jscall-id="143"><div class="bonito-fragment" id="eab70eb9-d6db-41ab-a999-e97688bc2754" data-jscall-id="subsession-application-dom"><div data-jscall-id="144"><style data-jscall-id="145"></style></div><div data-jscall-id="146"><script data-jscall-id="147" type="module">Bonito.init_session("eab70eb9-d6db-41ab-a999-e97688bc2754", null, "sub", false);
+</script><span data-jscall-id="140"><sl-radio class="tree-style tree-style-hidden-circle" data-jscall-id="141" value="1">&#40;1.0, 2.0&#41;</sl-radio><sl-radio class="tree-style tree-style-hidden-circle" data-jscall-id="142" value="2">&#40;3.0, 4.0&#41;</sl-radio></span></div></div></div><div data-jscall-id="148" slot="help-text"></div></sl-radio-group></div><div data-jscall-id="149"><sl-tooltip content="add" data-jscall-id="150"><sl-button onclick="" variant="text" style="" data-jscall-id="151" disabled="true" size="small"><sl-icon name="plus-circle" data-jscall-id="152"></sl-icon></sl-button></sl-tooltip><sl-tooltip content="remove" data-jscall-id="153"><sl-button onclick="" variant="text" style="" data-jscall-id="154" disabled="true" size="small"><sl-icon name="dash-circle" data-jscall-id="155"></sl-icon></sl-button></sl-tooltip><sl-tooltip content="clear" data-jscall-id="156"><sl-button onclick="" variant="text" style="" data-jscall-id="157" size="small"><sl-icon name="x-circle" data-jscall-id="158"></sl-icon></sl-button></sl-tooltip><sl-tooltip content="edit" data-jscall-id="159"><sl-button onclick="" variant="text" style="" data-jscall-id="160" disabled="true" size="small"><sl-icon name="pencil" data-jscall-id="161"></sl-icon></sl-button></sl-tooltip><sl-tooltip content="move up" data-jscall-id="162"><sl-button onclick="" variant="text" style="" data-jscall-id="163" disabled="true" size="small"><sl-icon name="arrow-up" data-jscall-id="164"></sl-icon></sl-button></sl-tooltip><sl-tooltip content="move down" data-jscall-id="165"><sl-button onclick="" variant="text" style="" data-jscall-id="166" disabled="true" size="small"><sl-icon name="arrow-down" data-jscall-id="167"></sl-icon></sl-button></sl-tooltip></div><sl-dialog label="Edit point" class="dialog-manager" style="--width: 75vw;" data-jscall-id="168"><div data-jscall-id="169"><sl-input label="x" style="" data-jscall-id="170" clearable value="0.0" placeholder="" type="number"><div data-jscall-id="171" slot="help-text"></div></sl-input><sl-input label="y" style="" data-jscall-id="172" clearable value="0.0" placeholder="" type="number"><div data-jscall-id="173" slot="help-text"></div></sl-input></div><div style="display: flex; gap: var(--sl-spacing-x-small); justify-content: flex-end" data-jscall-id="174" slot="footer"><sl-button onclick="" style="" data-jscall-id="175">Cancel</sl-button><sl-button onclick="" variant="primary" style="" data-jscall-id="176">OK</sl-button></div></sl-dialog></div></div></div></div></div><p>Note that no add button behaviour was supplied here, so it is disabled — a button that provably does nothing is not left looking clickable.</p><h3 id="Button-states"><a class="docs-heading-anchor" href="#Button-states">Button states</a><a id="Button-states-1"></a><a class="docs-heading-anchor-permalink" href="#Button-states" title="Permalink"></a></h3><p>Buttons disable themselves whenever they do not apply, so the control never offers an action that would silently do nothing:</p><table><tr><th style="text-align: right">Button</th><th style="text-align: right">Disabled when</th></tr><tr><td style="text-align: right">add</td><td style="text-align: right">no <code>add_function</code> was supplied</td></tr><tr><td style="text-align: right">delete, edit</td><td style="text-align: right">nothing is selected</td></tr><tr><td style="text-align: right">clear</td><td style="text-align: right">the list is empty</td></tr><tr><td style="text-align: right">move up</td><td style="text-align: right">the first item is selected</td></tr><tr><td style="text-align: right">move down</td><td style="text-align: right">the last item is selected</td></tr></table><p>Deleting and clearing drop the selection. Moving carries it along, so repeated clicks walk the same item to either end of the list.</p><h2 id="DialogManager"><a class="docs-heading-anchor" href="#DialogManager">DialogManager</a><a id="DialogManager-1"></a><a class="docs-heading-anchor-permalink" href="#DialogManager" title="Permalink"></a></h2><p>A <a href="#DialogManager"><code>DialogManager</code></a> is a modal dialog with OK and Cancel in its footer. Unlike a bare <a href="../api/#ShoelaceWidgets.SLDialog"><code>SLDialog</code></a> it refuses every other way out — the overlay, the escape key, and the header close button, which is hidden rather than left as a control that does nothing. Exactly one <code>OK</code> or <code>Cancel</code> therefore follows every <code>Open</code>, which is what makes the callback contract reliable.</p><p>The body is passed at construction and holds the editing widgets. <code>dialog_function</code> seeds them on <code>Open</code> and reads them on <code>OK</code>.</p><pre><code class="language-julia hljs">name = Observable(&quot;alpha&quot;)
+editor = SLInput(&quot;&quot;; label = &quot;Name&quot;)
+
+function edit_name(d, action)
+    if action == ShoelaceWidgets.Open
+        editor.value[] = name[]
+    elseif action == ShoelaceWidgets.OK
+        name[] = editor.value[]
+    end
+end
+
+dialog = DialogManager(DOM.div(editor), edit_name; label = &quot;Edit name&quot;)
+
+open_button = SLButton(&quot;edit&quot;; variant = &quot;primary&quot;)
+on(open_button.value) do session
+    isnothing(session) || ShoelaceWidgets.open!(dialog)
+end
+
+app = App() do session
+    DOM.html(
+        DOM.head(get_shoelace()...),
+        DOM.body(open_button, dialog)
+    )
+end</code></pre><div class="bonito-fragment" id="5f5eef36-56d5-4737-a9fd-e153d6456649" data-jscall-id="subsession-application-dom"><div><style></style></div><div><script type="module">Bonito.init_session("5f5eef36-56d5-4737-a9fd-e153d6456649", Bonito.fetch_binary('bonito/bin/5a4dd3ff3a5bf9896398f9a11cffec81733b4b8e-9396435029451632202.bin'), "sub", false);
+</script><div data-jscall-id="177"><div data-jscall-id="178"><meta charset="UTF-8" data-jscall-id="179" /><link rel="stylesheet" data-jscall-id="180" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/themes/light.css" /><script data-jscall-id="181" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/shoelace-autoloader.js" type="module"></script><style data-jscall-id="182">    /* ---------------------------------------------------
+       Shoelace ships `.radio { align-items: top }`, which is
+       not a valid align-items value, so it is dropped and the
+       circle falls back to stretch (pinned to the top). That
+       is invisible for one line of text because the label
+       carries `line-height: var(--toggle-size)`, but any block
+       content (a div holding another widget) leaves the circle
+       stranded at the top. Center it, and drop the single-line
+       line-height so block content is not distorted.
+       --------------------------------------------------- */
+    sl-radio::part(base) {
+      align-items: center;
+    }
+
+    sl-radio::part(label) {
+      line-height: normal;
+    }
+
+    /* ---------------------------------------------------
+       Core CSS to make sl-radio look like sl-tree-item
+       --------------------------------------------------- */
+
+    /* Force the host element to be block level so it stacks properly */
+    sl-radio.tree-style {
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    /* 1. Base styling for the "row" */
+    sl-radio.tree-style::part(base) {
+      padding: var(--sl-spacing-x-small) var(--sl-spacing-small);
+      border-radius: var(--sl-border-radius-medium);
+      transition: background-color 150ms ease, color 150ms ease;
+      width: 100%; /* Makes it stretch like a tree node */
+      box-sizing: border-box;
+      cursor: pointer;
+    }
+
+    /* 2. Hover effect */
+    sl-radio.tree-style:hover::part(base) {
+      background-color: var(--sl-color-neutral-100);
+    }
+
+    /* 3. The "Selected" state highlight */
+    sl-radio.tree-style[checked]::part(base),
+    sl-radio.tree-style[aria-checked="true"]::part(base) {
+      background-color: var(--sl-color-primary-100);
+      color: var(--sl-color-primary-700);
+    }
+
+    /* Hide the little radio circle completely */
+    sl-radio.tree-style-hidden-circle::part(control) {
+      display: none;
+    }
+
+    /* Remove the gap between the hidden circle and the label */
+    sl-radio.tree-style-hidden-circle::part(base) {
+      gap: 0;
+      /* Make the left side flat for the bar, keep right side rounded */
+      border-radius: 0 var(--sl-border-radius-medium) var(--sl-border-radius-medium) 0;
+      /* Invisible border to prevent text shifting on selection */
+      border-left: 4px solid transparent; 
+    }
+
+    /* Add the blue bar indicator when checked */
+    sl-radio.tree-style-hidden-circle[checked]::part(base),
+    sl-radio.tree-style-hidden-circle[aria-checked="true"]::part(base) {
+      border-left-color: var(--sl-color-primary-600);
+    }
+
+    /* Ensure no stray padding exists on the label */
+    sl-radio.tree-style-hidden-circle::part(label) {
+      padding-inline-start: 0;
+      /* Make the label take up full width for a bigger click target */
+      width: 100%;
+    }
+
+    /* ---------------------------------------------------
+       DialogManager: OK and Cancel are the only way out, so
+       remove the header close button rather than leave a
+       control that does nothing
+       --------------------------------------------------- */
+    sl-dialog.dialog-manager::part(close-button) {
+      display: none;
+    }
+</style></div><div data-jscall-id="183"><sl-button onclick="" variant="primary" style="" data-jscall-id="184">edit</sl-button><sl-dialog label="Edit name" class="dialog-manager" style="" data-jscall-id="185"><div data-jscall-id="186"><sl-input label="Name" style="" data-jscall-id="187" value="" placeholder="" type=""><div data-jscall-id="188" slot="help-text"></div></sl-input></div><div style="display: flex; gap: var(--sl-spacing-x-small); justify-content: flex-end" data-jscall-id="189" slot="footer"><sl-button onclick="" style="" data-jscall-id="190">Cancel</sl-button><sl-button onclick="" variant="primary" style="" data-jscall-id="191">OK</sl-button></div></sl-dialog></div></div></div></div><p>Both the trigger and the dialog have to be rendered — a dialog that is not in the document has nothing to show.</p><p>Cancel is a no-op by construction rather than by undo: since <code>name</code> is only written in the <code>OK</code> branch, rejecting the dialog leaves it untouched. Nothing is snapshotted or restored automatically, so a <code>dialog_function</code> that writes its value during <code>Open</code> is responsible for its own undo.</p><p>The three actions can also be driven from Julia, which is how the behaviour is tested without a browser:</p><pre><code class="language-julia hljs">ShoelaceWidgets.open!(dialog)     # runs the Open action and shows the dialog
+editor.value[] = &quot;beta&quot;
+ShoelaceWidgets.accept!(dialog)   # runs OK and closes
+name[]</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">&quot;beta&quot;</code></pre><pre><code class="language-julia hljs">ShoelaceWidgets.open!(dialog)
+editor.value[] = &quot;discarded&quot;
+ShoelaceWidgets.reject!(dialog)   # runs Cancel and closes
+name[]                            # unchanged</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">&quot;beta&quot;</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Home</a><a class="docs-footer-nextpage" href="../api/">API Reference »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Friday 7 August 2026 12:57">Friday 7 August 2026</span>. Using Julia version 1.12.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
