@@ -39,20 +39,25 @@ SLRadio
 SLRadioGroup
 ```
 
-Also exists as `SLListItem` and `SLList`, providing a different selection styling.
-
 ### List
+
+The same control with list styling instead of radio buttons.
 
 ```@docs
 SLList
+SLListItem
 ```
-
-
 
 ### Dialog
 
 ```@docs
 SLDialog
+```
+
+### Details
+
+```@docs
+SLDetails
 ```
 
 ### Tree
@@ -78,9 +83,14 @@ SLAlert
 
 ## Composite Components
 
+Controls assembled from several widgets. See the
+[Composite Controls](composites.md) page for worked examples.
+
 ```@docs
-DialogManager
 ListManager
+DialogManager
+ShoelaceWidgets.AddMode
+ShoelaceWidgets.OpenOKCancel
 ```
 
 ## UI Element Functions
@@ -107,21 +117,31 @@ sl_copy_button
 ```
 
 ## Internals
+
+These are not exported. Reach them as `ShoelaceWidgets.get_values(...)` and so on.
+
+### Reading and mutating a ListManager
+
 ```@docs
-ShoelaceWidgets.reject! 
-ShoelaceWidgets.default_get 
-ShoelaceWidgets.open_editor! 
-ShoelaceWidgets.move_up! 
-ShoelaceWidgets.accept! 
-ShoelaceWidgets.default_item 
-ShoelaceWidgets.update_buttons! 
-ShoelaceWidgets.prevent_close_js 
-ShoelaceWidgets.open! 
-ShoelaceWidgets.OpenOKCancel
-ShoelaceWidgets.replace_selected! 
-ShoelaceWidgets.delete_selected! 
-ShoelaceWidgets.moveat! 
-ShoelaceWidgets.selected_index 
-ShoelaceWidgets.move_down! 
-ShoelaceWidgets.get_values 
+ShoelaceWidgets.get_values
+ShoelaceWidgets.selected_index
+ShoelaceWidgets.replace_selected!
+ShoelaceWidgets.delete_selected!
+ShoelaceWidgets.moveat!
+ShoelaceWidgets.move_up!
+ShoelaceWidgets.move_down!
+ShoelaceWidgets.open_adder!
+ShoelaceWidgets.open_editor!
+ShoelaceWidgets.default_item
+ShoelaceWidgets.default_get
+ShoelaceWidgets.update_buttons!
+```
+
+### Driving a DialogManager
+
+```@docs
+ShoelaceWidgets.open!
+ShoelaceWidgets.accept!
+ShoelaceWidgets.reject!
+ShoelaceWidgets.prevent_close_js
 ```

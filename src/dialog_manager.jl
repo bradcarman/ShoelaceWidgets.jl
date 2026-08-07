@@ -14,7 +14,7 @@ The action passed to a [`DialogManager`](@ref)'s `dialog_function`:
 @enum OpenOKCancel Open OK Cancel
 
 """
-    DialogManager(value::Observable{T}, content, dialog_function; label="", ok_label="OK", cancel_label="Cancel", style="")
+    DialogManager(content::Hyperscript.Node, dialog_function; label="", ok_label="OK", cancel_label="Cancel", style="")
 
 Creates a modal dialog with OK and Cancel buttons in its footer, wrapped around `content`.
 
@@ -23,71 +23,29 @@ escape, or via the header close button (which is hidden, since it would otherwis
 does nothing). Clicking OK or Cancel is the only way out, so `dialog_function` is guaranteed to see
 exactly one `OK` or `Cancel` for every `Open`.
 
-`content` is built once at construction and holds the live editing widgets. `dialog_function` is
-called as `dialog_function(manager, action)` where `action` is an [`OpenOKCancel`](@ref), and is
-where `manager.value` is read and written:
+`content` is the dialog body and holds the live editing widgets. It is stored in the `value` field,
+and read when the dialog is rendered.
 
-```julia
-function dialog_function(x, action)
-    if action == Open
-        editor.value[] = x.value[]   # seed the editor
-    elseif action == OK
-        x.value[] = editor.value[]   # commit
-    end
-    # Cancel needs no branch: nothing was committed, so there is nothing to undo
-end
-```
+`dialog_function` is called as `dialog_function(manager, action)` where `action` is an
+[`OpenOKCancel`](@ref): initialize the editors on `Open`, read them back on `OK`, and usually leave
+`Cancel` alone. Because nothing is committed until the `OK` branch runs, cancelling needs no undo.
+Nothing is snapshotted or restored automatically.
 
-Because a commit only happens in the `OK` branch, `Cancel` is naturally a no-op. Nothing is
-snapshotted or restored automatically; if your function edits `value` live, undoing that is its own
-responsibility.
+The dialog must itself be rendered somewhere in the document, otherwise there is nothing to show.
 
 # Fields
-- `value::Observable{T}` - The value the dialog edits
-- `content::Hyperscript.Node` - The dialog body, holding the editing widgets
+- `value::Observable{Hyperscript.Node}` - The dialog body, holding the editing widgets
 - `ok::SLButton` - The OK button
 - `cancel::SLButton` - The Cancel button
 - `open::Observable{Bool}` - Visibility; setting it to `true` runs the `Open` action
-- `label::String` - Dialog title text
 - `dialog_function::Function` - Called as `dialog_function(manager, action)`
+- `label::String` - Dialog title text
 - `style::String` - Inline CSS style applied to the dialog element
 
 # Methods
 - `open!(manager)` - Show the dialog, running the `Open` action
 - `accept!(manager)` - Run the `OK` action and close, as the OK button does
 - `reject!(manager)` - Run the `Cancel` action and close, as the Cancel button does
-
-# Examples
-```julia
-editor = SLInput(""; label="Name")
-value = Observable("alpha")
-
-function dialog_function(x, action)
-    if action == Open
-        editor.value[] = x.value[]
-    elseif action == OK
-        x.value[] = editor.value[]
-    end
-end
-
-d = DialogManager(value, DOM.div(editor), dialog_function; label="Edit name")
-
-# Show it from a button
-btn = SLButton("edit")
-on(btn.value) do session
-    isnothing(session) || ShoelaceWidgets.open!(d)
-end
-
-# React to an accepted edit
-on(value) do v
-    println("committed: ", v)
-end
-
-# Both the manager and the dialog must be rendered
-app = App() do session
-    DOM.html(DOM.head(get_shoelace()...), DOM.body(btn, d))
-end
-```
 """
 struct DialogManager
     value::Observable{Hyperscript.Node}

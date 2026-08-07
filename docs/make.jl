@@ -12,6 +12,7 @@ makedocs(;
     ),
     pages=[
         "Home" => "index.md",
+        "Composite Controls" => "composites.md",
         "API Reference" => "api.md",
     ],
 )

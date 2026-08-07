@@ -115,15 +115,7 @@ Returns an array of DOM elements (link and script tags) needed to load the Shoel
 This should be included in the document head of your Bonito application.  The `charset` is also included which is not
 specifically required by Shoelace.style but is defaulted to UTF-8 to ensure Julia Unicode is rendered correctly in browsers.
 
-# Example
-```julia
-app = App() do session
-    DOM.html(
-        DOM.head(get_shoelace()...),
-        DOM.body(input)
-    )
-end
-```
+Splat the result into your document head: `DOM.head(get_shoelace()...)`.
 """
 get_shoelace(charset="UTF-8") = [
     DOM.meta(;charset),
@@ -216,40 +208,24 @@ sl_copy_button(args...; kw...) = m("sl-copy-button", args...; kw...)
 sl_input(args...; kw...) = m("sl-input", args...; kw...)
 
 """
-    SLInput(default; label="", help="", placeholder="", disabled=false, style="")
+    SLInput(default; label="", help="", placeholder="", disabled=false, style="", select_on_focus=false, min=NaN, max=NaN)
 
 Creates a reactive input field widget. The input value is synchronized with Julia through an Observable.
+
+The `type` attribute follows the type of `default`: `String` gives a text input, any `Number` gives a
+numeric input, and a `Date` gives a date picker. `min` and `max` apply to numeric inputs only.
 
 # Fields
 - `value::Observable{T}` - Observable containing the current input value
 - `label::String` - Label text displayed above the input
 - `type::String` - HTML input type (automatically determined from value type)
-- `help::String` - Help text displayed below the input
+- `help::String` - Help text displayed below the input, rendered as HTML
 - `placeholder::String` - Placeholder text shown when input is empty
 - `disabled::Observable{Bool}` - Observable controlling whether input is disabled
 - `style::String` - Inline CSS style applied to the input element
-
-# Examples
-```julia
-# Text input
-input = SLInput(""; label="Name", placeholder="Enter your name")
-
-# Number input
-num_input = SLInput(0.0; help="Enter a number from 1 to 10")
-
-# Date input
-date_input = SLInput(Date(2024, 1, 1); label="Select date")
-
-# Disabled input
-disabled_input = SLInput(""; label="Read-only", disabled=true)
-
-# Access the value
-println(input.value[])  # Get current value
-input.value[] = "New value"  # Set value
-
-# Disable/enable dynamically
-input.disabled[] = true
-```
+- `select_on_focus::Bool` - Highlight the existing contents on focus, so typing replaces them
+- `min::Real` - Minimum value for numeric inputs, `NaN` for no minimum
+- `max::Real` - Maximum value for numeric inputs, `NaN` for no maximum
 """
 struct SLInput{T}
     value::Observable{T}
@@ -365,20 +341,6 @@ Creates a dropdown select widget with reactive selection tracking.
 - `empty!(select)` - Remove all options
 - `popat!(select, i)` - Remove option at index i
 
-# Examples
-```julia
-# Create select with string options
-select = SLSelect(["Option 1", "Option 2", "Option 3"]; label="Choose one", index=1)
-
-# Access selected value
-println(select.value)  # Returns "Option 1"
-
-# Change selection
-select.index[] = 2
-
-# Add new option dynamically
-push!(select, "Option 4")
-```
 """
 struct SLSelect{T}
     label::String
@@ -495,22 +457,6 @@ Creates a clickable button widget with reactive state management.
 - `size::Union{String, Nothing}` - Button size (e.g., "small", "medium", "large")
 - `style::String` - Inline CSS style applied to the button element
 
-# Examples
-```julia
-# Create button
-btn = SLButton("Click Me"; variant="primary")
-
-# React to button clicks
-on(btn.value) do _
-    println("Button was clicked!")
-end
-
-# Disable button
-btn.disabled[] = true
-
-# Show loading state
-btn.loading[] = true
-```
 """
 struct SLButton
     value::Observable{Union{Session,Nothing}}
@@ -599,24 +545,6 @@ Creates a checkbox widget with reactive state management.
 - `help::String` - Help text displayed below the checkbox
 - `style::String` - Inline CSS style applied to the checkbox element
 
-# Examples
-```julia
-# Create checkbox
-checkbox = SLCheckbox("Accept terms"; checked=false)
-
-# React to checkbox changes
-on(checkbox.value) do checked
-    if checked
-        println("Terms accepted!")
-    end
-end
-
-# Disable checkbox
-checkbox.disabled[] = true
-
-# Check/uncheck programmatically
-checkbox.value[] = true
-```
 """
 struct SLCheckbox
     value::Observable{Bool}
@@ -689,24 +617,6 @@ Creates a reactive textarea widget for multi-line text input. The textarea value
 - `disabled::Observable{Bool}` - Observable controlling whether textarea is disabled
 - `style::String` - Inline CSS style applied to the textarea element
 
-# Examples
-```julia
-# Basic textarea
-textarea = SLTextarea(""; label="Comments", placeholder="Enter your comments here")
-
-# Textarea with more rows
-textarea = SLTextarea(""; label="Description", rows=5, help="Please provide details")
-
-# Disabled textarea
-textarea = SLTextarea("Read-only content"; label="Info", disabled=true)
-
-# Access the value
-println(textarea.value[])  # Get current value
-textarea.value[] = "New text"  # Set value
-
-# Disable/enable dynamically
-textarea.disabled[] = true
-```
 """
 struct SLTextarea
     value::Observable{String}
@@ -785,11 +695,6 @@ Represents a single radio button option within a radio group.
 - `object::Any` - Optional associated data object
 - `index::Int` - Position in the group (set automatically when added to an SLRadioGroup)
 
-# Example
-```julia
-radio1 = SLRadio("Option A"; object=1)
-radio2 = SLRadio("Option B"; object=2, disabled=true)
-```
 """
 mutable struct SLRadio <: SLRadioLike
     value::Union{String, Hyperscript.Node}
@@ -799,6 +704,23 @@ mutable struct SLRadio <: SLRadioLike
 end
 SLRadio(value::Union{String, Hyperscript.Node}; disabled=false, object=nothing) = SLRadio(value, disabled, object, 0)
 
+"""
+    SLListItem(value; disabled=false, object=nothing)
+
+A single row in an [`SLList`](@ref). Identical to [`SLRadio`](@ref) except for its styling: the radio
+circle is hidden and the selected row is marked with a coloured bar, so the group reads as a list
+rather than a set of radio buttons.
+
+`value` is the displayed content, either a `String` or a `Hyperscript.Node`, so a row can hold live
+widgets. `object` is arbitrary data carried alongside, recoverable from the group with `list.object`
+and used by [`ListManager`](@ref) to hold the underlying value.
+
+# Fields
+- `value::Union{String, Hyperscript.Node}` - Display content for the row
+- `disabled::Bool` - Whether this row can be selected
+- `object::Any` - Optional associated data
+- `index::Int` - Position in the group, assigned when added to an `SLList`
+"""
 mutable struct SLListItem <: SLRadioLike
     value::Union{String, Hyperscript.Node}
     disabled::Bool
@@ -837,23 +759,6 @@ Creates a radio button group widget with reactive selection tracking.
 - `popat!(group, i)` - Remove radio button at index i
 - `setproperty!(group, :index, i)` - Set selection by index
 
-# Examples
-```julia
-# Create radio group
-radios = [
-    SLRadio("Small"; object="S"),
-    SLRadio("Medium"; object="M"),
-    SLRadio("Large"; object="L")
-]
-group = SLRadioGroup(radios; label="Select size", index=1)
-
-# Access selected value
-println(group.index)   # Returns 1
-println(group.object)  # Returns "S"
-
-# Change selection
-group.index = 2
-```
 """
 struct SLRadioGroup
     label::String
@@ -865,6 +770,19 @@ struct SLRadioGroup
     # object from getproperty
 end
 
+"""
+    SLList(values::Vector{<:SLListItem}; label="", index=0, help="", style="")
+
+An alias for [`SLRadioGroup`](@ref), sharing all of its fields and methods. Populate it with
+[`SLListItem`](@ref) rather than [`SLRadio`](@ref) to get list styling: the radio circles are hidden
+and the selected row is marked with a coloured bar.
+
+Nothing enforces the pairing, so an `SLList` built from `SLRadio` renders as an ordinary radio group
+and an `SLRadioGroup` built from `SLListItem` renders as a list. The alias exists to make intent
+clear at the call site.
+
+[`ListManager`](@ref) wraps this with add, delete, clear and reorder buttons.
+"""
 SLList = SLRadioGroup
 
 function SLRadioGroup(values::Vector{<:SLRadioLike}; label::String="", index=0, help::String="", style::String="")
@@ -983,20 +901,6 @@ Creates a modal dialog widget that can be shown or hidden.
 - `open::Observable{Bool}` - Observable controlling dialog visibility
 - `style::String` - Inline CSS style applied to the dialog element
 
-# Examples
-```julia
-# Create dialog with content
-dialog = SLDialog(DOM.div("This is dialog content"); label="My Dialog")
-
-# Show dialog
-dialog.open[] = true
-
-# Hide dialog
-dialog.open[] = false
-
-# Update content dynamically
-dialog.value[] = DOM.div("New content")
-```
 """
 struct SLDialog
     value::Observable{Hyperscript.Node}
@@ -1051,6 +955,20 @@ end
 sl_details(args...; kw...) = m("sl-details", args...; kw...)
 
 
+"""
+    SLDetails(value::Hyperscript.Node; summary, style="")
+
+Creates a disclosure widget: a summary line that expands to reveal `value` when clicked.
+
+`open` tracks the expanded state in both directions. Setting it from Julia expands or collapses the
+panel, and collapsing it in the browser sets it back to `false`.
+
+# Fields
+- `value::Observable{Hyperscript.Node}` - The content revealed when expanded
+- `summary::String` - The always visible summary line
+- `open::Observable{Bool}` - Observable controlling whether the panel is expanded
+- `style::String` - Inline CSS style applied to the details element
+"""
 struct SLDetails
     value::Observable{Hyperscript.Node}
     summary::String
@@ -1271,33 +1189,6 @@ Creates a progress bar widget with reactive state management.
 - `indeterminate::Observable{Bool}` - Observable controlling indeterminate/loading state
 - `visible::Observable{Bool}` - Observable controlling visibility of the progress bar
 
-# Examples
-```julia
-# Create basic progress bar
-progress = SLProgressBar(50.0; label="Loading")
-
-# Progress bar with custom height
-progress = SLProgressBar(75.0; height="30px", label="Upload progress")
-
-# Indeterminate progress bar (for unknown duration)
-progress = SLProgressBar(; indeterminate=true, label="Processing")
-
-# Update progress value
-progress.value[] = 80.0
-
-# Toggle indeterminate state
-progress.indeterminate[] = true
-
-# Hide percentage display
-progress_hidden = SLProgressBar(50.0; show_value=false)
-
-# Show/hide progress bar dynamically
-progress.visible[] = false  # Hide
-progress.visible[] = true   # Show
-
-# Create initially hidden progress bar
-progress = SLProgressBar(0.0; visible=false, label="Background task")
-```
 """
 struct SLProgressBar
     value::Observable{Float64}

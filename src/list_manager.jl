@@ -50,8 +50,8 @@ Passing `edit_function` adds a pencil button that edits the selected item throug
 [`DialogManager`](@ref) owned by the manager, whose body is the `edit_content` node. It is called as
 `edit_function(manager, action)` with an [`OpenOKCancel`](@ref):
 
-- `Open` when the button is clicked. `manager.dialog.value[]` has already been seeded with the
-  selected item's value, so this seeds the editors in `edit_content` from it.
+- `Open` when the button is clicked. Read the selected item with `manager.list.object`, or with
+  [`get_values`](@ref) and [`selected_index`](@ref), and seed the editors in `edit_content` from it.
 - `OK` when the user accepts. Commit the editors, typically with
   [`replace_selected!`](@ref).
 - `Cancel` when the user rejects. Nothing has been committed, so this normally needs no branch.
@@ -60,7 +60,7 @@ Because the dialog cannot be dismissed by the overlay, escape, or a close button
 `Cancel` follows every `Open`.
 
 Leaving `edit_function` as `nothing` means no edit button and no dialog are created at all, and both
-the `edit` and `dialog` fields are `nothing`.
+the `edit` and `edit_dialog` fields are `nothing`.
 
 Buttons disable themselves when they do not apply: delete and edit while no item is selected, clear
 while the list is empty, and the two moves at the corresponding end of the list. Deleting or clearing
@@ -75,13 +75,13 @@ drops the selection.
 - `edit::Union{SLButton, Nothing}` - The edit button, an `sl_icon` pencil, or `nothing`
 - `move_up::SLButton` - The move up button, an `sl_icon` arrow
 - `move_down::SLButton` - The move down button, an `sl_icon` arrow
-- `dialog::Union{DialogManager, Nothing}` - The OK/Cancel edit dialog, or `nothing`
-- `add_dialog::Union{DialogManager, Nothing}` - The OK/Cancel add dialog, or `nothing` in `FunctionMode`
 - `add_function::Union{Function, Nothing}` - Called per `add_mode`, or `nothing` to disable adding
+- `add_dialog::Union{DialogManager, Nothing}` - The OK/Cancel add dialog, or `nothing` in `FunctionMode`
 - `add_mode::AddMode` - `FunctionMode` or `DialogMode`
 - `item_function::Function` - Maps a value to the `SLListItem` used to display it
 - `get_function::Function` - Maps an `SLListItem` back to its value, the inverse of `item_function`
 - `edit_function::Union{Function, Nothing}` - Called as `edit_function(manager, action)`
+- `edit_dialog::Union{DialogManager, Nothing}` - The OK/Cancel edit dialog, or `nothing`
 - `style::String` - Inline CSS style applied to the wrapping element
 - `list_style::String` - Inline CSS style for the bordered, scrolling box around the items
 
