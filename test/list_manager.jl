@@ -9,7 +9,23 @@ using ShoelaceWidgets: get_values, delete_selected!, selected_index, move_up!, m
 # TEST 1: default item_function/get_function
 # ----------------------------------
 names = ["alpha", "beta"]
-manager = ListManager(names; add_function = session -> "item $(length(manager) + 1)", label="Items")
+
+
+# function item_function(value::String)
+
+#     edit = SLInput(value)
+   
+#     return SLListItem(DOM.div(edit); object=edit)
+# end
+
+# function get_function(item::SLListItem)  
+#     return item.object.value[]
+# end
+
+manager = ListManager(names; 
+                    add_function = session -> "item $(length(manager) + 1)", 
+                    label="Items", collapsible=true) #, item_function, get_function)
+
 
 app = App() do session
     DOM.html(

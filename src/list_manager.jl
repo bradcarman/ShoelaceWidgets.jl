@@ -84,6 +84,7 @@ drops the selection.
 - `edit_dialog::Union{DialogManager, Nothing}` - The OK/Cancel edit dialog, or `nothing`
 - `style::String` - Inline CSS style applied to the wrapping element
 - `list_style::String` - Inline CSS style for the bordered, scrolling box around the items
+- `collapsible::Bool` - if true, put the list of items into a collapsible region (SLDetails)
 
 # Methods
 - `get_values(manager)` - Read the current values as a `Vector{T}`
@@ -99,6 +100,8 @@ drops the selection.
 @kwdef struct ListManager{T}
     list::SLList
     label::String
+    collapsible::Bool
+
     add::SLButton
     delete::SLButton
     clear::SLButton
@@ -150,7 +153,8 @@ function ListManager(values::Vector{T};
                      add_label::String="Add",
                      style::String="",
                      dialog_style="--width: 75vw;",
-                     list_style="height: 40vh; overflow-y: auto; padding: 5px; border: 1px solid lightgray;") where T
+                     list_style="height: 40vh; overflow-y: auto; padding: 5px; border: 1px solid lightgray;",
+                     collapsible=true) where T
 
     # the dialog callback needs the manager, which does not exist yet
     manager = Ref{Any}(nothing)
@@ -182,6 +186,8 @@ function ListManager(values::Vector{T};
     x = ListManager{T}(;
                 list = SLList(SLListItem[]; help),
                 label,
+                collapsible,
+
                 add = SLButton(sl_icon(; name="plus-circle"); variant="text", size="small"),
                 delete = SLButton(sl_icon(; name="dash-circle"); variant="text", size="small", disabled=true), # nothing is selected yet
                 clear = SLButton(sl_icon(; name="x-circle"); variant="text", size="small", disabled=true),  # populated by append! below
@@ -443,11 +449,20 @@ function Bonito.jsrender(session::Session, x::ListManager)
 
     # the border belongs to this wrapper, so the label goes above it rather than
     # inside the sl-radio-group
-    scroll = DOM.div(x.list; style=x.list_style)
 
+    list = DOM.div(x.list; style=x.list_style)
+    
     children = Any[]
-    isempty(x.label) || push!(children, DOM.div(x.label; style=LABEL_STYLE))
-    push!(children, scroll)
+    if x.collapsible
+        list = SLDetails(list; summary=x.label)
+    end
+
+    # if not collapsible, then label is needed
+    if !x.collapsible
+        isempty(x.label) || push!(children, DOM.div(x.label; style=LABEL_STYLE))
+    end
+    
+    push!(children, list)
     push!(children, DOM.div(buttons...))
 
     # the dialogs have to be in the document for them to be shown
