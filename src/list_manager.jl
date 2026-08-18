@@ -10,17 +10,29 @@
 
 Selects how a [`ListManager`](@ref) interprets its `add_function`:
 
-- `FunctionMode` - `add_function(session)` returns the value to append
-- `DialogMode` - `add_function(manager, action)` drives an OK/Cancel dialog
+- `NoAdd` - no add button is built at all, regardless of `add_function`
+- `FunctionAdd` - `add_function(session)` returns the value to append
+- `DialogAdd` - `add_function(manager, action)` drives an OK/Cancel dialog
 
-Named `FunctionMode` rather than `Function` because a bare `Function` would collide with
+Named `FunctionAdd` rather than `Function` because a bare `Function` would collide with
 `Base.Function`, which this module uses throughout in type annotations.
 """
-@enum AddMode FunctionMode DialogMode
+@enum AddMode NoAdd FunctionAdd DialogAdd
+
+"""
+    EditMode
+
+Selects whether a [`ListManager`](@ref) builds an edit button and dialog:
+
+- `NoEdit` - no edit button or dialog is built at all, regardless of `edit_function`
+- `DialogEdit` - `edit_function(manager, action)` drives an OK/Cancel dialog, as long as
+  `edit_function` is not `nothing`
+"""
+@enum EditMode NoEdit DialogEdit
 
 
 """
-    ListManager(values::Vector{T}; add_function=nothing, add_mode=FunctionMode, label="", help="", item_function=default_item, get_function=default_get, style="")
+    ListManager(values::Vector{T}; add_function=nothing, add_mode=FunctionAdd, label="", help="", item_function=default_item, get_function=default_get, style="")
 
 Creates a composite control that pairs an [`SLList`](@ref) with add, delete, clear and reorder
 buttons, managing a list of arbitrary Julia values.
@@ -32,16 +44,19 @@ it applies `get_function` to every item and returns a `Vector{T}`.
 
 `add_function` drives the add button, and `add_mode` (an [`AddMode`](@ref)) decides how it is called:
 
-- `FunctionMode` (the default) calls `add_function(session)` with the active `Bonito.Session` when
+- `FunctionAdd` (the default) calls `add_function(session)` with the active `Bonito.Session` when
   the button is clicked. It returns the value to append, or `nothing` to cancel. Good for values
   needing no input.
-- `DialogMode` instead opens an OK/Cancel dialog whose body is the `add_content` node, for building
+- `DialogAdd` instead opens an OK/Cancel dialog whose body is the `add_content` node, for building
   a composite value field by field, and calls `add_function(manager, action)` with an
   [`OpenOKCancel`](@ref): on `Open` initialize your editors (nothing is seeded, since a new value has
   no prior state), and on `OK` assemble the value and `push!(manager, value)` yourself. `Cancel`
   normally needs no branch, as nothing was appended.
+- `NoAdd` means no add button is built at all, and the `add` field is `nothing`.
 
-Leaving `add_function` as `nothing` disables the add button, since clicking it would do nothing.
+Leaving `add_function` as `nothing` (with `add_mode` left as `FunctionAdd` or `DialogAdd`) disables
+the add button, since clicking it would do nothing. Use `add_mode=NoAdd` instead when the add button
+should not appear at all, whether or not `add_function` is set.
 
 The move up and move down buttons reorder the list, and the selection follows the item as it moves,
 so the same item can be walked to either end with repeated clicks.
@@ -59,8 +74,10 @@ Passing `edit_function` adds a pencil button that edits the selected item throug
 Because the dialog cannot be dismissed by the overlay, escape, or a close button, exactly one `OK` or
 `Cancel` follows every `Open`.
 
-Leaving `edit_function` as `nothing` means no edit button and no dialog are created at all, and both
-the `edit` and `edit_dialog` fields are `nothing`.
+Leaving `edit_function` as `nothing`, or setting `edit_mode=NoEdit`, means no edit button and no
+dialog are created at all, and both the `edit` and `edit_dialog` fields are `nothing`. `edit_mode`
+defaults to `DialogEdit`, so passing `edit_function` alone is enough to get an edit button; set
+`edit_mode=NoEdit` to suppress the button even when `edit_function` is set.
 
 Buttons disable themselves when they do not apply: delete and edit while no item is selected, clear
 while the list is empty, and the two moves at the corresponding end of the list. Deleting or clearing
@@ -69,19 +86,20 @@ drops the selection.
 # Fields
 - `list::SLList` - The underlying list; use `list.index` and `list.object` to inspect the selection
 - `label::String` - Label text, rendered above the bordered list rather than inside it
-- `add::SLButton` - The add button
+- `add::Union{SLButton, Nothing}` - The add button, an `sl_icon` plus-circle, or `nothing` in `NoAdd`
 - `delete::SLButton` - The delete button
 - `clear::SLButton` - The clear button
 - `edit::Union{SLButton, Nothing}` - The edit button, an `sl_icon` pencil, or `nothing`
 - `move_up::SLButton` - The move up button, an `sl_icon` arrow
 - `move_down::SLButton` - The move down button, an `sl_icon` arrow
 - `add_function::Union{Function, Nothing}` - Called per `add_mode`, or `nothing` to disable adding
-- `add_dialog::Union{DialogManager, Nothing}` - The OK/Cancel add dialog, or `nothing` in `FunctionMode`
-- `add_mode::AddMode` - `FunctionMode` or `DialogMode`
+- `add_dialog::Union{DialogManager, Nothing}` - The OK/Cancel add dialog, or `nothing` outside `DialogAdd`
+- `add_mode::AddMode` - `NoAdd`, `FunctionAdd` or `DialogAdd`
 - `item_function::Function` - Maps a value to the `SLListItem` used to display it
 - `get_function::Function` - Maps an `SLListItem` back to its value, the inverse of `item_function`
 - `edit_function::Union{Function, Nothing}` - Called as `edit_function(manager, action)`
 - `edit_dialog::Union{DialogManager, Nothing}` - The OK/Cancel edit dialog, or `nothing`
+- `edit_mode::EditMode` - `NoEdit` or `DialogEdit`
 - `style::String` - Inline CSS style applied to the wrapping element
 - `list_style::String` - Inline CSS style for the bordered, scrolling box around the items
 - `collapsible::Bool` - if true, put the list of items into a collapsible region (SLDetails)
@@ -102,7 +120,7 @@ drops the selection.
     label::String
     collapsible::Bool
 
-    add::SLButton
+    add::Union{SLButton, Nothing}
     delete::SLButton
     clear::SLButton
     edit::Union{SLButton, Nothing}
@@ -118,6 +136,7 @@ drops the selection.
 
     edit_function::Union{Function, Nothing}
     edit_dialog::Union{DialogManager, Nothing}
+    edit_mode::EditMode
 
     style::String
     list_style::String
@@ -142,10 +161,11 @@ default_get(item::SLListItem) = item.object
 function ListManager(values::Vector{T};
                      label::String="",
                      help::String="",
-                     add_mode::AddMode=FunctionMode,
+                     add_mode::AddMode=FunctionAdd,
                      add_function::Union{Function, Nothing}=nothing, #add_function(session)::T or add_function(manager, action) on Open ::Hyperscript.Node, on OK ::T
                      item_function::Function=default_item,
                      get_function::Function=default_get,
+                     edit_mode::EditMode=DialogEdit,
                      edit_function::Union{Function, Nothing}=nothing, #edit_function(manager, action)
                      edit_content::Hyperscript.Node=DOM.div(),
                      add_content::Hyperscript.Node=DOM.div(),
@@ -159,11 +179,11 @@ function ListManager(values::Vector{T};
     # the dialog callback needs the manager, which does not exist yet
     manager = Ref{Any}(nothing)
 
-    # no edit_function means no edit button and no dialog at all
-    edit = isnothing(edit_function) ? nothing :
+    # NoEdit, or no edit_function, means no edit button and no dialog at all
+    edit = (edit_mode == NoEdit || isnothing(edit_function)) ? nothing :
            SLButton(sl_icon(; name="pencil"); variant="text", size="small", disabled=true)
 
-    edit_dialog = isnothing(edit_function) ? nothing :
+    edit_dialog = (edit_mode == NoEdit || isnothing(edit_function)) ? nothing :
              DialogManager(edit_content,
                            function (d::DialogManager, action)
                                m = manager[]
@@ -171,9 +191,13 @@ function ListManager(values::Vector{T};
                            end;
                            label=dialog_label, style=dialog_style)
 
+    # NoAdd means no add button at all, regardless of add_function
+    add = add_mode == NoAdd ? nothing :
+          SLButton(sl_icon(; name="plus-circle"); variant="text", size="small")
+
     # the add dialog builds a brand new value, so there is nothing to seed from;
     # initializing the editors is the callback's job
-    add_dialog = (add_mode != DialogMode || isnothing(add_function)) ? nothing :
+    add_dialog = (add_mode != DialogAdd || isnothing(add_function)) ? nothing :
                  DialogManager(add_content,
                                function (d, action)
                                    m = manager[]
@@ -188,7 +212,7 @@ function ListManager(values::Vector{T};
                 label,
                 collapsible,
 
-                add = SLButton(sl_icon(; name="plus-circle"); variant="text", size="small"),
+                add,
                 delete = SLButton(sl_icon(; name="dash-circle"); variant="text", size="small", disabled=true), # nothing is selected yet
                 clear = SLButton(sl_icon(; name="x-circle"); variant="text", size="small", disabled=true),  # populated by append! below
                 edit,
@@ -204,7 +228,8 @@ function ListManager(values::Vector{T};
                 
                 edit_function,
                 edit_dialog,
-                       
+                edit_mode,
+
                 style,
                 list_style)
 
@@ -212,7 +237,7 @@ function ListManager(values::Vector{T};
 
     # nothing is wired to the add button, so do not leave it looking clickable.
     # Set it back to false yourself if you are wiring `add.value` by hand.
-    if isnothing(add_function)
+    if !isnothing(x.add) && isnothing(add_function)
         x.add.disabled[] = true
     end
 
@@ -222,10 +247,10 @@ function ListManager(values::Vector{T};
     end
 
     # add_mode decides how add_function is called
-    on(x.add.value) do session
+    isnothing(x.add) || on(x.add.value) do session
         isnothing(session) && return
         isnothing(x.add_function) && return
-        if x.add_mode == DialogMode
+        if x.add_mode == DialogAdd
             open_adder!(x)
         else
             value = x.add_function(session)
@@ -442,7 +467,10 @@ Base.isempty(x::ListManager) = isempty(x.list.values[])
 
 function Bonito.jsrender(session::Session, x::ListManager)
     # NOTE: Shoelace tooltips do not fire on disabled elements, so these only show when enabled
-    buttons = [sl_tooltip(x.add; content="add"), sl_tooltip(x.delete; content="remove"), sl_tooltip(x.clear; content="clear")]
+    buttons = Any[]
+    isnothing(x.add) || push!(buttons, sl_tooltip(x.add; content="add"))
+    push!(buttons, sl_tooltip(x.delete; content="remove"))
+    push!(buttons, sl_tooltip(x.clear; content="clear"))
     isnothing(x.edit) || push!(buttons, sl_tooltip(x.edit; content="edit"))
     push!(buttons, sl_tooltip(x.move_up; content="move up"))
     push!(buttons, sl_tooltip(x.move_down; content="move down"))

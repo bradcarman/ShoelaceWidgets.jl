@@ -82,7 +82,7 @@ was typed into it survives the move.
 ### Building a composite value in a dialog
 
 For a type with several fields, a single click cannot produce a value — the user has to fill it in.
-Setting `add_mode` to `DialogMode` changes `add_function`'s contract from `add_function(session)` to
+Setting `add_mode` to `DialogAdd` changes `add_function`'s contract from `add_function(session)` to
 `add_function(manager, action)`, where `action` is an
 [`OpenOKCancel`](@ref ShoelaceWidgets.OpenOKCancel). The add button then
 opens an OK/Cancel dialog whose body is `add_content`.
@@ -110,7 +110,7 @@ end
 
 points = ListManager(Point[];
                      label = "Points",
-                     add_mode = ShoelaceWidgets.DialogMode,
+                     add_mode = ShoelaceWidgets.DialogAdd,
                      add_function = add_point,
                      add_content = DOM.div(xin, yin),
                      add_label = "Add point",

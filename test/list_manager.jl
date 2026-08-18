@@ -3,7 +3,8 @@ using Bonito
 using ShoelaceWidgets
 using ShoelaceWidgets: get_values, delete_selected!, selected_index, move_up!, move_down!, moveat!,
                        open_editor!, open_adder!, replace_selected!, accept!, reject!,
-                       OpenOKCancel, Open, OK, Cancel, AddMode, FunctionMode, DialogMode
+                       OpenOKCancel, Open, OK, Cancel, AddMode, FunctionAdd, DialogAdd, NoAdd,
+                       EditMode, DialogEdit, NoEdit
 
 # ----------------------------------
 # TEST 1: default item_function/get_function
@@ -408,7 +409,7 @@ end
 composite = ListManager(Point[];
                         label="Points",
                         add_function = add_dialog_function,
-                        add_mode = DialogMode,
+                        add_mode = DialogAdd,
                         add_content=DOM.div(xin, yin),
                         add_label="Add point",
                         item_function = p -> SLListItem("($(p.x), $(p.y))"; object=p))
@@ -430,7 +431,7 @@ end
 
 
 @test composite.add_dialog isa DialogManager
-@test composite.add_mode == DialogMode
+@test composite.add_mode == DialogAdd
 @test isnothing(composite.edit_dialog)                 # no edit_function given
 @test composite.add_function === add_dialog_function
 @test composite.add.disabled[] == false           # add_function wires the button
@@ -479,22 +480,55 @@ html = render_html(composite)
 inert = ListManager(["a"]; label="Inert")
 @test isnothing(inert.add_dialog)
 @test isnothing(inert.add_function)
-@test inert.add_mode == FunctionMode              # the default
+@test inert.add_mode == FunctionAdd              # the default
 @test inert.add.disabled[] == true
 open_adder!(inert)                                # harmless no-op
 @test get_values(inert) == ["a"]
 
-# DialogMode with no add_function builds no dialog either
-no_fn = ListManager(["a"]; add_mode=DialogMode, add_content=DOM.div())
+# DialogAdd with no add_function builds no dialog either
+no_fn = ListManager(["a"]; add_mode=DialogAdd, add_content=DOM.div())
 @test isnothing(no_fn.add_dialog)
 @test no_fn.add.disabled[] == true
 
-# FunctionMode never builds a dialog, even with add_content supplied
+# FunctionAdd never builds a dialog, even with add_content supplied
 fn_mode = ListManager(String[];
                       add_function = session -> "from add_function",
                       add_content = DOM.div())
 @test isnothing(fn_mode.add_dialog)
-@test fn_mode.add_mode == FunctionMode
+@test fn_mode.add_mode == FunctionAdd
 open_adder!(fn_mode)                              # no dialog to open
 @test isempty(fn_mode)
+
+# ----------------------------------
+# TEST 7: NoAdd and NoEdit
+# ----------------------------------
+
+# NoAdd builds no add button at all, even with an add_function supplied
+no_add = ListManager(["a"]; add_mode=NoAdd, add_function = session -> "from add_function")
+@test isnothing(no_add.add)
+@test isnothing(no_add.add_dialog)
+@test no_add.add_mode == NoAdd
+@test no_add.add_function isa Function             # stored, just never wired to a button
+html = render_html(no_add)
+@test !occursin("plus-circle", html)
+
+# NoEdit builds no edit button or dialog, even with an edit_function supplied
+no_edit = ListManager(["a", "b"];
+                      edit_mode = NoEdit,
+                      edit_function = (m, action) -> nothing,
+                      edit_content = DOM.div())
+@test isnothing(no_edit.edit)
+@test isnothing(no_edit.edit_dialog)
+@test no_edit.edit_mode == NoEdit
+@test no_edit.edit_function isa Function           # stored, just never wired to a button
+html = render_html(no_edit)
+@test !occursin("pencil", html)
+open_editor!(no_edit)                              # harmless no-op
+@test isnothing(no_edit.edit_dialog)
+
+# edit_mode defaults to DialogEdit, matching today's behavior of building the
+# button whenever edit_function is supplied
+default_mode = ListManager(["a"]; edit_function = (m, action) -> nothing)
+@test default_mode.edit_mode == DialogEdit
+@test !isnothing(default_mode.edit)
 @test !occursin("<sl-dialog", render_html(fn_mode))
