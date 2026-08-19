@@ -12,14 +12,14 @@ using ShoelaceWidgets: get_values, delete_selected!, selected_index, move_up!, m
 names = ["alpha", "beta"]
 
 
-# function item_function(value::String)
+# function item_function(m::ListManager, value::String)
 
 #     edit = SLInput(value)
-   
+
 #     return SLListItem(DOM.div(edit); object=edit)
 # end
 
-# function get_function(item::SLListItem)  
+# function get_function(m::ListManager, item::SLListItem)
 #     return item.object.value[]
 # end
 
@@ -179,13 +179,18 @@ empty!(ordered)
 # TEST 2: inline SLInput editor
 # ----------------------------------
 
-function item_function(value)
+item_calls = ListManager[]
+get_calls = ListManager[]
+
+function item_function(m::ListManager, value)
+    push!(item_calls, m)
     input = SLInput(value)
     item = SLListItem(DOM.div(input); object=input)
     return item
 end
 
-function get_function(item::SLListItem)
+function get_function(m::ListManager, item::SLListItem)
+    push!(get_calls, m)
     input::SLInput = item.object
     return input.value[]
 end
@@ -205,13 +210,17 @@ end
 
 @test get_values(manager) == names
 
+# get_function is called with the owning manager
+@test all(m -> m === manager, get_calls)
+
 # editing an input in the browser is reflected by get_values
 manager.list.values[][1].object.value[] = "ALPHA"
 @test get_values(manager) == ["ALPHA", "beta"]
 
-# added items get their own editor
+# added items get their own editor, and item_function is called with the owning manager
 push!(manager, "gamma")
 @test get_values(manager) == ["ALPHA", "beta", "gamma"]
+@test all(m -> m === manager, item_calls)
 manager.list.values[][3].object.value[] = "GAMMA"
 @test get_values(manager) == ["ALPHA", "beta", "GAMMA"]
 
@@ -243,7 +252,7 @@ end
 
 points = ListManager(Point[]; add_function = session -> Point(1.0, 2.0),
                      label="Points",
-                     item_function = p -> SLListItem(DOM.div("($(p.x), $(p.y))"); object=p))
+                     item_function = (m, p) -> SLListItem(DOM.div("($(p.x), $(p.y))"); object=p))
 
 @test isempty(points)
 @test get_values(points) isa Vector{Point}
@@ -412,7 +421,7 @@ composite = ListManager(Point[];
                         add_mode = DialogAdd,
                         add_content=DOM.div(xin, yin),
                         add_label="Add point",
-                        item_function = p -> SLListItem("($(p.x), $(p.y))"; object=p))
+                        item_function = (m, p) -> SLListItem("($(p.x), $(p.y))"; object=p))
 
 
 app = App() do session

@@ -37,10 +37,11 @@ Selects whether a [`ListManager`](@ref) builds an edit button and dialog:
 Creates a composite control that pairs an [`SLList`](@ref) with add, delete, clear and reorder
 buttons, managing a list of arbitrary Julia values.
 
-`values` seeds the list; each element is turned into an `SLListItem` by `item_function`. The list
+`values` seeds the list; each element is turned into an `SLListItem` by
+`item_function(manager, value)`, called with the [`ListManager`](@ref) itself and the value. The list
 itself is the source of truth from then on, so an item may hold live sub-widgets (an [`SLInput`](@ref)
 for inline editing, for example). Call [`get_values`](@ref) to read the current values back out;
-it applies `get_function` to every item and returns a `Vector{T}`.
+it applies `get_function(manager, item)` to every item and returns a `Vector{T}`.
 
 `add_function` drives the add button, and `add_mode` (an [`AddMode`](@ref)) decides how it is called:
 
@@ -95,8 +96,8 @@ drops the selection.
 - `add_function::Union{Function, Nothing}` - Called per `add_mode`, or `nothing` to disable adding
 - `add_dialog::Union{DialogManager, Nothing}` - The OK/Cancel add dialog, or `nothing` outside `DialogAdd`
 - `add_mode::AddMode` - `NoAdd`, `FunctionAdd` or `DialogAdd`
-- `item_function::Function` - Maps a value to the `SLListItem` used to display it
-- `get_function::Function` - Maps an `SLListItem` back to its value, the inverse of `item_function`
+- `item_function::Function` - Maps `(manager, value)` to the `SLListItem` used to display it
+- `get_function::Function` - Maps `(manager, item)` back to its value, the inverse of `item_function`
 - `edit_function::Union{Function, Nothing}` - Called as `edit_function(manager, action)`
 - `edit_dialog::Union{DialogManager, Nothing}` - The OK/Cancel edit dialog, or `nothing`
 - `edit_mode::EditMode` - `NoEdit` or `DialogEdit`
@@ -143,28 +144,28 @@ drops the selection.
 end
 
 """
-    default_item(value)
+    default_item(m::ListManager, value)
 
 Default `item_function` for [`ListManager`](@ref): displays `string(value)` and keeps `value` as the
-item's `object`. Pairs with [`default_get`](@ref).
+item's `object`. Pairs with [`default_get`](@ref). Ignores `m`.
 """
-default_item(value) = SLListItem(string(value); object=value)
+default_item(m::ListManager, value) = SLListItem(string(value); object=value)
 
 """
-    default_get(item::SLListItem)
+    default_get(m::ListManager, item::SLListItem)
 
 Default `get_function` for [`ListManager`](@ref): returns the item's `object`, which is where
-[`default_item`](@ref) stashed the original value.
+[`default_item`](@ref) stashed the original value. Ignores `m`.
 """
-default_get(item::SLListItem) = item.object
+default_get(m::ListManager, item::SLListItem) = item.object
 
 function ListManager(values::Vector{T};
                      label::String="",
                      help::String="",
                      add_mode::AddMode=FunctionAdd,
                      add_function::Union{Function, Nothing}=nothing, #add_function(session)::T or add_function(manager, action) on Open ::Hyperscript.Node, on OK ::T
-                     item_function::Function=default_item,
-                     get_function::Function=default_get,
+                     item_function::Function=default_item, #item_function(manager, value)::SLListItem
+                     get_function::Function=default_get, #get_function(manager, item)::T
                      edit_mode::EditMode=DialogEdit,
                      edit_function::Union{Function, Nothing}=nothing, #edit_function(manager, action)
                      edit_content::Hyperscript.Node=DOM.div(),
@@ -295,7 +296,7 @@ end
 Returns the current values by applying `x.get_function` to every displayed item. When items hold
 live sub-widgets this reads whatever the user last entered in the browser.
 """
-get_values(x::ListManager{T}) where T = T[x.get_function(item) for item in x.list.values[]]
+get_values(x::ListManager{T}) where T = T[x.get_function(x, item) for item in x.list.values[]]
 
 """
     selected_index(x::ListManager)
@@ -407,14 +408,14 @@ end
 """
     replace_selected!(x::ListManager, value)
 
-Replaces the selected item with `x.item_function(value)`, keeping its position and the selection.
+Replaces the selected item with `x.item_function(x, value)`, keeping its position and the selection.
 This is what an `edit_function` calls in its `OK` branch to commit an edit. Does nothing when there
 is no selection.
 """
 function replace_selected!(x::ListManager, value)
     i = selected_index(x)
     isnothing(i) && return x
-    item = x.item_function(value)
+    item = x.item_function(x, value)
     item.index = i
     x.list.values[][i] = item
     notify(x.list.values)
@@ -437,14 +438,14 @@ function update_buttons!(x::ListManager)
 end
 
 function Base.push!(x::ListManager, value)
-    push!(x.list, x.item_function(value))  # SLList assigns the item index
+    push!(x.list, x.item_function(x, value))  # SLList assigns the item index
     update_buttons!(x)
     return x
 end
 
 function Base.append!(x::ListManager, values)
     for value in values
-        push!(x.list, x.item_function(value))
+        push!(x.list, x.item_function(x, value))
     end
     update_buttons!(x)
     return x

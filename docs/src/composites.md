@@ -50,17 +50,17 @@ ShoelaceWidgets.get_values(manager)
 
 ### Rows holding live widgets
 
-`item_function` maps a value to the [`SLListItem`](@ref) that displays it, and `get_function` maps
-that item back to a value. Because rows can contain any widget, an item can hold its own editor —
-`get_values` then reflects whatever the user typed.
+`item_function` maps `(manager, value)` to the [`SLListItem`](@ref) that displays it, and
+`get_function` maps `(manager, item)` back to a value. Because rows can contain any widget, an item
+can hold its own editor — `get_values` then reflects whatever the user typed.
 
 ```@example composites
-function item_function(value)
+function item_function(manager, value)
     input = SLInput(value)
     return SLListItem(DOM.div(input); object = input)
 end
 
-get_function(item::SLListItem) = item.object.value[]
+get_function(manager, item::SLListItem) = item.object.value[]
 
 editable = ListManager(["alpha", "beta"];
                        label = "Editable items",
@@ -114,7 +114,7 @@ points = ListManager(Point[];
                      add_function = add_point,
                      add_content = DOM.div(xin, yin),
                      add_label = "Add point",
-                     item_function = p -> SLListItem("($(p.x), $(p.y))"; object = p))
+                     item_function = (manager, p) -> SLListItem("($(p.x), $(p.y))"; object = p))
 
 app = App() do session
     DOM.html(
@@ -149,7 +149,7 @@ editable_points = ListManager([Point(1.0, 2.0), Point(3.0, 4.0)];
                               edit_function = edit_point,
                               edit_content = DOM.div(ex, ey),
                               dialog_label = "Edit point",
-                              item_function = p -> SLListItem("($(p.x), $(p.y))"; object = p))
+                              item_function = (manager, p) -> SLListItem("($(p.x), $(p.y))"; object = p))
 
 app = App() do session
     DOM.html(
