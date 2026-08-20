@@ -1,12 +1,16 @@
 using Test
 using Bonito
 using ShoelaceWidgets
+using Markdown
 
 
 textarea = SLTextarea(""; label="Comments", placeholder="Enter your comments here", help="test <strong>test</strong>")
 
+display = Observable{Markdown.MD}()
+
 on(textarea.value) do text
     println("Textarea value: $text")
+    display[] = Markdown.MD(Markdown.parse(text))
 end
 
 app = App() do session
@@ -15,7 +19,8 @@ app = App() do session
             get_shoelace()...
         ),
         DOM.body(
-            textarea
+            textarea,
+            display
         )
     )
 end
