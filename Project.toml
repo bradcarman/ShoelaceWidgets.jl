@@ -1,6 +1,6 @@
 name = "ShoelaceWidgets"
 uuid = "1dc53738-a592-4c0c-95ab-f92b84dc4c89"
-version = "0.11.1"
+version = "0.11.2"
 authors = ["Brad Carman <bradleygcarman@outlook.com>"]
 
 [deps]

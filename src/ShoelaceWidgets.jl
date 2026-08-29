@@ -444,9 +444,11 @@ end
 sl_button(args...; kw...) = m("sl-button", args...; kw...)
 
 """
-    SLButton(label; disabled=false, variant=nothing, size=nothing, style="")
+    SLButton(label; disabled=false, variant=nothing, size=nothing, style="", href=nothing, target=nothing, download=nothing, rel=nothing)
 
 Creates a clickable button widget with reactive state management.
+
+Setting `href` renders the button as a link (Shoelace renders an internal `<a>` instead of a `<button>`), enabling navigation to a URL. `target`, `download`, and `rel` are only meaningful when `href` is set.
 
 # Fields
 - `value::Observable{Union{Session,Nothing}}` - Observable set to the active `Session` when the button is clicked (`nothing` before any click), enabling handlers to call `Bonito.evaljs(session, ...)`
@@ -456,6 +458,10 @@ Creates a clickable button widget with reactive state management.
 - `variant::Union{String, Nothing}` - Button style variant (e.g., "primary", "success", "danger")
 - `size::Union{String, Nothing}` - Button size (e.g., "small", "medium", "large")
 - `style::String` - Inline CSS style applied to the button element
+- `href::Union{String, Nothing}` - URL to navigate to; when set, the button renders as a link
+- `target::Union{String, Nothing}` - Where to open the linked URL (e.g., "_blank", "_parent", "_self", "_top"); only used when `href` is set
+- `download::Union{String, Nothing}` - Filename to prompt a download instead of navigating; only used when `href` is set
+- `rel::Union{String, Nothing}` - The `rel` attribute for the underlying link (e.g., "noreferrer noopener"); only used when `href` is set
 
 """
 struct SLButton
@@ -466,9 +472,13 @@ struct SLButton
     variant::Union{String, Nothing}
     size::Union{String, Nothing}
     style::String
+    href::Union{String, Nothing}
+    target::Union{String, Nothing}
+    download::Union{String, Nothing}
+    rel::Union{String, Nothing}
 end
 
-SLButton(label::Union{String, Hyperscript.Node}; disabled::Bool=false, variant=nothing, size=nothing, style::String="") = SLButton(Observable(nothing), Observable(disabled), label, Observable(false), variant, size, style)
+SLButton(label::Union{String, Hyperscript.Node}; disabled::Bool=false, variant=nothing, size=nothing, style::String="", href=nothing, target=nothing, download=nothing, rel=nothing) = SLButton(Observable(nothing), Observable(disabled), label, Observable(false), variant, size, style, href, target, download, rel)
 
 function Bonito.jsrender(session::Session, x::SLButton)
 
@@ -498,6 +508,22 @@ function Bonito.jsrender(session::Session, x::SLButton)
 
     if !isnothing(x.size)
         push!(kwargs, :size => x.size)
+    end
+
+    if !isnothing(x.href)
+        push!(kwargs, :href => x.href)
+    end
+
+    if !isnothing(x.target)
+        push!(kwargs, :target => x.target)
+    end
+
+    if !isnothing(x.download)
+        push!(kwargs, :download => x.download)
+    end
+
+    if !isnothing(x.rel)
+        push!(kwargs, :rel => x.rel)
     end
 
     dom = sl_button(x.label; onclick=click, style=x.style, kwargs...)

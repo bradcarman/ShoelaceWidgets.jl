@@ -65,6 +65,23 @@ app = App() do session
 end
 ```
 
+Setting `href` renders the button as a link, opening a URL instead of firing a click handler:
+
+```@example quickstart
+link_btn = SLButton("Visit Julia"; href="https://julialang.org/", target="_blank", rel="noreferrer noopener")
+
+app = App() do session
+    DOM.html(
+        DOM.head(
+            get_shoelace()...
+        ),
+        DOM.body(
+            link_btn
+        )
+    )
+end
+```
+
 
 #### Dropdown
 Create a dropdown select:

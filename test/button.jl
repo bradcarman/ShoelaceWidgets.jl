@@ -46,4 +46,22 @@ app = App() do session
 end
 
 
+link_button = SLButton("Open Google"; href="https://www.google.com/", target="_blank", rel="noreferrer noopener")
+on(link_button.value) do session
+    println("clicked...")
+end
+
+
+app = App() do session
+    DOM.html(
+        DOM.head(
+            get_shoelace()...
+        ),
+        DOM.body(
+            link_button
+        )
+    )
+end
+
+
 @test true
