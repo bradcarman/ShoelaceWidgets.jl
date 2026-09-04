@@ -40,3 +40,7 @@ end
 @testset "DialogManager" begin
     include("dialog_manager.jl")
 end
+
+@testset "SLDetails" begin
+    include("details.jl")
+end

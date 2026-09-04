@@ -36,6 +36,23 @@ end
 
 The `get_shoelace()` function returns the necessary Shoelace CSS and JavaScript includes that should be added to your document head.
 
+### Dark Mode
+
+By default `get_shoelace()` follows the browser/OS color scheme: both Shoelace themes are loaded,
+each gated on `prefers-color-scheme`, so changing the system theme reskins a running page without a
+reload.  Pass `theme` to pin one instead:
+
+```julia
+get_shoelace(; theme=:light)  # always light
+get_shoelace(; theme=:dark)   # always dark
+get_shoelace(; theme=:auto)   # the default, follow the browser
+```
+
+Shoelace themes only define CSS custom properties, they never style the page itself, so
+ShoelaceWidgets.jl also sets the document background and text color from those tokens the way
+[shoelace.style](https://shoelace.style/) does.  Those rules use `:where(body)`, which has zero
+specificity, so any styling of your own overrides them.
+
 ### More Examples
 
 #### Button

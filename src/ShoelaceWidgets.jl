@@ -22,6 +22,29 @@ const LABEL_STYLE = "display: inline-block; color: var(--sl-input-label-color); 
 # ----------------------------------------
 const STYLE_CSS = """
     /* ---------------------------------------------------
+       Shoelace themes only define tokens, they never style
+       the page itself, so a dark theme leaves the document
+       on the browser default background. Follow the tokens
+       the way shoelace.style does. `:where` keeps these at
+       zero specificity so any application CSS wins.
+       --------------------------------------------------- */
+    :where(body) {
+      background-color: var(--sl-color-neutral-0);
+      color: var(--sl-color-neutral-900);
+    }
+
+    /* ---------------------------------------------------
+       `sl-details` paints a background on its base but never
+       sets a color, so the summary inherits from the page.
+       On a dark page that is light text on the still light
+       panel, and the summary disappears. Pin it to the same
+       token the body uses.
+       --------------------------------------------------- */
+    sl-details::part(base) {
+      color: var(--sl-color-neutral-900);
+    }
+
+    /* ---------------------------------------------------
        Shoelace ships `.radio { align-items: top }`, which is
        not a valid align-items value, so it is dropped and the
        circle falls back to stretch (pinned to the top). That
@@ -108,21 +131,50 @@ const STYLE_CSS = """
     }
 """
 
+const SHOELACE_CDN = "https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn"
+
+theme_href(name) = "$SHOELACE_CDN/themes/$name.css"
+
 """
-    get_shoelace(charset="UTF-8")
+    get_shoelace(charset="UTF-8"; theme=:auto)
 
 Returns an array of DOM elements (link and script tags) needed to load the Shoelace web component library from CDN.
 This should be included in the document head of your Bonito application.  The `charset` is also included which is not
 specifically required by Shoelace.style but is defaulted to UTF-8 to ensure Julia Unicode is rendered correctly in browsers.
 
 Splat the result into your document head: `DOM.head(get_shoelace()...)`.
+
+# Themes
+- `:auto` (default) - Follows the browser/OS setting.  Both themes are loaded, each gated on
+  `prefers-color-scheme`, so switching the system theme reskins a running page without a reload.
+- `:light` - Always the light theme.
+- `:dark` - Always the dark theme.
+
+The dark theme tokens are scoped to `.sl-theme-dark`, so `:auto` and `:dark` also emit a script that
+adds that class to the `<html>` element.  Under `:auto` the class is always present and the media
+query on the stylesheet decides which set of tokens applies.
 """
-get_shoelace(charset="UTF-8") = [
-    DOM.meta(;charset),
-    DOM.link(;rel="stylesheet", href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/themes/light.css"),
-    DOM.script(;type="module", src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/shoelace-autoloader.js"),
-    DOM.style(STYLE_CSS)
-]
+function get_shoelace(charset="UTF-8"; theme=:auto)
+    theme in (:auto, :light, :dark) || throw(ArgumentError("theme must be :auto, :light or :dark, got :$theme"))
+
+    head = Any[DOM.meta(;charset)]
+
+    if theme === :auto
+        push!(head, DOM.link(;rel="stylesheet", media="(prefers-color-scheme: light)", href=theme_href("light")))
+        push!(head, DOM.link(;rel="stylesheet", media="(prefers-color-scheme: dark)", href=theme_href("dark")))
+    else
+        push!(head, DOM.link(;rel="stylesheet", href=theme_href(theme)))
+    end
+
+    if theme !== :light
+        push!(head, DOM.script("document.documentElement.classList.add('sl-theme-dark');"))
+    end
+
+    push!(head, DOM.script(;type="module", src="$SHOELACE_CDN/shoelace-autoloader.js"))
+    push!(head, DOM.style(STYLE_CSS))
+
+    return head
+end
 
 """
     sl_tab_group(args...; kw...)
