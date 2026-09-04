@@ -16,8 +16,31 @@ app = App() do session
             input
         )
     )
-end</code></pre><div class="bonito-fragment" id="f9da7070-fda8-4d73-bcc1-7c8c0b5954ed" data-jscall-id="subsession-application-dom" style="display:contents"><div style="display:contents"><style></style></div><div style="display:contents"><script type="module">Bonito.init_session("f9da7070-fda8-4d73-bcc1-7c8c0b5954ed", Bonito.fetch_binary('bonito/bin/0146b581e9aea5e97851116deef5e560c80da8e8-12770136647215586995.bin'), "sub", false);
-</script><div data-jscall-id="238"><div data-jscall-id="239"><meta charset="UTF-8" data-jscall-id="240" /><link rel="stylesheet" data-jscall-id="241" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/themes/light.css" /><script data-jscall-id="242" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/shoelace-autoloader.js" type="module"></script><style data-jscall-id="243">    /* ---------------------------------------------------
+end</code></pre><div class="bonito-fragment" id="b081baa3-3150-43a5-859b-737edbb56688" data-jscall-id="subsession-application-dom" style="display:contents"><div style="display:contents"><style></style></div><div style="display:contents"><script type="module">Bonito.init_session("b081baa3-3150-43a5-859b-737edbb56688", Bonito.fetch_binary('bonito/bin/da44fcfae75317097a7971d6d0cf8a63e46488cd-1482387992442394956.bin'), "sub", false);
+</script><div data-jscall-id="250"><div data-jscall-id="251"><meta charset="UTF-8" data-jscall-id="252" /><link rel="stylesheet" data-jscall-id="253" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/themes/light.css" media="(prefers-color-scheme: light)" /><link rel="stylesheet" data-jscall-id="254" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/themes/dark.css" media="(prefers-color-scheme: dark)" /><script data-jscall-id="255">document.documentElement.classList.add('sl-theme-dark');</script><script data-jscall-id="256" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/shoelace-autoloader.js" type="module"></script><style data-jscall-id="257">    /* ---------------------------------------------------
+       Shoelace themes only define tokens, they never style
+       the page itself, so a dark theme leaves the document
+       on the browser default background. Follow the tokens
+       the way shoelace.style does. `:where` keeps these at
+       zero specificity so any application CSS wins.
+       --------------------------------------------------- */
+    :where(body) {
+      background-color: var(--sl-color-neutral-0);
+      color: var(--sl-color-neutral-900);
+    }
+
+    /* ---------------------------------------------------
+       `sl-details` paints a background on its base but never
+       sets a color, so the summary inherits from the page.
+       On a dark page that is light text on the still light
+       panel, and the summary disappears. Pin it to the same
+       token the body uses.
+       --------------------------------------------------- */
+    sl-details::part(base) {
+      color: var(--sl-color-neutral-900);
+    }
+
+    /* ---------------------------------------------------
        Shoelace ships `.radio { align-items: top }`, which is
        not a valid align-items value, so it is dropped and the
        circle falls back to stretch (pinned to the top). That
@@ -102,7 +125,9 @@ end</code></pre><div class="bonito-fragment" id="f9da7070-fda8-4d73-bcc1-7c8c0b5
     sl-dialog.dialog-manager::part(close-button) {
       display: none;
     }
-</style></div><div data-jscall-id="244"><sl-input label="Enter text:" style="" data-jscall-id="245" value="" placeholder="Type something..." type=""><div data-jscall-id="246" slot="help-text">help text can be in <strong>HTML</strong></div></sl-input></div></div></div></div><p>The <code>get_shoelace()</code> function returns the necessary Shoelace CSS and JavaScript includes that should be added to your document head.</p><h3 id="More-Examples"><a class="docs-heading-anchor" href="#More-Examples">More Examples</a><a id="More-Examples-1"></a><a class="docs-heading-anchor-permalink" href="#More-Examples" title="Permalink"></a></h3><h4 id="Button"><a class="docs-heading-anchor" href="#Button">Button</a><a id="Button-1"></a><a class="docs-heading-anchor-permalink" href="#Button" title="Permalink"></a></h4><p>Create a button with click handling:</p><pre><code class="language-julia hljs"># Create button
+</style></div><div data-jscall-id="258"><sl-input label="Enter text:" style="" data-jscall-id="259" value="" placeholder="Type something..." type=""><div data-jscall-id="260" slot="help-text">help text can be in <strong>HTML</strong></div></sl-input></div></div></div></div><p>The <code>get_shoelace()</code> function returns the necessary Shoelace CSS and JavaScript includes that should be added to your document head.</p><h3 id="Dark-Mode"><a class="docs-heading-anchor" href="#Dark-Mode">Dark Mode</a><a id="Dark-Mode-1"></a><a class="docs-heading-anchor-permalink" href="#Dark-Mode" title="Permalink"></a></h3><p>By default <code>get_shoelace()</code> follows the browser/OS color scheme: both Shoelace themes are loaded, each gated on <code>prefers-color-scheme</code>, so changing the system theme reskins a running page without a reload.  Pass <code>theme</code> to pin one instead:</p><pre><code class="language-julia hljs">get_shoelace(; theme=:light)  # always light
+get_shoelace(; theme=:dark)   # always dark
+get_shoelace(; theme=:auto)   # the default, follow the browser</code></pre><p>Shoelace themes only define CSS custom properties, they never style the page itself, so ShoelaceWidgets.jl also sets the document background and text color from those tokens the way <a href="https://shoelace.style/">shoelace.style</a> does.  Those rules use <code>:where(body)</code>, which has zero specificity, so any styling of your own overrides them.</p><h3 id="More-Examples"><a class="docs-heading-anchor" href="#More-Examples">More Examples</a><a id="More-Examples-1"></a><a class="docs-heading-anchor-permalink" href="#More-Examples" title="Permalink"></a></h3><h4 id="Button"><a class="docs-heading-anchor" href="#Button">Button</a><a id="Button-1"></a><a class="docs-heading-anchor-permalink" href="#Button" title="Permalink"></a></h4><p>Create a button with click handling:</p><pre><code class="language-julia hljs"># Create button
 btn = SLButton(&quot;Click Me&quot;; variant=&quot;primary&quot;)
 
 # Set up click handler
@@ -122,8 +147,31 @@ app = App() do session
             btn
         )
     )
-end</code></pre><div class="bonito-fragment" id="a3f36790-999f-4227-b48d-6f119f1d7a43" data-jscall-id="subsession-application-dom" style="display:contents"><div style="display:contents"><style></style></div><div style="display:contents"><script type="module">Bonito.init_session("a3f36790-999f-4227-b48d-6f119f1d7a43", Bonito.fetch_binary('bonito/bin/b5aabd995f2cf6848c8654fe072a59991d9717e7-3187410038608859002.bin'), "sub", false);
-</script><div data-jscall-id="247"><div data-jscall-id="248"><meta charset="UTF-8" data-jscall-id="249" /><link rel="stylesheet" data-jscall-id="250" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/themes/light.css" /><script data-jscall-id="251" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/shoelace-autoloader.js" type="module"></script><style data-jscall-id="252">    /* ---------------------------------------------------
+end</code></pre><div class="bonito-fragment" id="7633b4b4-6eec-40d2-9c33-ffcc1116c117" data-jscall-id="subsession-application-dom" style="display:contents"><div style="display:contents"><style></style></div><div style="display:contents"><script type="module">Bonito.init_session("7633b4b4-6eec-40d2-9c33-ffcc1116c117", Bonito.fetch_binary('bonito/bin/dc0d1ab417ae33d222c0010298770b592d2e9e8b-11634463865297268482.bin'), "sub", false);
+</script><div data-jscall-id="261"><div data-jscall-id="262"><meta charset="UTF-8" data-jscall-id="263" /><link rel="stylesheet" data-jscall-id="264" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/themes/light.css" media="(prefers-color-scheme: light)" /><link rel="stylesheet" data-jscall-id="265" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/themes/dark.css" media="(prefers-color-scheme: dark)" /><script data-jscall-id="266">document.documentElement.classList.add('sl-theme-dark');</script><script data-jscall-id="267" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/shoelace-autoloader.js" type="module"></script><style data-jscall-id="268">    /* ---------------------------------------------------
+       Shoelace themes only define tokens, they never style
+       the page itself, so a dark theme leaves the document
+       on the browser default background. Follow the tokens
+       the way shoelace.style does. `:where` keeps these at
+       zero specificity so any application CSS wins.
+       --------------------------------------------------- */
+    :where(body) {
+      background-color: var(--sl-color-neutral-0);
+      color: var(--sl-color-neutral-900);
+    }
+
+    /* ---------------------------------------------------
+       `sl-details` paints a background on its base but never
+       sets a color, so the summary inherits from the page.
+       On a dark page that is light text on the still light
+       panel, and the summary disappears. Pin it to the same
+       token the body uses.
+       --------------------------------------------------- */
+    sl-details::part(base) {
+      color: var(--sl-color-neutral-900);
+    }
+
+    /* ---------------------------------------------------
        Shoelace ships `.radio { align-items: top }`, which is
        not a valid align-items value, so it is dropped and the
        circle falls back to stretch (pinned to the top). That
@@ -208,7 +256,7 @@ end</code></pre><div class="bonito-fragment" id="a3f36790-999f-4227-b48d-6f119f1
     sl-dialog.dialog-manager::part(close-button) {
       display: none;
     }
-</style></div><div data-jscall-id="253"><sl-button onclick="" variant="primary" style="" data-jscall-id="254">Click Me</sl-button></div></div></div></div><p>Setting <code>href</code> renders the button as a link, opening a URL instead of firing a click handler:</p><pre><code class="language-julia hljs">link_btn = SLButton(&quot;Visit Julia&quot;; href=&quot;https://julialang.org/&quot;, target=&quot;_blank&quot;, rel=&quot;noreferrer noopener&quot;)
+</style></div><div data-jscall-id="269"><sl-button onclick="" variant="primary" style="" data-jscall-id="270">Click Me</sl-button></div></div></div></div><p>Setting <code>href</code> renders the button as a link, opening a URL instead of firing a click handler:</p><pre><code class="language-julia hljs">link_btn = SLButton(&quot;Visit Julia&quot;; href=&quot;https://julialang.org/&quot;, target=&quot;_blank&quot;, rel=&quot;noreferrer noopener&quot;)
 
 app = App() do session
     DOM.html(
@@ -219,8 +267,31 @@ app = App() do session
             link_btn
         )
     )
-end</code></pre><div class="bonito-fragment" id="c99782b0-19be-48d6-91ee-b9ea41c8a015" data-jscall-id="subsession-application-dom" style="display:contents"><div style="display:contents"><style></style></div><div style="display:contents"><script type="module">Bonito.init_session("c99782b0-19be-48d6-91ee-b9ea41c8a015", Bonito.fetch_binary('bonito/bin/00efb0fc9dd534459a4e104221dc040a8289d4f9-11302837222728692654.bin'), "sub", false);
-</script><div data-jscall-id="255"><div data-jscall-id="256"><meta charset="UTF-8" data-jscall-id="257" /><link rel="stylesheet" data-jscall-id="258" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/themes/light.css" /><script data-jscall-id="259" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/shoelace-autoloader.js" type="module"></script><style data-jscall-id="260">    /* ---------------------------------------------------
+end</code></pre><div class="bonito-fragment" id="53c3c9b2-6520-4d3d-baff-f2746cb01445" data-jscall-id="subsession-application-dom" style="display:contents"><div style="display:contents"><style></style></div><div style="display:contents"><script type="module">Bonito.init_session("53c3c9b2-6520-4d3d-baff-f2746cb01445", Bonito.fetch_binary('bonito/bin/75e3732e08d873c2bdca041327726099576e86ad-9090114796915015883.bin'), "sub", false);
+</script><div data-jscall-id="271"><div data-jscall-id="272"><meta charset="UTF-8" data-jscall-id="273" /><link rel="stylesheet" data-jscall-id="274" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/themes/light.css" media="(prefers-color-scheme: light)" /><link rel="stylesheet" data-jscall-id="275" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/themes/dark.css" media="(prefers-color-scheme: dark)" /><script data-jscall-id="276">document.documentElement.classList.add('sl-theme-dark');</script><script data-jscall-id="277" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/shoelace-autoloader.js" type="module"></script><style data-jscall-id="278">    /* ---------------------------------------------------
+       Shoelace themes only define tokens, they never style
+       the page itself, so a dark theme leaves the document
+       on the browser default background. Follow the tokens
+       the way shoelace.style does. `:where` keeps these at
+       zero specificity so any application CSS wins.
+       --------------------------------------------------- */
+    :where(body) {
+      background-color: var(--sl-color-neutral-0);
+      color: var(--sl-color-neutral-900);
+    }
+
+    /* ---------------------------------------------------
+       `sl-details` paints a background on its base but never
+       sets a color, so the summary inherits from the page.
+       On a dark page that is light text on the still light
+       panel, and the summary disappears. Pin it to the same
+       token the body uses.
+       --------------------------------------------------- */
+    sl-details::part(base) {
+      color: var(--sl-color-neutral-900);
+    }
+
+    /* ---------------------------------------------------
        Shoelace ships `.radio { align-items: top }`, which is
        not a valid align-items value, so it is dropped and the
        circle falls back to stretch (pinned to the top). That
@@ -305,7 +376,7 @@ end</code></pre><div class="bonito-fragment" id="c99782b0-19be-48d6-91ee-b9ea41c
     sl-dialog.dialog-manager::part(close-button) {
       display: none;
     }
-</style></div><div data-jscall-id="261"><sl-button onclick="" style="" data-jscall-id="262" href="https://julialang.org/" target="_blank" rel="noreferrer noopener">Visit Julia</sl-button></div></div></div></div><h4 id="Dropdown"><a class="docs-heading-anchor" href="#Dropdown">Dropdown</a><a id="Dropdown-1"></a><a class="docs-heading-anchor-permalink" href="#Dropdown" title="Permalink"></a></h4><p>Create a dropdown select:</p><pre><code class="language-julia hljs"># Create select widget
+</style></div><div data-jscall-id="279"><sl-button onclick="" style="" data-jscall-id="280" href="https://julialang.org/" target="_blank" rel="noreferrer noopener">Visit Julia</sl-button></div></div></div></div><h4 id="Dropdown"><a class="docs-heading-anchor" href="#Dropdown">Dropdown</a><a id="Dropdown-1"></a><a class="docs-heading-anchor-permalink" href="#Dropdown" title="Permalink"></a></h4><p>Create a dropdown select:</p><pre><code class="language-julia hljs"># Create select widget
 select = SLSelect([&quot;Small&quot;, &quot;Medium&quot;, &quot;Large&quot;]; label=&quot;Choose size&quot;, index=1)
 
 on(select.index) do i
@@ -321,8 +392,31 @@ app = App() do session
             select
         )
     )
-end</code></pre><div class="bonito-fragment" id="d3184df0-79c4-4212-b711-427a4dfbfc97" data-jscall-id="subsession-application-dom" style="display:contents"><div style="display:contents"><style></style></div><div style="display:contents"><script type="module">Bonito.init_session("d3184df0-79c4-4212-b711-427a4dfbfc97", Bonito.fetch_binary('bonito/bin/8a663de09201bcd0df8662f9e3693007e7409604-2965266385978230559.bin'), "sub", false);
-</script><div data-jscall-id="263"><div data-jscall-id="264"><meta charset="UTF-8" data-jscall-id="265" /><link rel="stylesheet" data-jscall-id="266" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/themes/light.css" /><script data-jscall-id="267" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/shoelace-autoloader.js" type="module"></script><style data-jscall-id="268">    /* ---------------------------------------------------
+end</code></pre><div class="bonito-fragment" id="d84d4947-485d-4dcb-b8c5-45e3ec98928a" data-jscall-id="subsession-application-dom" style="display:contents"><div style="display:contents"><style></style></div><div style="display:contents"><script type="module">Bonito.init_session("d84d4947-485d-4dcb-b8c5-45e3ec98928a", Bonito.fetch_binary('bonito/bin/7265c4f4f1739aa562cd6773c228590160065625-5109026999870049445.bin'), "sub", false);
+</script><div data-jscall-id="281"><div data-jscall-id="282"><meta charset="UTF-8" data-jscall-id="283" /><link rel="stylesheet" data-jscall-id="284" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/themes/light.css" media="(prefers-color-scheme: light)" /><link rel="stylesheet" data-jscall-id="285" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/themes/dark.css" media="(prefers-color-scheme: dark)" /><script data-jscall-id="286">document.documentElement.classList.add('sl-theme-dark');</script><script data-jscall-id="287" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/shoelace-autoloader.js" type="module"></script><style data-jscall-id="288">    /* ---------------------------------------------------
+       Shoelace themes only define tokens, they never style
+       the page itself, so a dark theme leaves the document
+       on the browser default background. Follow the tokens
+       the way shoelace.style does. `:where` keeps these at
+       zero specificity so any application CSS wins.
+       --------------------------------------------------- */
+    :where(body) {
+      background-color: var(--sl-color-neutral-0);
+      color: var(--sl-color-neutral-900);
+    }
+
+    /* ---------------------------------------------------
+       `sl-details` paints a background on its base but never
+       sets a color, so the summary inherits from the page.
+       On a dark page that is light text on the still light
+       panel, and the summary disappears. Pin it to the same
+       token the body uses.
+       --------------------------------------------------- */
+    sl-details::part(base) {
+      color: var(--sl-color-neutral-900);
+    }
+
+    /* ---------------------------------------------------
        Shoelace ships `.radio { align-items: top }`, which is
        not a valid align-items value, so it is dropped and the
        circle falls back to stretch (pinned to the top). That
@@ -407,8 +501,8 @@ end</code></pre><div class="bonito-fragment" id="d3184df0-79c4-4212-b711-427a4df
     sl-dialog.dialog-manager::part(close-button) {
       display: none;
     }
-</style></div><div data-jscall-id="269"><sl-select label="Choose size" style="" data-jscall-id="270" value="1"><div style="display:contents" data-jscall-id="275"><div class="bonito-fragment" id="1fb29a50-a61f-4caf-9e94-7012d38cb350" data-jscall-id="subsession-application-dom" style="display:contents"><div style="display:contents" data-jscall-id="276"><style data-jscall-id="277"></style></div><div style="display:contents" data-jscall-id="278"><script data-jscall-id="279" type="module">Bonito.init_session("1fb29a50-a61f-4caf-9e94-7012d38cb350", null, "sub", false);
-</script><span data-jscall-id="271"><sl-option data-jscall-id="272" value="1">Small</sl-option><sl-option data-jscall-id="273" value="2">Medium</sl-option><sl-option data-jscall-id="274" value="3">Large</sl-option></span></div></div></div><div data-jscall-id="280" slot="help-text"></div></sl-select></div></div></div></div><h4 id="Progress-Bar"><a class="docs-heading-anchor" href="#Progress-Bar">Progress Bar</a><a id="Progress-Bar-1"></a><a class="docs-heading-anchor-permalink" href="#Progress-Bar" title="Permalink"></a></h4><p>Create a progress bar with reactive updates:</p><pre><code class="language-julia hljs"># Create progress bar
+</style></div><div data-jscall-id="289"><sl-select label="Choose size" style="" data-jscall-id="290" value="1"><div style="display:contents" data-jscall-id="295"><div class="bonito-fragment" id="b9b3c371-3887-41e0-9059-ff723b4f9121" data-jscall-id="subsession-application-dom" style="display:contents"><div style="display:contents" data-jscall-id="296"><style data-jscall-id="297"></style></div><div style="display:contents" data-jscall-id="298"><script data-jscall-id="299" type="module">Bonito.init_session("b9b3c371-3887-41e0-9059-ff723b4f9121", null, "sub", false);
+</script><span data-jscall-id="291"><sl-option data-jscall-id="292" value="1">Small</sl-option><sl-option data-jscall-id="293" value="2">Medium</sl-option><sl-option data-jscall-id="294" value="3">Large</sl-option></span></div></div></div><div data-jscall-id="300" slot="help-text"></div></sl-select></div></div></div></div><h4 id="Progress-Bar"><a class="docs-heading-anchor" href="#Progress-Bar">Progress Bar</a><a id="Progress-Bar-1"></a><a class="docs-heading-anchor-permalink" href="#Progress-Bar" title="Permalink"></a></h4><p>Create a progress bar with reactive updates:</p><pre><code class="language-julia hljs"># Create progress bar
 progress = SLProgressBar(0.0; label=&quot;Loading&quot;, height=&quot;20px&quot;)
 
 # Simulate progress updates
@@ -428,8 +522,31 @@ app = App() do session
             progress
         )
     )
-end</code></pre><div class="bonito-fragment" id="c7e8553d-c3f5-4930-83ee-1723a03c3946" data-jscall-id="subsession-application-dom" style="display:contents"><div style="display:contents"><style></style></div><div style="display:contents"><script type="module">Bonito.init_session("c7e8553d-c3f5-4930-83ee-1723a03c3946", Bonito.fetch_binary('bonito/bin/4786c35b7ba73fa6d11ad5efe5e264ed320be072-10530644142901651528.bin'), "sub", false);
-</script><div data-jscall-id="281"><div data-jscall-id="282"><meta charset="UTF-8" data-jscall-id="283" /><link rel="stylesheet" data-jscall-id="284" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/themes/light.css" /><script data-jscall-id="285" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/shoelace-autoloader.js" type="module"></script><style data-jscall-id="286">    /* ---------------------------------------------------
+end</code></pre><div class="bonito-fragment" id="793e24fa-8efd-4177-b183-db93f5fc27d2" data-jscall-id="subsession-application-dom" style="display:contents"><div style="display:contents"><style></style></div><div style="display:contents"><script type="module">Bonito.init_session("793e24fa-8efd-4177-b183-db93f5fc27d2", Bonito.fetch_binary('bonito/bin/c1d9ffed547b2f27264cd705ee84eaac18630090-17444128483718769986.bin'), "sub", false);
+</script><div data-jscall-id="301"><div data-jscall-id="302"><meta charset="UTF-8" data-jscall-id="303" /><link rel="stylesheet" data-jscall-id="304" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/themes/light.css" media="(prefers-color-scheme: light)" /><link rel="stylesheet" data-jscall-id="305" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/themes/dark.css" media="(prefers-color-scheme: dark)" /><script data-jscall-id="306">document.documentElement.classList.add('sl-theme-dark');</script><script data-jscall-id="307" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/shoelace-autoloader.js" type="module"></script><style data-jscall-id="308">    /* ---------------------------------------------------
+       Shoelace themes only define tokens, they never style
+       the page itself, so a dark theme leaves the document
+       on the browser default background. Follow the tokens
+       the way shoelace.style does. `:where` keeps these at
+       zero specificity so any application CSS wins.
+       --------------------------------------------------- */
+    :where(body) {
+      background-color: var(--sl-color-neutral-0);
+      color: var(--sl-color-neutral-900);
+    }
+
+    /* ---------------------------------------------------
+       `sl-details` paints a background on its base but never
+       sets a color, so the summary inherits from the page.
+       On a dark page that is light text on the still light
+       panel, and the summary disappears. Pin it to the same
+       token the body uses.
+       --------------------------------------------------- */
+    sl-details::part(base) {
+      color: var(--sl-color-neutral-900);
+    }
+
+    /* ---------------------------------------------------
        Shoelace ships `.radio { align-items: top }`, which is
        not a valid align-items value, so it is dropped and the
        circle falls back to stretch (pinned to the top). That
@@ -514,7 +631,7 @@ end</code></pre><div class="bonito-fragment" id="c7e8553d-c3f5-4930-83ee-1723a03
     sl-dialog.dialog-manager::part(close-button) {
       display: none;
     }
-</style></div><div data-jscall-id="287"><sl-progress-bar label="Loading" style="--height: 20px" data-jscall-id="288" value="0.0"></sl-progress-bar></div></div></div></div><p>You can also show and hide progress bars dynamically:</p><pre><code class="language-julia hljs"># Create initially hidden progress bar
+</style></div><div data-jscall-id="309"><sl-progress-bar label="Loading" style="--height: 20px" data-jscall-id="310" value="0.0"></sl-progress-bar></div></div></div></div><p>You can also show and hide progress bars dynamically:</p><pre><code class="language-julia hljs"># Create initially hidden progress bar
 progress = SLProgressBar(50.0; visible=false, label=&quot;Background task&quot;)
 
 # Show the progress bar
@@ -531,8 +648,31 @@ app = App() do session
             alert
         )
     )
-end</code></pre><div class="bonito-fragment" id="fccaa111-131b-44c5-be3a-a4134c644f7a" data-jscall-id="subsession-application-dom" style="display:contents"><div style="display:contents"><style></style></div><div style="display:contents"><script type="module">Bonito.init_session("fccaa111-131b-44c5-be3a-a4134c644f7a", Bonito.fetch_binary('bonito/bin/4181553a942cece240ed783f2339d369db2ba3f6-18074233507597547740.bin'), "sub", false);
-</script><div data-jscall-id="289"><div data-jscall-id="290"><meta charset="UTF-8" data-jscall-id="291" /><link rel="stylesheet" data-jscall-id="292" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/themes/light.css" /><script data-jscall-id="293" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/shoelace-autoloader.js" type="module"></script><style data-jscall-id="294">    /* ---------------------------------------------------
+end</code></pre><div class="bonito-fragment" id="d527787a-899c-48fa-aa80-d27bf8251aa1" data-jscall-id="subsession-application-dom" style="display:contents"><div style="display:contents"><style></style></div><div style="display:contents"><script type="module">Bonito.init_session("d527787a-899c-48fa-aa80-d27bf8251aa1", Bonito.fetch_binary('bonito/bin/0c3651ab3e1f1377444918185911010dc1d43b71-1955254703644218084.bin'), "sub", false);
+</script><div data-jscall-id="311"><div data-jscall-id="312"><meta charset="UTF-8" data-jscall-id="313" /><link rel="stylesheet" data-jscall-id="314" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/themes/light.css" media="(prefers-color-scheme: light)" /><link rel="stylesheet" data-jscall-id="315" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/themes/dark.css" media="(prefers-color-scheme: dark)" /><script data-jscall-id="316">document.documentElement.classList.add('sl-theme-dark');</script><script data-jscall-id="317" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/shoelace-autoloader.js" type="module"></script><style data-jscall-id="318">    /* ---------------------------------------------------
+       Shoelace themes only define tokens, they never style
+       the page itself, so a dark theme leaves the document
+       on the browser default background. Follow the tokens
+       the way shoelace.style does. `:where` keeps these at
+       zero specificity so any application CSS wins.
+       --------------------------------------------------- */
+    :where(body) {
+      background-color: var(--sl-color-neutral-0);
+      color: var(--sl-color-neutral-900);
+    }
+
+    /* ---------------------------------------------------
+       `sl-details` paints a background on its base but never
+       sets a color, so the summary inherits from the page.
+       On a dark page that is light text on the still light
+       panel, and the summary disappears. Pin it to the same
+       token the body uses.
+       --------------------------------------------------- */
+    sl-details::part(base) {
+      color: var(--sl-color-neutral-900);
+    }
+
+    /* ---------------------------------------------------
        Shoelace ships `.radio { align-items: top }`, which is
        not a valid align-items value, so it is dropped and the
        circle falls back to stretch (pinned to the top). That
@@ -617,8 +757,8 @@ end</code></pre><div class="bonito-fragment" id="fccaa111-131b-44c5-be3a-a4134c6
     sl-dialog.dialog-manager::part(close-button) {
       display: none;
     }
-</style></div><div data-jscall-id="295"><sl-alert variant="primary" open="true" icon="info-circle" data-jscall-id="296"><div style="display:contents" data-jscall-id="301"><div class="bonito-fragment" id="3afc2f97-64c8-45c4-a6be-612a749387b7" data-jscall-id="subsession-application-dom" style="display:contents"><div style="display:contents" data-jscall-id="302"><style data-jscall-id="303"></style></div><div style="display:contents" data-jscall-id="304"><script data-jscall-id="305" type="module">Bonito.init_session("3afc2f97-64c8-45c4-a6be-612a749387b7", null, "sub", false);
-</script><div data-jscall-id="297"><strong data-jscall-id="298">This is super informative</strong><br data-jscall-id="299" /><div data-jscall-id="300">You can tell by how pretty the alert is.</div></div></div></div></div><sl-icon name="info-circle" data-jscall-id="306" slot="icon"></sl-icon></sl-alert></div></div></div></div><h2 id="Available-Components"><a class="docs-heading-anchor" href="#Available-Components">Available Components</a><a id="Available-Components-1"></a><a class="docs-heading-anchor-permalink" href="#Available-Components" title="Permalink"></a></h2><p>ShoelaceWidgets.jl provides Julia wrappers for common Shoelace components:</p><h3 id="Web-Components"><a class="docs-heading-anchor" href="#Web-Components">Web Components</a><a id="Web-Components-1"></a><a class="docs-heading-anchor-permalink" href="#Web-Components" title="Permalink"></a></h3><ul><li><a href="api/#ShoelaceWidgets.SLInput"><code>SLInput</code></a> - Text input fields with various types</li><li><a href="api/#ShoelaceWidgets.SLSelect"><code>SLSelect</code></a> - Dropdown selection components</li><li><a href="api/#ShoelaceWidgets.SLButton"><code>SLButton</code></a> - Interactive buttons</li><li><a href="api/#ShoelaceWidgets.SLCheckbox"><code>SLCheckbox</code></a> - Checkbox controls</li><li><a href="api/#ShoelaceWidgets.SLTextarea"><code>SLTextarea</code></a> - Multi-line text input</li><li><a href="api/#ShoelaceWidgets.SLRadio"><code>SLRadio</code></a> / <a href="api/#ShoelaceWidgets.SLRadioGroup"><code>SLRadioGroup</code></a> - Radio button controls (also available as <code>SLListItem</code> / <code>SLList</code> that provide different selection styling )</li><li><a href="api/#ShoelaceWidgets.SLProgressBar"><code>SLProgressBar</code></a> - Progress indicators and loading bars</li><li><a href="api/#ShoelaceWidgets.SLDialog"><code>SLDialog</code></a> - Dialog window</li><li><a href="api/#ShoelaceWidgets.SLAlert"><code>SLAlert</code></a> - Alerts used to display important messages inline</li></ul><h3 id="UI-Elements"><a class="docs-heading-anchor" href="#UI-Elements">UI Elements</a><a id="UI-Elements-1"></a><a class="docs-heading-anchor-permalink" href="#UI-Elements" title="Permalink"></a></h3><ul><li><code>sl_tab_group</code>, <code>sl_tab</code>, <code>sl_tab_panel</code> - Tab navigation</li></ul><pre><code class="language-julia hljs">tabs = sl_tab_group(
+</style></div><div data-jscall-id="319"><sl-alert variant="primary" open="true" icon="info-circle" data-jscall-id="320"><div style="display:contents" data-jscall-id="325"><div class="bonito-fragment" id="f8414d40-70cb-4bb0-ad8f-bc3433644d08" data-jscall-id="subsession-application-dom" style="display:contents"><div style="display:contents" data-jscall-id="326"><style data-jscall-id="327"></style></div><div style="display:contents" data-jscall-id="328"><script data-jscall-id="329" type="module">Bonito.init_session("f8414d40-70cb-4bb0-ad8f-bc3433644d08", null, "sub", false);
+</script><div data-jscall-id="321"><strong data-jscall-id="322">This is super informative</strong><br data-jscall-id="323" /><div data-jscall-id="324">You can tell by how pretty the alert is.</div></div></div></div></div><sl-icon name="info-circle" data-jscall-id="330" slot="icon"></sl-icon></sl-alert></div></div></div></div><h2 id="Available-Components"><a class="docs-heading-anchor" href="#Available-Components">Available Components</a><a id="Available-Components-1"></a><a class="docs-heading-anchor-permalink" href="#Available-Components" title="Permalink"></a></h2><p>ShoelaceWidgets.jl provides Julia wrappers for common Shoelace components:</p><h3 id="Web-Components"><a class="docs-heading-anchor" href="#Web-Components">Web Components</a><a id="Web-Components-1"></a><a class="docs-heading-anchor-permalink" href="#Web-Components" title="Permalink"></a></h3><ul><li><a href="api/#ShoelaceWidgets.SLInput"><code>SLInput</code></a> - Text input fields with various types</li><li><a href="api/#ShoelaceWidgets.SLSelect"><code>SLSelect</code></a> - Dropdown selection components</li><li><a href="api/#ShoelaceWidgets.SLButton"><code>SLButton</code></a> - Interactive buttons</li><li><a href="api/#ShoelaceWidgets.SLCheckbox"><code>SLCheckbox</code></a> - Checkbox controls</li><li><a href="api/#ShoelaceWidgets.SLTextarea"><code>SLTextarea</code></a> - Multi-line text input</li><li><a href="api/#ShoelaceWidgets.SLRadio"><code>SLRadio</code></a> / <a href="api/#ShoelaceWidgets.SLRadioGroup"><code>SLRadioGroup</code></a> - Radio button controls (also available as <code>SLListItem</code> / <code>SLList</code> that provide different selection styling )</li><li><a href="api/#ShoelaceWidgets.SLProgressBar"><code>SLProgressBar</code></a> - Progress indicators and loading bars</li><li><a href="api/#ShoelaceWidgets.SLDialog"><code>SLDialog</code></a> - Dialog window</li><li><a href="api/#ShoelaceWidgets.SLAlert"><code>SLAlert</code></a> - Alerts used to display important messages inline</li></ul><h3 id="UI-Elements"><a class="docs-heading-anchor" href="#UI-Elements">UI Elements</a><a id="UI-Elements-1"></a><a class="docs-heading-anchor-permalink" href="#UI-Elements" title="Permalink"></a></h3><ul><li><code>sl_tab_group</code>, <code>sl_tab</code>, <code>sl_tab_panel</code> - Tab navigation</li></ul><pre><code class="language-julia hljs">tabs = sl_tab_group(
 
     sl_tab(&quot;Tab 1&quot;; slot=&quot;nav&quot;, panel=&quot;tab1&quot;),
     sl_tab(&quot;Tab 2&quot;; slot=&quot;nav&quot;, panel=&quot;tab2&quot;),
@@ -637,8 +777,31 @@ app = App() do session
             tabs
         )
     )
-end</code></pre><div class="bonito-fragment" id="31eeffe6-0fb7-4027-9bec-c29df2889e59" data-jscall-id="subsession-application-dom" style="display:contents"><div style="display:contents"><style></style></div><div style="display:contents"><script type="module">Bonito.init_session("31eeffe6-0fb7-4027-9bec-c29df2889e59", null, "sub", false);
-</script><div data-jscall-id="307"><div data-jscall-id="308"><meta charset="UTF-8" data-jscall-id="309" /><link rel="stylesheet" data-jscall-id="310" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/themes/light.css" /><script data-jscall-id="311" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/shoelace-autoloader.js" type="module"></script><style data-jscall-id="312">    /* ---------------------------------------------------
+end</code></pre><div class="bonito-fragment" id="64b950ec-4f9f-4ab6-b14d-23bb3e499e12" data-jscall-id="subsession-application-dom" style="display:contents"><div style="display:contents"><style></style></div><div style="display:contents"><script type="module">Bonito.init_session("64b950ec-4f9f-4ab6-b14d-23bb3e499e12", null, "sub", false);
+</script><div data-jscall-id="331"><div data-jscall-id="332"><meta charset="UTF-8" data-jscall-id="333" /><link rel="stylesheet" data-jscall-id="334" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/themes/light.css" media="(prefers-color-scheme: light)" /><link rel="stylesheet" data-jscall-id="335" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/themes/dark.css" media="(prefers-color-scheme: dark)" /><script data-jscall-id="336">document.documentElement.classList.add('sl-theme-dark');</script><script data-jscall-id="337" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/shoelace-autoloader.js" type="module"></script><style data-jscall-id="338">    /* ---------------------------------------------------
+       Shoelace themes only define tokens, they never style
+       the page itself, so a dark theme leaves the document
+       on the browser default background. Follow the tokens
+       the way shoelace.style does. `:where` keeps these at
+       zero specificity so any application CSS wins.
+       --------------------------------------------------- */
+    :where(body) {
+      background-color: var(--sl-color-neutral-0);
+      color: var(--sl-color-neutral-900);
+    }
+
+    /* ---------------------------------------------------
+       `sl-details` paints a background on its base but never
+       sets a color, so the summary inherits from the page.
+       On a dark page that is light text on the still light
+       panel, and the summary disappears. Pin it to the same
+       token the body uses.
+       --------------------------------------------------- */
+    sl-details::part(base) {
+      color: var(--sl-color-neutral-900);
+    }
+
+    /* ---------------------------------------------------
        Shoelace ships `.radio { align-items: top }`, which is
        not a valid align-items value, so it is dropped and the
        circle falls back to stretch (pinned to the top). That
@@ -723,7 +886,7 @@ end</code></pre><div class="bonito-fragment" id="31eeffe6-0fb7-4027-9bec-c29df28
     sl-dialog.dialog-manager::part(close-button) {
       display: none;
     }
-</style></div><div data-jscall-id="313"><sl-tab-group data-jscall-id="314"><sl-tab panel="tab1" data-jscall-id="315" slot="nav">Tab 1</sl-tab><sl-tab panel="tab2" data-jscall-id="316" slot="nav">Tab 2</sl-tab><sl-tab-panel name="tab1" data-jscall-id="317"><div data-jscall-id="318">Hello World</div></sl-tab-panel><sl-tab-panel name="tab2" data-jscall-id="319"><div data-jscall-id="320">Goodbye</div></sl-tab-panel></sl-tab-group></div></div></div></div><ul><li><code>sl_tag</code> - Tags for labels and categories</li><li><code>sl_format_date</code> - Date formatting</li><li><code>sl_spinner</code> - Loading indicators</li><li><code>sl_icon</code> - Icons from the <a href="https://shoelace.style/components/icon">Shoelace Icon Library</a></li><li><code>sl_tooltop</code> - Tooltip display during mouse hover </li></ul><pre><code class="language-julia hljs">button = SLButton(&quot;Test&quot;)
+</style></div><div data-jscall-id="339"><sl-tab-group data-jscall-id="340"><sl-tab panel="tab1" data-jscall-id="341" slot="nav">Tab 1</sl-tab><sl-tab panel="tab2" data-jscall-id="342" slot="nav">Tab 2</sl-tab><sl-tab-panel name="tab1" data-jscall-id="343"><div data-jscall-id="344">Hello World</div></sl-tab-panel><sl-tab-panel name="tab2" data-jscall-id="345"><div data-jscall-id="346">Goodbye</div></sl-tab-panel></sl-tab-group></div></div></div></div><ul><li><code>sl_tag</code> - Tags for labels and categories</li><li><code>sl_format_date</code> - Date formatting</li><li><code>sl_spinner</code> - Loading indicators</li><li><code>sl_icon</code> - Icons from the <a href="https://shoelace.style/components/icon">Shoelace Icon Library</a></li><li><code>sl_tooltop</code> - Tooltip display during mouse hover </li></ul><pre><code class="language-julia hljs">button = SLButton(&quot;Test&quot;)
 
 app = App() do session
     DOM.html(
@@ -734,8 +897,31 @@ app = App() do session
             sl_tooltip(button; content=&quot;click me&quot;)
         )
     )
-end</code></pre><div class="bonito-fragment" id="d24bc05e-4cac-4444-a3dd-94a420bc12bb" data-jscall-id="subsession-application-dom" style="display:contents"><div style="display:contents"><style></style></div><div style="display:contents"><script type="module">Bonito.init_session("d24bc05e-4cac-4444-a3dd-94a420bc12bb", Bonito.fetch_binary('bonito/bin/ff7655f0a2620a149fbb59dc649210f5226bcfc9-14427023545268177332.bin'), "sub", false);
-</script><div data-jscall-id="321"><div data-jscall-id="322"><meta charset="UTF-8" data-jscall-id="323" /><link rel="stylesheet" data-jscall-id="324" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/themes/light.css" /><script data-jscall-id="325" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/shoelace-autoloader.js" type="module"></script><style data-jscall-id="326">    /* ---------------------------------------------------
+end</code></pre><div class="bonito-fragment" id="f03d3d32-d6c3-447f-a80f-60f7f1769582" data-jscall-id="subsession-application-dom" style="display:contents"><div style="display:contents"><style></style></div><div style="display:contents"><script type="module">Bonito.init_session("f03d3d32-d6c3-447f-a80f-60f7f1769582", Bonito.fetch_binary('bonito/bin/2cbc639737ddfa5c102cdf1e0dd5dc08232db324-15195718434411669004.bin'), "sub", false);
+</script><div data-jscall-id="347"><div data-jscall-id="348"><meta charset="UTF-8" data-jscall-id="349" /><link rel="stylesheet" data-jscall-id="350" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/themes/light.css" media="(prefers-color-scheme: light)" /><link rel="stylesheet" data-jscall-id="351" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/themes/dark.css" media="(prefers-color-scheme: dark)" /><script data-jscall-id="352">document.documentElement.classList.add('sl-theme-dark');</script><script data-jscall-id="353" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/shoelace-autoloader.js" type="module"></script><style data-jscall-id="354">    /* ---------------------------------------------------
+       Shoelace themes only define tokens, they never style
+       the page itself, so a dark theme leaves the document
+       on the browser default background. Follow the tokens
+       the way shoelace.style does. `:where` keeps these at
+       zero specificity so any application CSS wins.
+       --------------------------------------------------- */
+    :where(body) {
+      background-color: var(--sl-color-neutral-0);
+      color: var(--sl-color-neutral-900);
+    }
+
+    /* ---------------------------------------------------
+       `sl-details` paints a background on its base but never
+       sets a color, so the summary inherits from the page.
+       On a dark page that is light text on the still light
+       panel, and the summary disappears. Pin it to the same
+       token the body uses.
+       --------------------------------------------------- */
+    sl-details::part(base) {
+      color: var(--sl-color-neutral-900);
+    }
+
+    /* ---------------------------------------------------
        Shoelace ships `.radio { align-items: top }`, which is
        not a valid align-items value, so it is dropped and the
        circle falls back to stretch (pinned to the top). That
@@ -820,7 +1006,7 @@ end</code></pre><div class="bonito-fragment" id="d24bc05e-4cac-4444-a3dd-94a420b
     sl-dialog.dialog-manager::part(close-button) {
       display: none;
     }
-</style></div><div data-jscall-id="327"><sl-tooltip content="click me" data-jscall-id="328"><sl-button onclick="" style="" data-jscall-id="329">Test</sl-button></sl-tooltip></div></div></div></div><ul><li><code>sl_copy_button</code> - send contents of value to the clipboard</li></ul><pre><code class="language-julia hljs">app = App() do session
+</style></div><div data-jscall-id="355"><sl-tooltip content="click me" data-jscall-id="356"><sl-button onclick="" style="" data-jscall-id="357">Test</sl-button></sl-tooltip></div></div></div></div><ul><li><code>sl_copy_button</code> - send contents of value to the clipboard</li></ul><pre><code class="language-julia hljs">app = App() do session
     DOM.html(
         DOM.head(
             get_shoelace()...
@@ -829,8 +1015,31 @@ end</code></pre><div class="bonito-fragment" id="d24bc05e-4cac-4444-a3dd-94a420b
             DOM.div(&quot;Copy Button:&quot;, sl_copy_button(;value=&quot;clipboard contents&quot;))
         )
     )
-end</code></pre><div class="bonito-fragment" id="746a41c2-22e3-493f-9c5f-0e55c845324e" data-jscall-id="subsession-application-dom" style="display:contents"><div style="display:contents"><style></style></div><div style="display:contents"><script type="module">Bonito.init_session("746a41c2-22e3-493f-9c5f-0e55c845324e", null, "sub", false);
-</script><div data-jscall-id="330"><div data-jscall-id="331"><meta charset="UTF-8" data-jscall-id="332" /><link rel="stylesheet" data-jscall-id="333" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/themes/light.css" /><script data-jscall-id="334" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/shoelace-autoloader.js" type="module"></script><style data-jscall-id="335">    /* ---------------------------------------------------
+end</code></pre><div class="bonito-fragment" id="3a3cc74a-7641-473d-a1a3-09f32ce0a538" data-jscall-id="subsession-application-dom" style="display:contents"><div style="display:contents"><style></style></div><div style="display:contents"><script type="module">Bonito.init_session("3a3cc74a-7641-473d-a1a3-09f32ce0a538", null, "sub", false);
+</script><div data-jscall-id="358"><div data-jscall-id="359"><meta charset="UTF-8" data-jscall-id="360" /><link rel="stylesheet" data-jscall-id="361" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/themes/light.css" media="(prefers-color-scheme: light)" /><link rel="stylesheet" data-jscall-id="362" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/themes/dark.css" media="(prefers-color-scheme: dark)" /><script data-jscall-id="363">document.documentElement.classList.add('sl-theme-dark');</script><script data-jscall-id="364" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/shoelace-autoloader.js" type="module"></script><style data-jscall-id="365">    /* ---------------------------------------------------
+       Shoelace themes only define tokens, they never style
+       the page itself, so a dark theme leaves the document
+       on the browser default background. Follow the tokens
+       the way shoelace.style does. `:where` keeps these at
+       zero specificity so any application CSS wins.
+       --------------------------------------------------- */
+    :where(body) {
+      background-color: var(--sl-color-neutral-0);
+      color: var(--sl-color-neutral-900);
+    }
+
+    /* ---------------------------------------------------
+       `sl-details` paints a background on its base but never
+       sets a color, so the summary inherits from the page.
+       On a dark page that is light text on the still light
+       panel, and the summary disappears. Pin it to the same
+       token the body uses.
+       --------------------------------------------------- */
+    sl-details::part(base) {
+      color: var(--sl-color-neutral-900);
+    }
+
+    /* ---------------------------------------------------
        Shoelace ships `.radio { align-items: top }`, which is
        not a valid align-items value, so it is dropped and the
        circle falls back to stretch (pinned to the top). That
@@ -915,4 +1124,4 @@ end</code></pre><div class="bonito-fragment" id="746a41c2-22e3-493f-9c5f-0e55c84
     sl-dialog.dialog-manager::part(close-button) {
       display: none;
     }
-</style></div><div data-jscall-id="336"><div data-jscall-id="337">Copy Button:<sl-copy-button data-jscall-id="338" value="clipboard contents"></sl-copy-button></div></div></div></div></div><h2 id="Learn-More"><a class="docs-heading-anchor" href="#Learn-More">Learn More</a><a id="Learn-More-1"></a><a class="docs-heading-anchor-permalink" href="#Learn-More" title="Permalink"></a></h2><ul><li>Check out the <a href="api/">API Reference</a> for detailed documentation of all components</li><li>Visit the <a href="https://shoelace.style/">Shoelace documentation</a> to learn more about the underlying web components</li><li>See the <a href="https://bonito.jl.org/">Bonito.jl documentation</a> for information about the Julia web framework</li></ul></article><nav class="docs-footer"><a class="docs-footer-nextpage" href="composites/">Composite Controls »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.19.0 on <span class="colophon-date" title="Friday 4 September 2026 08:47">Friday 4 September 2026</span>. Using Julia version 1.12.7.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+</style></div><div data-jscall-id="366"><div data-jscall-id="367">Copy Button:<sl-copy-button data-jscall-id="368" value="clipboard contents"></sl-copy-button></div></div></div></div></div><h2 id="Learn-More"><a class="docs-heading-anchor" href="#Learn-More">Learn More</a><a id="Learn-More-1"></a><a class="docs-heading-anchor-permalink" href="#Learn-More" title="Permalink"></a></h2><ul><li>Check out the <a href="api/">API Reference</a> for detailed documentation of all components</li><li>Visit the <a href="https://shoelace.style/">Shoelace documentation</a> to learn more about the underlying web components</li><li>See the <a href="https://bonito.jl.org/">Bonito.jl documentation</a> for information about the Julia web framework</li></ul></article><nav class="docs-footer"><a class="docs-footer-nextpage" href="composites/">Composite Controls »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.19.0 on <span class="colophon-date" title="Friday 4 September 2026 12:21">Friday 4 September 2026</span>. Using Julia version 1.12.7.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
