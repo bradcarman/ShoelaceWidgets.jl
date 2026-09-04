@@ -27,8 +27,10 @@ Selects whether a [`ListManager`](@ref) builds an edit button and dialog:
 - `NoEdit` - no edit button or dialog is built at all, regardless of `edit_function`
 - `DialogEdit` - `edit_function(manager, action)` drives an OK/Cancel dialog, as long as
   `edit_function` is not `nothing`
+- `NoEditDeleteClearOrder` - like `NoEdit`, and additionally no delete, clear, move up or move down
+  buttons are built, leaving the add button as the only control under the list
 """
-@enum EditMode NoEdit DialogEdit
+@enum EditMode NoEdit DialogEdit NoEditDeleteClearOrder
 
 
 """
@@ -80,6 +82,12 @@ dialog are created at all, and both the `edit` and `edit_dialog` fields are `not
 defaults to `DialogEdit`, so passing `edit_function` alone is enough to get an edit button; set
 `edit_mode=NoEdit` to suppress the button even when `edit_function` is set.
 
+`edit_mode=NoEditDeleteClearOrder` goes further: on top of what `NoEdit` suppresses, the delete,
+clear, move up and move down buttons are not built either, so those fields are `nothing` too and the
+add button is the only control left under the list. Suppress that one as well with `add_mode=NoAdd`
+for a list with no buttons at all. Only the buttons go away; `push!`, `deleteat!`, `empty!`,
+`moveat!` and friends keep working, so the list can still be driven from code.
+
 Buttons disable themselves when they do not apply: delete and edit while no item is selected, clear
 while the list is empty, and the two moves at the corresponding end of the list. Deleting or clearing
 drops the selection.
@@ -88,11 +96,11 @@ drops the selection.
 - `list::SLList` - The underlying list; use `list.index` and `list.object` to inspect the selection
 - `label::String` - Label text, rendered above the bordered list rather than inside it
 - `add::Union{SLButton, Nothing}` - The add button, an `sl_icon` plus-circle, or `nothing` in `NoAdd`
-- `delete::SLButton` - The delete button
-- `clear::SLButton` - The clear button
+- `delete::Union{SLButton, Nothing}` - The delete button, or `nothing` in `NoEditDeleteClearOrder`
+- `clear::Union{SLButton, Nothing}` - The clear button, or `nothing` in `NoEditDeleteClearOrder`
 - `edit::Union{SLButton, Nothing}` - The edit button, an `sl_icon` pencil, or `nothing`
-- `move_up::SLButton` - The move up button, an `sl_icon` arrow
-- `move_down::SLButton` - The move down button, an `sl_icon` arrow
+- `move_up::Union{SLButton, Nothing}` - The move up button, an `sl_icon` arrow, or `nothing`
+- `move_down::Union{SLButton, Nothing}` - The move down button, an `sl_icon` arrow, or `nothing`
 - `add_function::Union{Function, Nothing}` - Called per `add_mode`, or `nothing` to disable adding
 - `add_dialog::Union{DialogManager, Nothing}` - The OK/Cancel add dialog, or `nothing` outside `DialogAdd`
 - `add_mode::AddMode` - `NoAdd`, `FunctionAdd` or `DialogAdd`
@@ -100,7 +108,7 @@ drops the selection.
 - `get_function::Function` - Maps `(manager, item)` back to its value, the inverse of `item_function`
 - `edit_function::Union{Function, Nothing}` - Called as `edit_function(manager, action)`
 - `edit_dialog::Union{DialogManager, Nothing}` - The OK/Cancel edit dialog, or `nothing`
-- `edit_mode::EditMode` - `NoEdit` or `DialogEdit`
+- `edit_mode::EditMode` - `NoEdit`, `DialogEdit` or `NoEditDeleteClearOrder`
 - `style::String` - Inline CSS style applied to the wrapping element
 - `list_style::String` - Inline CSS style for the bordered, scrolling box around the items
 - `collapsible::Bool` - if true, put the list of items into a collapsible region (SLDetails)
@@ -122,11 +130,11 @@ drops the selection.
     collapsible::Bool
 
     add::Union{SLButton, Nothing}
-    delete::SLButton
-    clear::SLButton
+    delete::Union{SLButton, Nothing}
+    clear::Union{SLButton, Nothing}
     edit::Union{SLButton, Nothing}
-    move_up::SLButton
-    move_down::SLButton
+    move_up::Union{SLButton, Nothing}
+    move_down::Union{SLButton, Nothing}
 
     add_function::Union{Function, Nothing}
     add_dialog::Union{DialogManager, Nothing}
@@ -180,11 +188,16 @@ function ListManager(values::Vector{T};
     # the dialog callback needs the manager, which does not exist yet
     manager = Ref{Any}(nothing)
 
+    # NoEditDeleteClearOrder suppresses everything NoEdit does, plus the delete, clear and
+    # reorder buttons, leaving the add button as the only control under the list
+    bare = edit_mode == NoEditDeleteClearOrder
+    no_edit = (edit_mode == NoEdit) || bare
+
     # NoEdit, or no edit_function, means no edit button and no dialog at all
-    edit = (edit_mode == NoEdit || isnothing(edit_function)) ? nothing :
+    edit = (no_edit || isnothing(edit_function)) ? nothing :
            SLButton(sl_icon(; name="pencil"); variant="text", size="small", disabled=true)
 
-    edit_dialog = (edit_mode == NoEdit || isnothing(edit_function)) ? nothing :
+    edit_dialog = (no_edit || isnothing(edit_function)) ? nothing :
              DialogManager(edit_content,
                            function (d::DialogManager, action)
                                m = manager[]
@@ -214,11 +227,11 @@ function ListManager(values::Vector{T};
                 collapsible,
 
                 add,
-                delete = SLButton(sl_icon(; name="dash-circle"); variant="text", size="small", disabled=true), # nothing is selected yet
-                clear = SLButton(sl_icon(; name="x-circle"); variant="text", size="small", disabled=true),  # populated by append! below
+                delete = bare ? nothing : SLButton(sl_icon(; name="dash-circle"); variant="text", size="small", disabled=true), # nothing is selected yet
+                clear = bare ? nothing : SLButton(sl_icon(; name="x-circle"); variant="text", size="small", disabled=true),  # populated by append! below
                 edit,
-                move_up = SLButton(sl_icon(; name="arrow-up"); variant="text", size="small", disabled=true),
-                move_down = SLButton(sl_icon(; name="arrow-down"); variant="text", size="small", disabled=true),
+                move_up = bare ? nothing : SLButton(sl_icon(; name="arrow-up"); variant="text", size="small", disabled=true),
+                move_down = bare ? nothing : SLButton(sl_icon(; name="arrow-down"); variant="text", size="small", disabled=true),
                 
                 add_dialog,
                 add_function,
@@ -259,22 +272,22 @@ function ListManager(values::Vector{T};
         end
     end
 
-    on(x.delete.value) do session
+    isnothing(x.delete) || on(x.delete.value) do session
         isnothing(session) && return
         delete_selected!(x)
     end
 
-    on(x.clear.value) do session
+    isnothing(x.clear) || on(x.clear.value) do session
         isnothing(session) && return
         empty!(x)
     end
 
-    on(x.move_up.value) do session
+    isnothing(x.move_up) || on(x.move_up.value) do session
         isnothing(session) && return
         move_up!(x)
     end
 
-    on(x.move_down.value) do session
+    isnothing(x.move_down) || on(x.move_down.value) do session
         isnothing(session) && return
         move_down!(x)
     end
@@ -425,14 +438,15 @@ end
 """
     update_buttons!(x::ListManager)
 
-Syncs the delete, clear, edit and reorder buttons with the current selection and list length.
+Syncs the delete, clear, edit and reorder buttons with the current selection and list length. A
+button that was never built, as in `NoEditDeleteClearOrder`, is skipped.
 """
 function update_buttons!(x::ListManager)
     i = selected_index(x)
-    x.delete.disabled[] = isnothing(i)
-    x.clear.disabled[] = isempty(x)
-    x.move_up.disabled[] = isnothing(i) || (i == 1)
-    x.move_down.disabled[] = isnothing(i) || (i == length(x))
+    isnothing(x.delete) || (x.delete.disabled[] = isnothing(i))
+    isnothing(x.clear) || (x.clear.disabled[] = isempty(x))
+    isnothing(x.move_up) || (x.move_up.disabled[] = isnothing(i) || (i == 1))
+    isnothing(x.move_down) || (x.move_down.disabled[] = isnothing(i) || (i == length(x)))
     isnothing(x.edit) || (x.edit.disabled[] = isnothing(i))
     return x
 end
@@ -470,11 +484,11 @@ function Bonito.jsrender(session::Session, x::ListManager)
     # NOTE: Shoelace tooltips do not fire on disabled elements, so these only show when enabled
     buttons = Any[]
     isnothing(x.add) || push!(buttons, sl_tooltip(x.add; content="add"))
-    push!(buttons, sl_tooltip(x.delete; content="remove"))
-    push!(buttons, sl_tooltip(x.clear; content="clear"))
+    isnothing(x.delete) || push!(buttons, sl_tooltip(x.delete; content="remove"))
+    isnothing(x.clear) || push!(buttons, sl_tooltip(x.clear; content="clear"))
     isnothing(x.edit) || push!(buttons, sl_tooltip(x.edit; content="edit"))
-    push!(buttons, sl_tooltip(x.move_up; content="move up"))
-    push!(buttons, sl_tooltip(x.move_down; content="move down"))
+    isnothing(x.move_up) || push!(buttons, sl_tooltip(x.move_up; content="move up"))
+    isnothing(x.move_down) || push!(buttons, sl_tooltip(x.move_down; content="move down"))
 
     # the border belongs to this wrapper, so the label goes above it rather than
     # inside the sl-radio-group
@@ -492,7 +506,8 @@ function Bonito.jsrender(session::Session, x::ListManager)
     end
     
     push!(children, list)
-    push!(children, DOM.div(buttons...))
+    # every button can be suppressed, and an empty row would still take up space
+    isempty(buttons) || push!(children, DOM.div(buttons...))
 
     # the dialogs have to be in the document for them to be shown
     isnothing(x.edit_dialog) || push!(children, x.edit_dialog)

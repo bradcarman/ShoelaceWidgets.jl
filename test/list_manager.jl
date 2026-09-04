@@ -4,7 +4,7 @@ using ShoelaceWidgets
 using ShoelaceWidgets: get_values, delete_selected!, selected_index, move_up!, move_down!, moveat!,
                        open_editor!, open_adder!, replace_selected!, accept!, reject!,
                        OpenOKCancel, Open, OK, Cancel, AddMode, FunctionAdd, DialogAdd, NoAdd,
-                       EditMode, DialogEdit, NoEdit
+                       EditMode, DialogEdit, NoEdit, NoEditDeleteClearOrder
 
 # ----------------------------------
 # TEST 1: default item_function/get_function
@@ -541,3 +541,59 @@ default_mode = ListManager(["a"]; edit_function = (m, action) -> nothing)
 @test default_mode.edit_mode == DialogEdit
 @test !isnothing(default_mode.edit)
 @test !occursin("<sl-dialog", render_html(fn_mode))
+
+# ----------------------------------
+# TEST 8: NoEditDeleteClearOrder
+# ----------------------------------
+
+# NoEditDeleteClearOrder suppresses the edit button and dialog like NoEdit, plus the
+# delete, clear and reorder buttons, leaving the add button as the only control
+bare = ListManager(["a", "b", "c"];
+                   add_function = session -> "added",
+                   edit_mode = NoEditDeleteClearOrder,
+                   edit_function = (m, action) -> nothing,
+                   edit_content = DOM.div())
+@test bare.edit_mode == NoEditDeleteClearOrder
+@test isnothing(bare.edit)
+@test isnothing(bare.edit_dialog)
+@test isnothing(bare.delete)
+@test isnothing(bare.clear)
+@test isnothing(bare.move_up)
+@test isnothing(bare.move_down)
+@test !isnothing(bare.add)                         # add survives, it is add_mode's call
+
+html = render_html(bare)
+@test !occursin("pencil", html)
+@test !occursin("dash-circle", html)
+@test !occursin("x-circle", html)
+@test !occursin("arrow-up", html)
+@test !occursin("arrow-down", html)
+@test occursin("plus-circle", html)
+@test occursin("a", html) && occursin("c", html)   # the items still render
+
+# the mutation API is untouched, so the list can still be driven from code
+push!(bare, "d")
+@test get_values(bare) == ["a", "b", "c", "d"]
+moveat!(bare, 4, 1)
+@test get_values(bare) == ["d", "a", "b", "c"]
+deleteat!(bare, 1)
+@test get_values(bare) == ["a", "b", "c"]
+
+# selection-driven helpers are no-ops rather than errors when the buttons are gone
+bare.list.value[] = "2"
+@test selected_index(bare) == 2
+ShoelaceWidgets.update_buttons!(bare)              # nothing to sync, must not throw
+open_editor!(bare)
+@test isnothing(bare.edit_dialog)
+ShoelaceWidgets.delete_selected!(bare)             # still works without a button
+@test get_values(bare) == ["a", "c"]
+empty!(bare)
+@test isempty(bare)
+
+# combined with NoAdd there are no buttons at all, and no empty button row
+no_buttons = ListManager(["a"]; add_mode = NoAdd, edit_mode = NoEditDeleteClearOrder)
+@test isnothing(no_buttons.add)
+@test isnothing(no_buttons.delete)
+html = render_html(no_buttons)
+@test !occursin("sl-tooltip", html)
+@test !occursin("<sl-button", html)

@@ -178,6 +178,32 @@ would silently do nothing:
 Deleting and clearing drop the selection. Moving carries it along, so repeated clicks walk the same
 item to either end of the list.
 
+### Suppressing buttons
+
+A button that should not appear at all, rather than appear disabled, is suppressed by a mode. Setting
+`add_mode = ShoelaceWidgets.NoAdd` drops the add button, and `edit_mode = ShoelaceWidgets.NoEdit`
+drops the edit button and its dialog, whether or not the matching function was supplied.
+`edit_mode = ShoelaceWidgets.NoEditDeleteClearOrder` drops the delete, clear, move up and move down
+buttons as well, so only the add button is left under the list; combine it with `NoAdd` for a list
+with no buttons at all. The corresponding fields are then `nothing` instead of a button.
+
+```@example composites
+display_only = ListManager(["alpha", "beta", "gamma"];
+                           label = "Read-only",
+                           add_mode = ShoelaceWidgets.NoAdd,
+                           edit_mode = ShoelaceWidgets.NoEditDeleteClearOrder)
+
+app = App() do session
+    DOM.html(
+        DOM.head(get_shoelace()...),
+        DOM.body(display_only)
+    )
+end
+```
+
+Only the buttons go away. `push!`, `deleteat!`, `empty!`, `moveat!` and the rest still work, so a
+list with no buttons can still be driven entirely from code.
+
 ## DialogManager
 
 A [`DialogManager`](@ref) is a modal dialog with OK and Cancel in its footer. Unlike a bare

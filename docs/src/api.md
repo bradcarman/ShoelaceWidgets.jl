@@ -90,6 +90,7 @@ Controls assembled from several widgets. See the
 ListManager
 DialogManager
 ShoelaceWidgets.AddMode
+ShoelaceWidgets.EditMode
 ShoelaceWidgets.OpenOKCancel
 ```
 
