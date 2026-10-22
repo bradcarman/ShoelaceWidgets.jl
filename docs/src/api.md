@@ -122,6 +122,12 @@ sl_copy_button
 
 These are not exported. Reach them as `ShoelaceWidgets.get_values(...)` and so on.
 
+### Building Shoelace elements
+
+```@docs
+ShoelaceWidgets.sl
+```
+
 ### Reading and mutating a ListManager
 
 ```@docs
