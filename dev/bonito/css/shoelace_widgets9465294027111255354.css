@@ -1,0 +1,108 @@
+/* ---------------------------------------------------
+   Shoelace themes only define tokens, they never style
+   the page itself, so a dark theme leaves the document
+   on the browser default background. Follow the tokens
+   the way shoelace.style does. `:where` keeps these at
+   zero specificity so any application CSS wins.
+   --------------------------------------------------- */
+:where(body) {
+  background-color: var(--sl-color-neutral-0);
+  color: var(--sl-color-neutral-900);
+}
+
+/* ---------------------------------------------------
+   `sl-details` paints a background on its base but never
+   sets a color, so the summary inherits from the page.
+   On a dark page that is light text on the still light
+   panel, and the summary disappears. Pin it to the same
+   token the body uses.
+   --------------------------------------------------- */
+sl-details::part(base) {
+  color: var(--sl-color-neutral-900);
+}
+
+/* ---------------------------------------------------
+   Shoelace ships `.radio { align-items: top }`, which is
+   not a valid align-items value, so it is dropped and the
+   circle falls back to stretch (pinned to the top). That
+   is invisible for one line of text because the label
+   carries `line-height: var(--toggle-size)`, but any block
+   content (a div holding another widget) leaves the circle
+   stranded at the top. Center it, and drop the single-line
+   line-height so block content is not distorted.
+   --------------------------------------------------- */
+sl-radio::part(base) {
+  align-items: center;
+}
+
+sl-radio::part(label) {
+  line-height: normal;
+}
+
+/* ---------------------------------------------------
+   Core CSS to make sl-radio look like sl-tree-item
+   --------------------------------------------------- */
+
+/* Force the host element to be block level so it stacks properly */
+sl-radio.tree-style {
+  display: block;
+  margin-bottom: 2px;
+}
+
+/* 1. Base styling for the "row" */
+sl-radio.tree-style::part(base) {
+  padding: var(--sl-spacing-x-small) var(--sl-spacing-small);
+  border-radius: var(--sl-border-radius-medium);
+  transition: background-color 150ms ease, color 150ms ease;
+  width: 100%; /* Makes it stretch like a tree node */
+  box-sizing: border-box;
+  cursor: pointer;
+}
+
+/* 2. Hover effect */
+sl-radio.tree-style:hover::part(base) {
+  background-color: var(--sl-color-neutral-100);
+}
+
+/* 3. The "Selected" state highlight */
+sl-radio.tree-style[checked]::part(base),
+sl-radio.tree-style[aria-checked="true"]::part(base) {
+  background-color: var(--sl-color-primary-100);
+  color: var(--sl-color-primary-700);
+}
+
+/* Hide the little radio circle completely */
+sl-radio.tree-style-hidden-circle::part(control) {
+  display: none;
+}
+
+/* Remove the gap between the hidden circle and the label */
+sl-radio.tree-style-hidden-circle::part(base) {
+  gap: 0;
+  /* Make the left side flat for the bar, keep right side rounded */
+  border-radius: 0 var(--sl-border-radius-medium) var(--sl-border-radius-medium) 0;
+  /* Invisible border to prevent text shifting on selection */
+  border-left: 4px solid transparent; 
+}
+
+/* Add the blue bar indicator when checked */
+sl-radio.tree-style-hidden-circle[checked]::part(base),
+sl-radio.tree-style-hidden-circle[aria-checked="true"]::part(base) {
+  border-left-color: var(--sl-color-primary-600);
+}
+
+/* Ensure no stray padding exists on the label */
+sl-radio.tree-style-hidden-circle::part(label) {
+  padding-inline-start: 0;
+  /* Make the label take up full width for a bigger click target */
+  width: 100%;
+}
+
+/* ---------------------------------------------------
+   DialogManager: OK and Cancel are the only way out, so
+   remove the header close button rather than leave a
+   control that does nothing
+   --------------------------------------------------- */
+sl-dialog.dialog-manager::part(close-button) {
+  display: none;
+}
