@@ -12,14 +12,9 @@ end
 
 
 app = App() do session
-    DOM.html(
-        DOM.head(
-            get_shoelace()...
-        ),
-        DOM.body(
-            DOM.h1("Hello World"),
-            details
-        )
+    DOM.div(
+        DOM.h1("Hello World"),
+        details
     )
 end
 details.open[] = true
@@ -42,44 +37,43 @@ server = Bonito.Server(app, url, port)
 #
 # The summary of `sl-details` inherits its color from the page, so a dark page
 # used to leave the title invisible on the still light panel.  Both the theme
-# tokens and the color pinned by `STYLE_CSS` need to be in place.
+# tokens and the color pinned in `assets/shoelace_widgets.css` need to be in place.
 # ----------------------------------------
 
-head_html(; kw...) = join(repr(MIME"text/html"(), el) for el in get_shoelace(; kw...))
+asset_text(asset) = read(Bonito.local_path(asset), String)
 
-auto = head_html()
-@test occursin("themes/light.css", auto)
-@test occursin("themes/dark.css", auto)
-@test occursin("(prefers-color-scheme: light)", auto)
-@test occursin("(prefers-color-scheme: dark)", auto)
-@test occursin("sl-theme-dark", auto)
-
-light = head_html(; theme=:light)
-@test occursin("themes/light.css", light)
-@test !occursin("themes/dark.css", light)
-@test !occursin("prefers-color-scheme", light)
-@test !occursin("sl-theme-dark", light)
-
-dark = head_html(; theme=:dark)
-@test occursin("themes/dark.css", dark)
-@test !occursin("themes/light.css", dark)
-@test !occursin("prefers-color-scheme", dark)
-@test occursin("sl-theme-dark", dark)
+css = asset_text(ShoelaceWidgets.SHOELACE_CSS)
+js = read(ShoelaceWidgets.SHOELACE_LOADER_FILE, String)
 
 # the summary must take its color from a theme token rather than inherit it
-@test occursin("sl-details::part(base)", auto)
+@test occursin("sl-details::part(base)", css)
 
+# the loader brings in both themes, gated on the system setting unless forced
+@test occursin("/themes/", js)
+@test occursin("prefers-color-scheme", js)
+@test occursin("sl-theme-dark", js)
+@test occursin("shoelace-autoloader.js", js)
+
+# a bare widget registers the stylesheet and the loader with the session, once per render
+session = Session(NoConnection(); asset_server=NoServer())
+Bonito.jsrender(session, DOM.div(SLDetails(DOM.div("a"); summary="a"), SLDetails(DOM.div("b"); summary="b"), sl_card("c")))
+@test collect(session.imports) == [ShoelaceWidgets.SHOELACE_CSS]
+@test count(js -> js === ShoelaceWidgets.SHOELACE_LOADER, session.on_document_load) == 1
+
+@test SLTheme(:dark).theme == :dark
+@test_throws ArgumentError SLTheme(:blue)
+
+# `get_shoelace` is deprecated but still works, passing a forced theme to the loader
+head_html(; kw...) = join(repr(MIME"text/html"(), el) for el in get_shoelace(; kw...) if el isa Bonito.Hyperscript.Node)
+@test !occursin("slTheme", head_html())
+@test occursin("slTheme = 'dark'", head_html(; theme=:dark))
 @test_throws ArgumentError get_shoelace(; theme=:blue)
 
 app = App() do session
-    DOM.html(
-        DOM.head(
-            get_shoelace(; theme=:dark)...
-        ),
-        DOM.body(
-            DOM.h1("Hello World"),
-            SLDetails(DOM.div(SLSelect(["one", "two", "three"]; label="Test", index=1)); summary="Select a Test")
-        )
+    DOM.div(
+        DOM.h1("Hello World"),
+        SLDetails(DOM.div(SLSelect(["one", "two", "three"]; label="Test", index=1)); summary="Select a Test"),
+        SLTheme(:dark)
     )
 end
 

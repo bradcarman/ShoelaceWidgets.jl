@@ -17,15 +17,10 @@ end
 
 
 app = App() do session
-    DOM.html(
-        DOM.head(
-            get_shoelace()...
-        ),
-        DOM.body(
-            DOM.h1("Hello World"),
-            DOM.div(""; style="height:200vh; width:100vh; border:dashed"),
-            dialog
-        )
+    DOM.div(
+        DOM.h1("Hello World"),
+        DOM.div(""; style="height:200vh; width:100vh; border:dashed"),
+        dialog
     )
 end
 dialog.open[] = true

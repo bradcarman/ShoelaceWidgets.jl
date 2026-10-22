@@ -5,7 +5,7 @@ using Hyperscript
 using Dates
 
 # header
-export get_shoelace
+export get_shoelace, SLTheme
 
 # controls
 export SLInput, SLSelect, SLButton, SLRadio, SLRadioGroup, SLDialog, SLList, SLListItem, SLCheckbox, SLTextarea, SLProgressBar, SLAlert, SLDetails
@@ -20,158 +20,94 @@ export sl_tab_group, sl_tab, sl_tab_panel, sl_tag, sl_format_date, sl_spinner, s
 const LABEL_STYLE = "display: inline-block; color: var(--sl-input-label-color); font-size: var(--sl-input-label-font-size-medium); margin-bottom: var(--sl-spacing-3x-small);"
 
 # ----------------------------------------
-const STYLE_CSS = """
-    /* ---------------------------------------------------
-       Shoelace themes only define tokens, they never style
-       the page itself, so a dark theme leaves the document
-       on the browser default background. Follow the tokens
-       the way shoelace.style does. `:where` keeps these at
-       zero specificity so any application CSS wins.
-       --------------------------------------------------- */
-    :where(body) {
-      background-color: var(--sl-color-neutral-0);
-      color: var(--sl-color-neutral-900);
-    }
+# Shoelace loading
+# ----------------------------------------
+# Every sl-* element built by `sl` carries a `ShoelaceLoader` as a child.  It
+# renders to nothing in place, so an App can return a bare widget without any
+# setup in the head:
+#
+# - the stylesheet is a Bonito Asset, registered in `session.imports`, which
+#   puts one <link> in the head however many widgets use it.
+# - the loader script is run by Bonito rather than placed in a <script> tag.
+#   Apps shown in the VS Code plot pane are inserted with innerHTML, and the
+#   browser never runs scripts inserted that way.  The script guards itself
+#   with `window.ShoelaceWidgets`, so running it more than once is harmless.
+#
+# `@path` embeds the bytes so the stylesheet survives relocation (e.g. PackageCompiler).
+const SHOELACE_CSS = Asset(Bonito.@path(joinpath(@__DIR__, "..", "assets", "shoelace_widgets.css")))
 
-    /* ---------------------------------------------------
-       `sl-details` paints a background on its base but never
-       sets a color, so the summary inherits from the page.
-       On a dark page that is light text on the still light
-       panel, and the summary disappears. Pin it to the same
-       token the body uses.
-       --------------------------------------------------- */
-    sl-details::part(base) {
-      color: var(--sl-color-neutral-900);
-    }
+const SHOELACE_LOADER_FILE = joinpath(@__DIR__, "..", "assets", "shoelace_widgets.js")
+include_dependency(SHOELACE_LOADER_FILE)
+const SHOELACE_LOADER = Bonito.JSCode(read(SHOELACE_LOADER_FILE, String))
 
-    /* ---------------------------------------------------
-       Shoelace ships `.radio { align-items: top }`, which is
-       not a valid align-items value, so it is dropped and the
-       circle falls back to stretch (pinned to the top). That
-       is invisible for one line of text because the label
-       carries `line-height: var(--toggle-size)`, but any block
-       content (a div holding another widget) leaves the circle
-       stranded at the top. Center it, and drop the single-line
-       line-height so block content is not distorted.
-       --------------------------------------------------- */
-    sl-radio::part(base) {
-      align-items: center;
-    }
+struct ShoelaceLoader end
 
-    sl-radio::part(label) {
-      line-height: normal;
-    }
+function Bonito.jsrender(session::Session, ::ShoelaceLoader)
+    Bonito.jsrender(session, SHOELACE_CSS)
+    # once per render pass, Bonito empties the queue when it sends it
+    if !any(js -> js === SHOELACE_LOADER, session.on_document_load)
+        Bonito.on_document_load(session, SHOELACE_LOADER)
+    end
+    return nothing
+end
 
-    /* ---------------------------------------------------
-       Core CSS to make sl-radio look like sl-tree-item
-       --------------------------------------------------- */
-
-    /* Force the host element to be block level so it stacks properly */
-    sl-radio.tree-style {
-      display: block;
-      margin-bottom: 2px;
-    }
-
-    /* 1. Base styling for the "row" */
-    sl-radio.tree-style::part(base) {
-      padding: var(--sl-spacing-x-small) var(--sl-spacing-small);
-      border-radius: var(--sl-border-radius-medium);
-      transition: background-color 150ms ease, color 150ms ease;
-      width: 100%; /* Makes it stretch like a tree node */
-      box-sizing: border-box;
-      cursor: pointer;
-    }
-
-    /* 2. Hover effect */
-    sl-radio.tree-style:hover::part(base) {
-      background-color: var(--sl-color-neutral-100);
-    }
-
-    /* 3. The "Selected" state highlight */
-    sl-radio.tree-style[checked]::part(base),
-    sl-radio.tree-style[aria-checked="true"]::part(base) {
-      background-color: var(--sl-color-primary-100);
-      color: var(--sl-color-primary-700);
-    }
-
-    /* Hide the little radio circle completely */
-    sl-radio.tree-style-hidden-circle::part(control) {
-      display: none;
-    }
-
-    /* Remove the gap between the hidden circle and the label */
-    sl-radio.tree-style-hidden-circle::part(base) {
-      gap: 0;
-      /* Make the left side flat for the bar, keep right side rounded */
-      border-radius: 0 var(--sl-border-radius-medium) var(--sl-border-radius-medium) 0;
-      /* Invisible border to prevent text shifting on selection */
-      border-left: 4px solid transparent; 
-    }
-
-    /* Add the blue bar indicator when checked */
-    sl-radio.tree-style-hidden-circle[checked]::part(base),
-    sl-radio.tree-style-hidden-circle[aria-checked="true"]::part(base) {
-      border-left-color: var(--sl-color-primary-600);
-    }
-
-    /* Ensure no stray padding exists on the label */
-    sl-radio.tree-style-hidden-circle::part(label) {
-      padding-inline-start: 0;
-      /* Make the label take up full width for a bigger click target */
-      width: 100%;
-    }
-
-    /* ---------------------------------------------------
-       DialogManager: OK and Cancel are the only way out, so
-       remove the header close button rather than leave a
-       control that does nothing
-       --------------------------------------------------- */
-    sl-dialog.dialog-manager::part(close-button) {
-      display: none;
-    }
 """
+    sl(tag, args...; kw...)
 
-const SHOELACE_CDN = "https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn"
+Creates the `tag` Shoelace element with the Shoelace loader attached, so rendering it loads Shoelace.
+"""
+sl(tag, args...; kw...) = m(tag, ShoelaceLoader(), args...; kw...)
 
-theme_href(name) = "$SHOELACE_CDN/themes/$name.css"
+check_theme(theme) = theme in (:auto, :light, :dark) || throw(ArgumentError("theme must be :auto, :light or :dark, got :$theme"))
+
+"""
+    SLTheme(theme)
+
+Forces the Shoelace theme for the page.  Shoelace widgets follow the browser/OS setting by default,
+place an `SLTheme` anywhere in the app to override it.
+
+# Themes
+- `:auto` - Follows the browser/OS setting, switching the system theme reskins a running page.
+- `:light` - Always the light theme.
+- `:dark` - Always the dark theme.
+"""
+struct SLTheme
+    theme::Symbol
+    SLTheme(theme::Symbol) = (check_theme(theme); new(theme))
+end
+
+function Bonito.jsrender(session::Session, x::SLTheme)
+    dom = DOM.span(ShoelaceLoader(); style="display: none;")
+    # The loader reads `data-sl-theme` when it starts, in case it has not run yet.
+    set_theme = js"""() => {
+        const theme = $(string(x.theme));
+        if (window.ShoelaceWidgets) {
+            window.ShoelaceWidgets.setTheme(theme);
+        } else {
+            document.documentElement.dataset.slTheme = theme;
+        }
+    }"""
+    rendered = Bonito.jsrender(session, dom)
+    Bonito.onload(session, dom, set_theme)
+    return rendered
+end
 
 """
     get_shoelace(charset="UTF-8"; theme=:auto)
 
-Returns an array of DOM elements (link and script tags) needed to load the Shoelace web component library from CDN.
-This should be included in the document head of your Bonito application.  The `charset` is also included which is not
-specifically required by Shoelace.style but is defaulted to UTF-8 to ensure Julia Unicode is rendered correctly in browsers.
+!!! warning "Deprecated"
+    Shoelace is loaded automatically by every widget, `get_shoelace` is no longer needed.  Use
+    [`SLTheme`](@ref) to force a theme.
 
-Splat the result into your document head: `DOM.head(get_shoelace()...)`.
-
-# Themes
-- `:auto` (default) - Follows the browser/OS setting.  Both themes are loaded, each gated on
-  `prefers-color-scheme`, so switching the system theme reskins a running page without a reload.
-- `:light` - Always the light theme.
-- `:dark` - Always the dark theme.
-
-The dark theme tokens are scoped to `.sl-theme-dark`, so `:auto` and `:dark` also emit a script that
-adds that class to the `<html>` element.  Under `:auto` the class is always present and the media
-query on the stylesheet decides which set of tokens applies.
+Returns an array of elements for the document head: `DOM.head(get_shoelace()...)`.
 """
 function get_shoelace(charset="UTF-8"; theme=:auto)
-    theme in (:auto, :light, :dark) || throw(ArgumentError("theme must be :auto, :light or :dark, got :$theme"))
+    Base.depwarn("`get_shoelace` is no longer needed, Shoelace is loaded automatically by every widget. Use `SLTheme(theme)` to force a theme.", :get_shoelace)
+    check_theme(theme)
 
-    head = Any[DOM.meta(;charset)]
-
-    if theme === :auto
-        push!(head, DOM.link(;rel="stylesheet", media="(prefers-color-scheme: light)", href=theme_href("light")))
-        push!(head, DOM.link(;rel="stylesheet", media="(prefers-color-scheme: dark)", href=theme_href("dark")))
-    else
-        push!(head, DOM.link(;rel="stylesheet", href=theme_href(theme)))
-    end
-
-    if theme !== :light
-        push!(head, DOM.script("document.documentElement.classList.add('sl-theme-dark');"))
-    end
-
-    push!(head, DOM.script(;type="module", src="$SHOELACE_CDN/shoelace-autoloader.js"))
-    push!(head, DOM.style(STYLE_CSS))
+    # The loader reads `data-sl-theme` when it starts, which is after the head is parsed.
+    head = Any[DOM.meta(;charset), ShoelaceLoader()]
+    theme === :auto || push!(head, DOM.script("document.documentElement.dataset.slTheme = '$theme';"))
 
     return head
 end
@@ -181,83 +117,83 @@ end
 
 Creates a Shoelace tab group component. Tab groups organize content into multiple panels with tab navigation.
 """
-sl_tab_group(args...; kw...) = m("sl-tab-group", args...; kw...)
+sl_tab_group(args...; kw...) = sl("sl-tab-group", args...; kw...)
 
 """
     sl_tab(args...; kw...)
 
 Creates a Shoelace tab component. Tabs are used as navigation items within a tab group.
 """
-sl_tab(args...; kw...) = m("sl-tab", args...; kw...)
+sl_tab(args...; kw...) = sl("sl-tab", args...; kw...)
 
 """
     sl_tab_panel(args...; kw...)
 
 Creates a Shoelace tab panel component. Tab panels contain the content associated with each tab.
 """
-sl_tab_panel(args...; kw...) = m("sl-tab-panel", args...; kw...)
+sl_tab_panel(args...; kw...) = sl("sl-tab-panel", args...; kw...)
 
 """
     sl_tag(args...; kw...)
 
 Creates a Shoelace tag component. Tags are used for labels, categories, and keyword indicators.
 """
-sl_tag(args...; kw...) = m("sl-tag", args...; kw...)
+sl_tag(args...; kw...) = sl("sl-tag", args...; kw...)
 
 """
     sl_tooltip(args...; kw...)
 
 Creates a Shoelace tooltip component. Use the `content` keyword to set the tooltip contents.
 """
-sl_tooltip(args...; kw...) = m("sl-tooltip", args...; kw...)
+sl_tooltip(args...; kw...) = sl("sl-tooltip", args...; kw...)
 
 """
     sl_format_date(args...; kw...)
 
 Creates a Shoelace date formatting component. Formats dates according to specified locale and options.
 """
-sl_format_date(args...; kw...) = m("sl-format-date", args...; kw...)
+sl_format_date(args...; kw...) = sl("sl-format-date", args...; kw...)
 
 """
     sl_spinner(args...; kw...)
 
 Creates a Shoelace spinner component. Spinners indicate loading or processing states.
 """
-sl_spinner(args...; kw...) = m("sl-spinner", args...; kw...)
+sl_spinner(args...; kw...) = sl("sl-spinner", args...; kw...)
 
 """
     sl_icon(args...; kw...)
 
 Creates a Shoelace icon component. Icons provide visual representations from the Shoelace icon library.
 """
-sl_icon(args...; kw...) = m("sl-icon", args...; kw...)
+sl_icon(args...; kw...) = sl("sl-icon", args...; kw...)
 
 """
     sl_card(args...; kw...)
 
 Creates a Shoelace card component. Cards provide a container for grouping related content.
 """
-sl_card(args...; kw...) = m("sl-card", args...; kw...)
+sl_card(args...; kw...) = sl("sl-card", args...; kw...)
 
 """
     sl_checkbox(args...; kw...)
 
 Creates a Shoelace checkbox component. Checkboxes allow users to toggle an option on or off.
 """
-sl_checkbox(args...; kw...) = m("sl-checkbox", args...; kw...)
+sl_checkbox(args...; kw...) = sl("sl-checkbox", args...; kw...)
 
 """
     sl_copy_button(args...; kw...)
 
 Creates a Shoelace copy button component, contents passed to the `value` keyword are sent to the clipboard.
 """
-sl_copy_button(args...; kw...) = m("sl-copy-button", args...; kw...)
+sl_copy_button(args...; kw...) = sl("sl-copy-button", args...; kw...)
 
 
 # ----------------------------------------
 # Input
 # ----------------------------------------
-sl_input(args...; kw...) = m("sl-input", args...; kw...)
+sl_input(args...; kw...) = sl("sl-input", args...; kw...)
 
 """
     SLInput(default; label="", help="", placeholder="", disabled=false, style="", select_on_focus=false, min=NaN, max=NaN)
@@ -372,8 +308,8 @@ end
 # ----------------------------------------
 # Select
 # ----------------------------------------
-sl_option(args...; kw...) = m("sl-option", args...; kw...)
-sl_select(args...; kw...) = m("sl-select", args...; kw...)
+sl_option(args...; kw...) = sl("sl-option", args...; kw...)
+sl_select(args...; kw...) = sl("sl-select", args...; kw...)
 
 """
     SLSelect(values; label="", index=0, help="", style="")
@@ -493,7 +429,7 @@ end
 # ----------------------------------------
 # Button
 # ----------------------------------------
-sl_button(args...; kw...) = m("sl-button", args...; kw...)
+sl_button(args...; kw...) = sl("sl-button", args...; kw...)
 
 """
     SLButton(label; disabled=false, variant=nothing, size=nothing, style="", href=nothing, target=nothing, download=nothing, rel=nothing)
@@ -679,7 +615,7 @@ end
 # ----------------------------------------
 # Textarea
 # ----------------------------------------
-sl_textarea(args...; kw...) = m("sl-textarea", args...; kw...)
+sl_textarea(args...; kw...) = sl("sl-textarea", args...; kw...)
 
 """
     SLTextarea(default; label="", help="", placeholder="", rows=3, disabled=false, style="")
@@ -756,11 +692,11 @@ end
 # ----------------------------------------
 abstract type SLRadioLike end
 
-sl_radio_group(args...; kw...) = m("sl-radio-group", args...; kw...)
-sl_radio(args...; kw...) = m("sl-radio", args...; kw...)
+sl_radio_group(args...; kw...) = sl("sl-radio-group", args...; kw...)
+sl_radio(args...; kw...) = sl("sl-radio", args...; kw...)
 
-sl_list(args...; kw...) = m("sl-radio-group", args...; kw...)
-sl_list_item(args...; kw...) = m("sl-radio", args...; class="tree-style tree-style-hidden-circle", kw...)
+sl_list(args...; kw...) = sl("sl-radio-group", args...; kw...)
+sl_list_item(args...; kw...) = sl("sl-radio", args...; class="tree-style tree-style-hidden-circle", kw...)
 
 """
     SLRadio(value; disabled=false, object=nothing)
@@ -966,7 +902,7 @@ end
 # ----------------------------------------
 # Dialog
 # ----------------------------------------
-sl_dialog(args...; kw...) = m("sl-dialog", args...; kw...)
+sl_dialog(args...; kw...) = sl("sl-dialog", args...; kw...)
 
 """
     SLDialog(content; label="", style="")
@@ -1030,7 +966,7 @@ end
 # ----------------------------------------
 # Details
 # ----------------------------------------
-sl_details(args...; kw...) = m("sl-details", args...; kw...)
+sl_details(args...; kw...) = sl("sl-details", args...; kw...)
 
 
 """
@@ -1108,8 +1044,8 @@ end
 # # ----------------------------------------
 # # Tree
 # # ----------------------------------------
-# sl_tree(args...; kw...) = m("sl-tree", args...; kw...)
-# sl_tree_item(args...; kw...) = m("sl-tree-item", args...; kw...)
+# sl_tree(args...; kw...) = sl("sl-tree", args...; kw...)
+# sl_tree_item(args...; kw...) = sl("sl-tree-item", args...; kw...)
 
 # """
 #     SLTreeItem(value)
@@ -1252,7 +1188,7 @@ end
 # ----------------------------------------
 # Progress Bar
 # ----------------------------------------
-sl_progress_bar(args...; kw...) = m("sl-progress-bar", args...; kw...)
+sl_progress_bar(args...; kw...) = sl("sl-progress-bar", args...; kw...)
 
 """
     SLProgressBar(value=0; label="", height="", show_value=true, indeterminate=false, visible=true)
@@ -1349,7 +1285,7 @@ end
 # ----------------------------------------
 # Alert
 # ----------------------------------------
-sl_alert(args...; kw...) = m("sl-alert", args...; kw...)
+sl_alert(args...; kw...) = sl("sl-alert", args...; kw...)
 
 """
     SLAlert(content; label="")

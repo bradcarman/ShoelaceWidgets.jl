@@ -25,14 +25,9 @@ on(b.value) do x
 end
 
 app = App() do session
-    DOM.html(
-        DOM.head(
-            get_shoelace()...
-        ),
-        DOM.body(
-            DOM.div(b; style="height:500px; border:1px solid gray;"),
-            d
-        )
+    DOM.div(
+        DOM.div(b; style="height:500px; border:1px solid gray;"),
+        d
     )
 end
 

@@ -29,14 +29,7 @@ manager = ListManager(names;
 
 
 app = App() do session
-    DOM.html(
-        DOM.head(
-            get_shoelace()...
-        ),
-        DOM.body(
-            manager
-        )
-    )
+    manager
 end
 
 @test get_values(manager) == names
@@ -105,14 +98,7 @@ manager.add.value[] = nothing
 ordered = ListManager(["a", "b", "c"]; add_function = session -> "x", label="Ordered")
 
 app = App() do session
-    DOM.html(
-        DOM.head(
-            get_shoelace()...
-        ),
-        DOM.body(
-            ordered
-        )
-    )
+    ordered
 end
 
 # nothing selected: both moves disabled
@@ -198,14 +184,7 @@ end
 manager = ListManager(names; add_function = session -> "item $(length(manager) + 1)", label="Items", item_function, get_function)
 
 app = App() do session
-    DOM.html(
-        DOM.head(
-            get_shoelace()...
-        ),
-        DOM.body(
-            manager
-        )
-    )
+    manager
 end
 
 @test get_values(manager) == names
@@ -268,14 +247,7 @@ points.list.index = 1
 @test points.delete.disabled[] == false
 
 app = App() do session
-    DOM.html(
-        DOM.head(
-            get_shoelace()...
-        ),
-        DOM.body(
-            points
-        )
-    )
+    points
 end
 
 @test !isnothing(app)
@@ -286,7 +258,7 @@ end
 # ----------------------------------
 # App() is lazy, so render to HTML to actually exercise Bonito.jsrender
 render_html(x) = sprint(show, MIME"text/html"(),
-                        App(session -> DOM.html(DOM.head(get_shoelace()...), DOM.body(x))))
+                        App(session -> x))
 
 html = render_html(points)
 @test occursin("sl-radio-group", html)
@@ -335,14 +307,7 @@ editable = ListManager(["a", "b", "c"];
                     edit_content=DOM.div(edit_input))
 
 app = App() do session
-    DOM.html(
-        DOM.head(
-            get_shoelace()...
-        ),
-        DOM.body(
-            editable
-        )
-    )
+    editable
 end
 
 @test !isnothing(editable.edit)
@@ -425,14 +390,7 @@ composite = ListManager(Point[];
 
 
 app = App() do session
-    DOM.html(
-        DOM.head(
-            get_shoelace()...
-        ),
-        DOM.body(
-            composite
-        )
-    )
+    composite
 end
 
 

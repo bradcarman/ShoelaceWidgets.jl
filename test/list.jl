@@ -13,14 +13,7 @@ item2 = SLListItem("test 2")
 
 radio = SLList([item1, item2]; label="Test")
 app = App() do session
-    DOM.html(
-        DOM.head(
-            get_shoelace()...
-        ),
-        DOM.body(
-            radio
-        )
-    )
+    radio
 end
 # Bonito.Server(app, "0.0.0.0", 80)
 radio.value[] = "1"
@@ -31,14 +24,7 @@ radio.index = 2
 
 radio = SLList([SLListItem("one"; disabled=true), SLListItem("two")]; label="Test")
 app = App() do session
-    DOM.html(
-        DOM.head(
-            get_shoelace()...
-        ),
-        DOM.body(
-            radio
-        )
-    )
+    radio
 end
 
 @test true

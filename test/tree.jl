@@ -19,14 +19,7 @@ tree = SLTree([
                 ])
 
 app = App() do session
-    DOM.html(
-        DOM.head(
-            get_shoelace()...
-        ),
-        DOM.body(
-            tree
-        )
-    )
+    tree
 end
 
 tree.value[] = "A"

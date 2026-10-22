@@ -27,10 +27,7 @@ manager = ListManager(["alpha", "beta"];
                       add_function = session -> "item $(length(manager) + 1)")
 
 app = App() do session
-    DOM.html(
-        DOM.head(get_shoelace()...),
-        DOM.body(manager)
-    )
+    manager
 end
 ```
 
@@ -69,10 +66,7 @@ editable = ListManager(["alpha", "beta"];
                        get_function)
 
 app = App() do session
-    DOM.html(
-        DOM.head(get_shoelace()...),
-        DOM.body(editable)
-    )
+    editable
 end
 ```
 
@@ -117,10 +111,7 @@ points = ListManager(Point[];
                      item_function = (manager, p) -> SLListItem("($(p.x), $(p.y))"; object = p))
 
 app = App() do session
-    DOM.html(
-        DOM.head(get_shoelace()...),
-        DOM.body(points)
-    )
+    points
 end
 ```
 
@@ -152,10 +143,7 @@ editable_points = ListManager([Point(1.0, 2.0), Point(3.0, 4.0)];
                               item_function = (manager, p) -> SLListItem("($(p.x), $(p.y))"; object = p))
 
 app = App() do session
-    DOM.html(
-        DOM.head(get_shoelace()...),
-        DOM.body(editable_points)
-    )
+    editable_points
 end
 ```
 
@@ -194,10 +182,7 @@ display_only = ListManager(["alpha", "beta", "gamma"];
                            edit_mode = ShoelaceWidgets.NoEditDeleteClearOrder)
 
 app = App() do session
-    DOM.html(
-        DOM.head(get_shoelace()...),
-        DOM.body(display_only)
-    )
+    display_only
 end
 ```
 
@@ -234,9 +219,9 @@ on(open_button.value) do session
 end
 
 app = App() do session
-    DOM.html(
-        DOM.head(get_shoelace()...),
-        DOM.body(open_button, dialog)
+    DOM.div(
+        open_button,
+        dialog
     )
 end
 ```

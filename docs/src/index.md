@@ -22,30 +22,27 @@ input = SLInput(""; label="Enter text:", placeholder="Type something...", help="
 
 # Create a Bonito app
 app = App() do session
-    DOM.html(
-        DOM.head(
-            get_shoelace()...
-        ),
-        DOM.body(
-            input
-        )
-    )
+    input
 end
 ```
 
 
-The `get_shoelace()` function returns the necessary Shoelace CSS and JavaScript includes that should be added to your document head.
+Every widget loads Shoelace itself: the first one on a page adds the Shoelace scripts and styles
+to the document head, so an app can return a widget directly without any setup.
 
 ### Dark Mode
 
-By default `get_shoelace()` follows the browser/OS color scheme: both Shoelace themes are loaded,
+By default the widgets follow the browser/OS color scheme: both Shoelace themes are loaded,
 each gated on `prefers-color-scheme`, so changing the system theme reskins a running page without a
-reload.  Pass `theme` to pin one instead:
+reload.  Place an `SLTheme` anywhere in the app to pin one instead:
 
 ```julia
-get_shoelace(; theme=:light)  # always light
-get_shoelace(; theme=:dark)   # always dark
-get_shoelace(; theme=:auto)   # the default, follow the browser
+app = App() do session
+    DOM.div(
+        SLTheme(:dark),  # or :light, :auto is the default
+        input
+    )
+end
 ```
 
 Shoelace themes only define CSS custom properties, they never style the page itself, so
@@ -71,14 +68,7 @@ on(btn.value) do _
 end
 
 app = App() do session
-    DOM.html(
-        DOM.head(
-            get_shoelace()...
-        ),
-        DOM.body(
-            btn
-        )
-    )
+    btn
 end
 ```
 
@@ -88,14 +78,7 @@ Setting `href` renders the button as a link, opening a URL instead of firing a c
 link_btn = SLButton("Visit Julia"; href="https://julialang.org/", target="_blank", rel="noreferrer noopener")
 
 app = App() do session
-    DOM.html(
-        DOM.head(
-            get_shoelace()...
-        ),
-        DOM.body(
-            link_btn
-        )
-    )
+    link_btn
 end
 ```
 
@@ -112,14 +95,7 @@ on(select.index) do i
 end
 
 app = App() do session
-    DOM.html(
-        DOM.head(
-            get_shoelace()...
-        ),
-        DOM.body(
-            select
-        )
-    )
+    select
 end
 ```
 
@@ -139,14 +115,7 @@ progress = SLProgressBar(0.0; label="Loading", height="20px")
 end
 
 app = App() do session
-    DOM.html(
-        DOM.head(
-            get_shoelace()...
-        ),
-        DOM.body(
-            progress
-        )
-    )
+    progress
 end
 ```
 You can also show and hide progress bars dynamically:
@@ -168,14 +137,7 @@ Create an alert to display information...
 ```@example quickstart
 alert = SLAlert(DOM.div(DOM.strong("This is super informative"), DOM.br(), DOM.div("You can tell by how pretty the alert is.")))
 app = App() do session
-    DOM.html(
-        DOM.head(
-            get_shoelace()...
-        ),
-        DOM.body(
-            alert            
-        )
-    )
+    alert
 end
 ```
 
@@ -210,14 +172,7 @@ tabs = sl_tab_group(
 )
 
 app = App() do session
-    DOM.html(
-        DOM.head(
-            get_shoelace()...
-        ),
-        DOM.body(
-            tabs
-        )
-    )
+    tabs
 end
 ```
 
@@ -231,28 +186,14 @@ end
 button = SLButton("Test")
 
 app = App() do session
-    DOM.html(
-        DOM.head(
-            get_shoelace()...
-        ),
-        DOM.body(
-            sl_tooltip(button; content="click me")
-        )
-    )
+    sl_tooltip(button; content="click me")
 end
 ```
 
 - `sl_copy_button` - send contents of value to the clipboard
 ```@example quickstart
 app = App() do session
-    DOM.html(
-        DOM.head(
-            get_shoelace()...
-        ),
-        DOM.body(
-            DOM.div("Copy Button:", sl_copy_button(;value="clipboard contents"))
-        )
-    )
+    DOM.div("Copy Button:", sl_copy_button(;value="clipboard contents"))
 end
 ```
 

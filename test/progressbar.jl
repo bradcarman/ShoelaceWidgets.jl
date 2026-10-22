@@ -7,14 +7,7 @@ using ShoelaceWidgets
 progress = SLProgressBar(50.0; label="Loading", visible=false)
 
 app = App() do session
-    DOM.html(
-        DOM.head(
-            get_shoelace()...
-        ),
-        DOM.body(
-            progress
-        )
-    )
+    progress
 end
 
 # Test updating progress value
@@ -26,14 +19,7 @@ progress.value[] = 75.0
 progress_custom = SLProgressBar(25.0; height="30px", label="Upload progress")
 
 app2 = App() do session
-    DOM.html(
-        DOM.head(
-            get_shoelace()...
-        ),
-        DOM.body(
-            progress_custom
-        )
-    )
+    progress_custom
 end
 
 
@@ -41,14 +27,7 @@ end
 progress_indeterminate = SLProgressBar(; indeterminate=true, label="Processing")
 
 app3 = App() do session
-    DOM.html(
-        DOM.head(
-            get_shoelace()...
-        ),
-        DOM.body(
-            progress_indeterminate
-        )
-    )
+    progress_indeterminate
 end
 
 # Toggle indeterminate state
@@ -59,14 +38,7 @@ progress_indeterminate.indeterminate[] = false
 progress_hidden = SLProgressBar(60.0; show_value=false, label="Background task")
 
 app4 = App() do session
-    DOM.html(
-        DOM.head(
-            get_shoelace()...
-        ),
-        DOM.body(
-            progress_hidden
-        )
-    )
+    progress_hidden
 end
 
 
@@ -74,14 +46,7 @@ end
 progress_visible = SLProgressBar(40.0; label="Visible test")
 
 app5 = App() do session
-    DOM.html(
-        DOM.head(
-            get_shoelace()...
-        ),
-        DOM.body(
-            progress_visible
-        )
-    )
+    progress_visible
 end
 
 # Hide the progress bar
@@ -95,14 +60,7 @@ progress_visible.visible[] = true
 progress_initially_hidden = SLProgressBar(30.0; visible=false, label="Initially hidden")
 
 app6 = App() do session
-    DOM.html(
-        DOM.head(
-            get_shoelace()...
-        ),
-        DOM.body(
-            progress_initially_hidden
-        )
-    )
+    progress_initially_hidden
 end
 
 # Show it

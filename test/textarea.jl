@@ -14,14 +14,9 @@ on(textarea.value) do text
 end
 
 app = App() do session
-    DOM.html(
-        DOM.head(
-            get_shoelace()...
-        ),
-        DOM.body(
-            textarea,
-            display
-        )
+    DOM.div(
+        textarea,
+        display
     )
 end
 

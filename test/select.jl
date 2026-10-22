@@ -4,14 +4,7 @@ using ShoelaceWidgets
 
 select = SLSelect(["one", "two", "three"]; label="Test", help="test <strong>test</strong>")
 app = App() do session
-    DOM.html(
-        DOM.head(
-            get_shoelace()...
-        ),
-        DOM.body(
-            select
-        )
-    )
+    select
 end
 
 select.index[]=1
@@ -26,14 +19,7 @@ insert!(select, 1, "four")
 
 select = SLSelect(["one", "two", "three"]; label="Test", index=1)
 app = App() do session
-    DOM.html(
-        DOM.head(
-            get_shoelace()...
-        ),
-        DOM.body(
-            select
-        )
-    )
+    select
 end
 # Bonito.Server(app, "0.0.0.0", 80)
 @test select.value == "one"

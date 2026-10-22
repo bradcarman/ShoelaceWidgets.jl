@@ -10,14 +10,7 @@ on(checkbox.value) do checked
 end
 
 app = App() do session
-    DOM.html(
-        DOM.head(
-            get_shoelace()...
-        ),
-        DOM.body(
-            checkbox
-        )
-    )
+    checkbox
 end
 
 checkbox.value[] = true

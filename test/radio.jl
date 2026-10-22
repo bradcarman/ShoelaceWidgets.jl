@@ -4,14 +4,7 @@ using ShoelaceWidgets
 
 radio = SLRadioGroup(SLRadio.(["one", "two", "three"]); label="Test")
 app = App() do session
-    DOM.html(
-        DOM.head(
-            get_shoelace()...
-        ),
-        DOM.body(
-            radio
-        )
-    )
+    radio
 end
 # Bonito.Server(app, "0.0.0.0", 80)
 radio.value[] = "1"
@@ -22,14 +15,7 @@ radio.index = 2
 
 radio = SLRadioGroup([SLRadio("one"; disabled=true), SLRadio("two")]; label="Test", help="test <strong>test</strong>")
 app = App() do session
-    DOM.html(
-        DOM.head(
-            get_shoelace()...
-        ),
-        DOM.body(
-            radio
-        )
-    )
+    radio
 end
 
 insert!(radio, 1, SLRadio("one"))
@@ -45,14 +31,7 @@ option3 = SLRadio(DOM.div(SLSelect(["C", "D"]; label="option 3")))
 
 radio = SLRadioGroup([option1, option2, option3]; label="Complex Options")
 app = App() do session
-    DOM.html(
-        DOM.head(
-            get_shoelace()...
-        ),
-        DOM.body(
-            radio
-        )
-    )
+    radio
 end
 
 @test true

@@ -16,14 +16,7 @@ using ShoelaceWidgets
 
 input = SLInput(""; label="Test", placeholder="Name")
 app = App() do session
-    DOM.html(
-        DOM.head(
-            get_shoelace()...
-        ),
-        DOM.body(
-            input
-        )
-    )
+    input
 end
 ```
 
@@ -31,14 +24,7 @@ end
 using Bonito
 using ShoelaceWidgets
 input = SLInput(""; label="Test", placeholder="Name")
-DOM.html(
-    DOM.head(
-        get_shoelace()...
-    ),
-    DOM.body(
-        input
-    )
-)
+input
 ```
 
 

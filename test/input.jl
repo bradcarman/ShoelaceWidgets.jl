@@ -5,14 +5,7 @@ using Dates
 
 input = SLInput(""; label="Test", placeholder="Name")
 app = App() do session
-    DOM.html(
-        DOM.head(
-            get_shoelace()...
-        ),
-        DOM.body(
-            input
-        )
-    )
+    input
 end
 
 input.value[] = "Hello World"
@@ -22,40 +15,19 @@ input.disabled[] = false
 
 input = SLInput(0.0; help="<ul><li>1 = bad</li><li>10 = good</li></ul>", min=0, max=10)
 app = App() do session
-    DOM.html(
-        DOM.head(
-            get_shoelace()...
-        ),
-        DOM.body(
-            input
-        )
-    )
+    input
 end
 
 
 input = SLInput(NaN)
 app = App() do session
-    DOM.html(
-        DOM.head(
-            get_shoelace()...
-        ),
-        DOM.body(
-            input
-        )
-    )
+    input
 end
 
 
 input = SLInput(Date(now()))
 app = App() do session
-    DOM.html(
-        DOM.head(
-            get_shoelace()...
-        ),
-        DOM.body(
-            input
-        )
-    )
+    input
 end
 
 input.value[] = "2026-03-01"
@@ -72,26 +44,12 @@ end
 =#
 input = SLInput{String}(Observable(""), "Date", "date", "", "Date", Observable(false), "", false, NaN, NaN)
 app = App() do session
-    DOM.html(
-        DOM.head(
-            get_shoelace()...
-        ),
-        DOM.body(
-            input
-        )
-    )
+    input
 end
 
 file = Bonito.FileInput()
 app = App() do session
-    DOM.html(
-        DOM.head(
-            get_shoelace()...
-        ),
-        DOM.body(
-            file
-        )
-    )
+    file
 end
 
 #=
@@ -100,14 +58,7 @@ end
 
 input = ShoelaceWidgets.sl_input(""; value="£", label="Test")
 app = App() do session
-    DOM.html(
-        DOM.head(
-            get_shoelace()...
-        ),
-        DOM.body(
-            input
-        )
-    )
+    input
 end
 
 port = 80

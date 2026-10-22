@@ -1,8 +1,9 @@
 # API Reference
 
-## Header Functions
+## Theme
 
 ```@docs
+SLTheme
 get_shoelace
 ```
 
