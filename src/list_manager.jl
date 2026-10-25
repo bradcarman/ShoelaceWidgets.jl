@@ -34,7 +34,7 @@ Selects whether a [`ListManager`](@ref) builds an edit button and dialog:
 
 
 """
-    ListManager(values::Vector{T}; add_function=nothing, add_mode=FunctionAdd, label="", help="", item_function=default_item, get_function=default_get, style="")
+    ListManager(values::Vector{T}; add_function=nothing, add_mode=FunctionAdd, label="", help="", item_function=default_item, get_function=default_get, filter=nothing, filter_function=nothing, reorderable=true, clearable=true, style="")
 
 Creates a composite control that pairs an [`SLList`](@ref) with add, delete, clear and reorder
 buttons, managing a list of arbitrary Julia values.
@@ -88,8 +88,23 @@ add button is the only control left under the list. Suppress that one as well wi
 for a list with no buttons at all. Only the buttons go away; `push!`, `deleteat!`, `empty!`,
 `moveat!` and friends keep working, so the list can still be driven from code.
 
+`reorderable=false` drops just the move up and move down buttons, and `clearable=false` drops just the
+clear button, for lists where those actions make no sense alongside add, edit and delete.
+
+Passing `filter_function` hides the items it rejects without removing them. It is called as
+`filter_function(manager, value, state)`, where `value` comes from `get_function` and `state` is
+`filter[]`, the current value of the `filter` Observable (or `nothing` when no `filter` is given).
+Changing `filter` re-applies the filter automatically. Without a `filter` Observable, call
+[`apply_filter!`](@ref) yourself whenever whatever `filter_function` reads changes. While filtering:
+
+- hidden items are still values: [`get_values`](@ref), `length` and the indices all count them
+- new or replaced items are filtered as they arrive
+- a selected item that gets hidden is deselected
+- the clear button removes only the visible items, while `empty!` still removes everything
+- the move buttons are disabled while any item is hidden, as moving past hidden items is ambiguous
+
 Buttons disable themselves when they do not apply: delete and edit while no item is selected, clear
-while the list is empty, and the two moves at the corresponding end of the list. Deleting or clearing
+while no item is visible, and the two moves at the corresponding end of the list. Deleting or clearing
 drops the selection.
 
 # Fields
@@ -101,6 +116,8 @@ drops the selection.
 - `edit::Union{SLButton, Nothing}` - The edit button, an `sl_icon` pencil, or `nothing`
 - `move_up::Union{SLButton, Nothing}` - The move up button, an `sl_icon` arrow, or `nothing`
 - `move_down::Union{SLButton, Nothing}` - The move down button, an `sl_icon` arrow, or `nothing`
+- `filter::Union{Observable, Nothing}` - Filter state passed to `filter_function`, re-applied on change
+- `filter_function::Union{Function, Nothing}` - Called as `filter_function(manager, value, state)`
 - `add_function::Union{Function, Nothing}` - Called per `add_mode`, or `nothing` to disable adding
 - `add_dialog::Union{DialogManager, Nothing}` - The OK/Cancel add dialog, or `nothing` outside `DialogAdd`
 - `add_mode::AddMode` - `NoAdd`, `FunctionAdd` or `DialogAdd`
@@ -123,6 +140,7 @@ drops the selection.
 - `open_editor!(manager)` - Open the edit dialog for the selected item
 - `open_adder!(manager)` - Open the add dialog
 - `replace_selected!(manager, value)` - Replace the selected item, for an `OK` branch
+- `apply_filter!(manager)` - Re-run `filter_function` over every item
 """
 @kwdef struct ListManager{T}
     list::SLList
@@ -146,6 +164,9 @@ drops the selection.
     edit_function::Union{Function, Nothing}
     edit_dialog::Union{DialogManager, Nothing}
     edit_mode::EditMode
+
+    filter::Union{Observable, Nothing}
+    filter_function::Union{Function, Nothing}
 
     style::String
     list_style::String
@@ -178,6 +199,10 @@ function ListManager(values::Vector{T};
                      edit_function::Union{Function, Nothing}=nothing, #edit_function(manager, action)
                      edit_content::Hyperscript.Node=DOM.div(),
                      add_content::Hyperscript.Node=DOM.div(),
+                     filter::Union{Observable, Nothing}=nothing,
+                     filter_function::Union{Function, Nothing}=nothing, #filter_function(manager, value, filter[])::Bool
+                     reorderable::Bool=true,
+                     clearable::Bool=true,
                      dialog_label::String="Edit",
                      add_label::String="Add",
                      style::String="",
@@ -228,10 +253,10 @@ function ListManager(values::Vector{T};
 
                 add,
                 delete = bare ? nothing : SLButton(sl_icon(; name="dash-circle"); variant="text", size="small", disabled=true), # nothing is selected yet
-                clear = bare ? nothing : SLButton(sl_icon(; name="x-circle"); variant="text", size="small", disabled=true),  # populated by append! below
+                clear = (bare || !clearable) ? nothing : SLButton(sl_icon(; name="x-circle"); variant="text", size="small", disabled=true),  # populated by append! below
                 edit,
-                move_up = bare ? nothing : SLButton(sl_icon(; name="arrow-up"); variant="text", size="small", disabled=true),
-                move_down = bare ? nothing : SLButton(sl_icon(; name="arrow-down"); variant="text", size="small", disabled=true),
+                move_up = (bare || !reorderable) ? nothing : SLButton(sl_icon(; name="arrow-up"); variant="text", size="small", disabled=true),
+                move_down = (bare || !reorderable) ? nothing : SLButton(sl_icon(; name="arrow-down"); variant="text", size="small", disabled=true),
                 
                 add_dialog,
                 add_function,
@@ -243,6 +268,9 @@ function ListManager(values::Vector{T};
                 edit_function,
                 edit_dialog,
                 edit_mode,
+
+                filter,
+                filter_function,
 
                 style,
                 list_style)
@@ -279,7 +307,7 @@ function ListManager(values::Vector{T};
 
     isnothing(x.clear) || on(x.clear.value) do session
         isnothing(session) && return
-        empty!(x)
+        clear_visible!(x)
     end
 
     isnothing(x.move_up) || on(x.move_up.value) do session
@@ -296,6 +324,10 @@ function ListManager(values::Vector{T};
     isnothing(x.edit) || on(x.edit.value) do session
         isnothing(session) && return
         open_editor!(x)
+    end
+
+    isnothing(x.filter) || on(x.filter) do _
+        apply_filter!(x)
     end
 
     append!(x, values)
@@ -430,8 +462,66 @@ function replace_selected!(x::ListManager, value)
     isnothing(i) && return x
     item = x.item_function(x, value)
     item.index = i
+    filter_item!(x, item)
     x.list.values[][i] = item
     notify(x.list.values)
+
+    # an edit can move the item out of the filter, and a hidden item cannot stay selected
+    item.visible[] || (x.list.value[] = "0")
+    update_buttons!(x)
+    return x
+end
+
+"""
+    filter_item!(x::ListManager, item::SLListItem)
+
+Sets `item.visible` from `x.filter_function`, leaving it untouched when there is no filter. Returns
+`item`, so it can wrap an `item_function` call.
+"""
+function filter_item!(x::ListManager, item::SLListItem)
+    isnothing(x.filter_function) && return item
+    state = isnothing(x.filter) ? nothing : x.filter[]
+    item.visible[] = x.filter_function(x, x.get_function(x, item), state)
+    return item
+end
+
+"""
+    apply_filter!(x::ListManager)
+
+Re-runs `x.filter_function` over every item, hiding the ones it rejects. A selected item that gets
+hidden is deselected. Called automatically when `x.filter` changes; call it yourself when
+`filter_function` reads state that is not in `x.filter`. Does nothing without a `filter_function`.
+"""
+function apply_filter!(x::ListManager)
+    isnothing(x.filter_function) && return x
+    for item in x.list.values[]
+        filter_item!(x, item)
+    end
+
+    i = selected_index(x)
+    if !isnothing(i) && !x.list.values[][i].visible[]
+        x.list.value[] = "0"
+    end
+
+    update_buttons!(x)
+    return x
+end
+
+"""
+    clear_visible!(x::ListManager)
+
+What the clear button does: removes every visible item, keeping the ones hidden by the filter, and
+drops the selection. Without a filter every item is visible, so this is the same as `empty!`.
+"""
+function clear_visible!(x::ListManager)
+    items = x.list.values[]
+    filter!(item -> !item.visible[], items)
+    for (i, item) in enumerate(items)
+        item.index = i
+    end
+    x.list.value[] = "0"
+    notify(x.list.values)
+    update_buttons!(x)
     return x
 end
 
@@ -443,23 +533,25 @@ button that was never built, as in `NoEditDeleteClearOrder`, is skipped.
 """
 function update_buttons!(x::ListManager)
     i = selected_index(x)
+    items = x.list.values[]
+    filtered = any(item -> !item.visible[], items)
     isnothing(x.delete) || (x.delete.disabled[] = isnothing(i))
-    isnothing(x.clear) || (x.clear.disabled[] = isempty(x))
-    isnothing(x.move_up) || (x.move_up.disabled[] = isnothing(i) || (i == 1))
-    isnothing(x.move_down) || (x.move_down.disabled[] = isnothing(i) || (i == length(x)))
+    isnothing(x.clear) || (x.clear.disabled[] = !any(item -> item.visible[], items))
+    isnothing(x.move_up) || (x.move_up.disabled[] = isnothing(i) || filtered || (i == 1))
+    isnothing(x.move_down) || (x.move_down.disabled[] = isnothing(i) || filtered || (i == length(x)))
     isnothing(x.edit) || (x.edit.disabled[] = isnothing(i))
     return x
 end
 
 function Base.push!(x::ListManager, value)
-    push!(x.list, x.item_function(x, value))  # SLList assigns the item index
+    push!(x.list, filter_item!(x, x.item_function(x, value)))  # SLList assigns the item index
     update_buttons!(x)
     return x
 end
 
 function Base.append!(x::ListManager, values)
     for value in values
-        push!(x.list, x.item_function(x, value))
+        push!(x.list, filter_item!(x, x.item_function(x, value)))
     end
     update_buttons!(x)
     return x

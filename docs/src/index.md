@@ -141,6 +141,39 @@ app = App() do session
 end
 ```
 
+#### Menu
+Create a menu of selectable items. `value` holds the value of the last selected item, and checkbox
+items track their state in `checked`:
+
+```@example quickstart
+wrap = SLMenuItem("Word wrap"; checkbox=true)
+
+menu = SLMenu([
+    SLMenuLabel("Edit"),
+    SLMenuItem("Undo"; prefix=sl_icon(; name="arrow-counterclockwise"), suffix="Ctrl+Z"),
+    SLMenuItem("Copy"; value="copy"),
+    sl_divider(),
+    SLMenuLabel("View"),
+    wrap,
+    SLMenuItem("Zoom"; submenu=[
+        SLMenuItem("Zoom in"; value="zoom-in"),
+        SLMenuItem("Zoom out"; value="zoom-out"),
+    ]),
+]; style="max-width: 200px;")
+
+on(menu.value) do value
+    println("Selected: ", value)
+end
+
+on(wrap.checked) do checked
+    println("Word wrap: ", checked)
+end
+
+app = App() do session
+    menu
+end
+```
+
 
 ## Available Components
 
@@ -156,6 +189,7 @@ ShoelaceWidgets.jl provides Julia wrappers for common Shoelace components:
 - [`SLProgressBar`](@ref) - Progress indicators and loading bars
 - [`SLDialog`](@ref) - Dialog window
 - [`SLAlert`](@ref) - Alerts used to display important messages inline
+- [`SLMenu`](@ref) / [`SLMenuItem`](@ref) / [`SLMenuLabel`](@ref) - Menus of selectable items, with checkbox items and submenus
 
 ### UI Elements
 - `sl_tab_group`, `sl_tab`, `sl_tab_panel` - Tab navigation
@@ -190,6 +224,7 @@ app = App() do session
 end
 ```
 
+- `sl_divider` - Visual separator, e.g. between groups of menu items
 - `sl_copy_button` - send contents of value to the clipboard
 ```@example quickstart
 app = App() do session

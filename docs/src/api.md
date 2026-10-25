@@ -82,6 +82,14 @@ SLProgressBar
 SLAlert
 ```
 
+### Menu
+
+```@docs
+SLMenu
+SLMenuItem
+SLMenuLabel
+```
+
 ## Composite Components
 
 Controls assembled from several widgets. See the
@@ -116,6 +124,7 @@ sl_card
 sl_checkbox
 sl_tooltip
 sl_copy_button
+sl_divider
 ```
 
 ## Internals
@@ -143,6 +152,9 @@ ShoelaceWidgets.open_editor!
 ShoelaceWidgets.default_item
 ShoelaceWidgets.default_get
 ShoelaceWidgets.update_buttons!
+ShoelaceWidgets.apply_filter!
+ShoelaceWidgets.filter_item!
+ShoelaceWidgets.clear_visible!
 ```
 
 ### Driving a DialogManager

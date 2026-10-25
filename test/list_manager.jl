@@ -4,7 +4,8 @@ using ShoelaceWidgets
 using ShoelaceWidgets: get_values, delete_selected!, selected_index, move_up!, move_down!, moveat!,
                        open_editor!, open_adder!, replace_selected!, accept!, reject!,
                        OpenOKCancel, Open, OK, Cancel, AddMode, FunctionAdd, DialogAdd, NoAdd,
-                       EditMode, DialogEdit, NoEdit, NoEditDeleteClearOrder
+                       EditMode, DialogEdit, NoEdit, NoEditDeleteClearOrder,
+                       apply_filter!, clear_visible!
 
 # ----------------------------------
 # TEST 1: default item_function/get_function
@@ -556,3 +557,103 @@ no_buttons = ListManager(["a"]; add_mode = NoAdd, edit_mode = NoEditDeleteClearO
 html = render_html(no_buttons)
 @test !occursin("sl-tooltip", html)
 @test !occursin("<sl-button", html)
+
+
+# ----------------------------------
+# TEST: filtering
+# ----------------------------------
+prefix = Observable("")
+visible_values(m) = [ShoelaceWidgets.default_get(m, item) for item in m.list.values[] if item.visible[]]
+
+fruit = ListManager(["apple", "apricot", "banana", "cherry"];
+                    add_function = session -> "avocado",
+                    filter = prefix,
+                    filter_function = (m, value, p) -> startswith(value, p))
+
+App() do s
+    fruit
+end
+
+
+# an empty prefix matches everything
+@test visible_values(fruit) == ["apple", "apricot", "banana", "cherry"]
+
+# selecting an item that the filter then hides drops the selection
+fruit.list.index = 3
+@test selected_index(fruit) == 3
+prefix[] = "ap"
+@test visible_values(fruit) == ["apple", "apricot"]
+@test isnothing(selected_index(fruit))
+
+# hidden items are still values
+@test get_values(fruit) == ["apple", "apricot", "banana", "cherry"]
+@test length(fruit) == 4
+
+# a visible selection survives a filter change that keeps it
+fruit.list.index = 2
+prefix[] = "apr"
+@test selected_index(fruit) == 2
+
+# the move buttons are disabled while anything is hidden
+@test fruit.move_up.disabled[] == true
+@test fruit.move_down.disabled[] == true
+prefix[] = ""
+@test fruit.move_up.disabled[] == false
+
+# new items are filtered as they arrive
+prefix[] = "b"
+push!(fruit, "blueberry")
+push!(fruit, "date")
+@test visible_values(fruit) == ["banana", "blueberry"]
+@test get_values(fruit) == ["apple", "apricot", "banana", "cherry", "blueberry", "date"]
+
+# an edit that moves the selected item out of the filter hides and deselects it
+fruit.list.index = 5
+replace_selected!(fruit, "elderberry")
+@test isnothing(selected_index(fruit))
+@test get_values(fruit)[5] == "elderberry"
+@test visible_values(fruit) == ["banana"]
+
+# clear removes only the visible items, keeping the hidden ones
+@test fruit.clear.disabled[] == false
+clear_visible!(fruit)
+@test get_values(fruit) == ["apple", "apricot", "cherry", "elderberry", "date"]
+@test [item.index for item in fruit.list.values[]] == 1:5
+@test fruit.clear.disabled[] == true             # nothing visible left to clear
+prefix[] = ""
+@test fruit.clear.disabled[] == false
+
+# hidden rows render hidden
+prefix[] = "c"
+html = render_html(fruit)
+@test occursin("display: none", html)
+
+# without a filter Observable, state is nothing and apply_filter! is driven by hand
+hide_b = Ref(false)
+manual = ListManager(["a", "b"]; filter_function = (m, value, state) -> isnothing(state) && !(hide_b[] && value == "b"))
+
+App() do s
+    manual
+end
+
+
+@test visible_values(manual) == ["a", "b"]
+hide_b[] = true
+apply_filter!(manual)
+@test visible_values(manual) == ["a"]
+
+# reorderable and clearable drop just their buttons
+pruned = ListManager(["a"]; reorderable = false, clearable = false, edit_function = (m, action) -> nothing)
+
+App() do s
+    pruned
+end
+
+
+@test isnothing(pruned.move_up)
+@test isnothing(pruned.move_down)
+@test isnothing(pruned.clear)
+@test !isnothing(pruned.delete)
+@test !isnothing(pruned.edit)
+@test !isnothing(pruned.add)
+ShoelaceWidgets.update_buttons!(pruned)          # skips the missing buttons, must not throw

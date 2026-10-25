@@ -44,3 +44,7 @@ end
 @testset "SLDetails" begin
     include("details.jl")
 end
+
+@testset "SLMenu" begin
+    include("menu.jl")
+end

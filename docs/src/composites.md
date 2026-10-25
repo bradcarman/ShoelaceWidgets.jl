@@ -159,9 +159,9 @@ would silently do nothing:
 |---|---|
 | add | no `add_function` was supplied |
 | delete, edit | nothing is selected |
-| clear | the list is empty |
-| move up | the first item is selected |
-| move down | the last item is selected |
+| clear | no item is visible |
+| move up | the first item is selected, or a filter hides any item |
+| move down | the last item is selected, or a filter hides any item |
 
 Deleting and clearing drop the selection. Moving carries it along, so repeated clicks walk the same
 item to either end of the list.
@@ -174,6 +174,9 @@ drops the edit button and its dialog, whether or not the matching function was s
 `edit_mode = ShoelaceWidgets.NoEditDeleteClearOrder` drops the delete, clear, move up and move down
 buttons as well, so only the add button is left under the list; combine it with `NoAdd` for a list
 with no buttons at all. The corresponding fields are then `nothing` instead of a button.
+
+To drop only some of them, `reorderable = false` removes the move up and move down buttons, and
+`clearable = false` removes the clear button, leaving add, edit and delete in place.
 
 ```@example composites
 display_only = ListManager(["alpha", "beta", "gamma"];
@@ -188,6 +191,41 @@ end
 
 Only the buttons go away. `push!`, `deleteat!`, `empty!`, `moveat!` and the rest still work, so a
 list with no buttons can still be driven entirely from code.
+
+### Filtering
+
+`filter_function` hides the items it rejects without removing them. It is called as
+`filter_function(manager, value, state)`, where `state` is the current value of the `filter`
+Observable, and the filter is re-applied every time `filter` changes. The filter widgets themselves
+belong to you and can live anywhere on the page; `map` them into one Observable for `filter`.
+
+```@example composites
+search = SLInput(""; label = "Starts with")
+
+fruit = ListManager(["apple", "apricot", "banana", "cherry"];
+                    label = "Fruit",
+                    filter = search.value,
+                    filter_function = (manager, value, prefix) -> startswith(value, prefix),
+                    reorderable = false)
+
+app = App() do session
+    DOM.div(search, fruit)
+end
+```
+
+Hidden items are still part of the list, so `get_values`, `length` and indices count them:
+
+```@example composites
+search.value[] = "ap"
+ShoelaceWidgets.get_values(fruit)
+```
+
+Items added or replaced while a filter is active are filtered as they arrive, a selected item that
+gets hidden is deselected, and the clear button removes only what is visible. Moving past hidden
+items is ambiguous, so the move buttons are disabled while anything is hidden.
+
+When `filter_function` reads state that is not in `filter`, leave `filter` out (`state` is then
+`nothing`) and call `ShoelaceWidgets.apply_filter!(manager)` whenever that state changes.
 
 ## DialogManager
 

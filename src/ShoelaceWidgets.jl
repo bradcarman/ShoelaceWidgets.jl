@@ -8,13 +8,13 @@ using Dates
 export get_shoelace, SLTheme
 
 # controls
-export SLInput, SLSelect, SLButton, SLRadio, SLRadioGroup, SLDialog, SLList, SLListItem, SLCheckbox, SLTextarea, SLProgressBar, SLAlert, SLDetails
+export SLInput, SLSelect, SLButton, SLRadio, SLRadioGroup, SLDialog, SLList, SLListItem, SLCheckbox, SLTextarea, SLProgressBar, SLAlert, SLDetails, SLMenu, SLMenuItem, SLMenuLabel
 
 # composite controls
 export ListManager, DialogManager
 
 # tags
-export sl_tab_group, sl_tab, sl_tab_panel, sl_tag, sl_format_date, sl_spinner, sl_icon, sl_card, sl_checkbox, sl_tooltip, sl_copy_button
+export sl_tab_group, sl_tab, sl_tab_panel, sl_tag, sl_format_date, sl_spinner, sl_icon, sl_card, sl_checkbox, sl_tooltip, sl_copy_button, sl_divider
 
 
 const LABEL_STYLE = "display: inline-block; color: var(--sl-input-label-color); font-size: var(--sl-input-label-font-size-medium); margin-bottom: var(--sl-spacing-3x-small);"
@@ -189,6 +189,13 @@ Creates a Shoelace copy button component, contents passed to the `value` keyword
 """
 sl_copy_button(args...; kw...) = sl("sl-copy-button", args...; kw...)
 
+"""
+    sl_divider(args...; kw...)
+
+Creates a Shoelace divider component. Dividers visually separate content, such as groups of items in an [`SLMenu`](@ref).
+"""
+sl_divider(args...; kw...) = sl("sl-divider", args...; kw...)
+
 
 # ----------------------------------------
 # Input
@@ -312,7 +319,7 @@ sl_option(args...; kw...) = sl("sl-option", args...; kw...)
 sl_select(args...; kw...) = sl("sl-select", args...; kw...)
 
 """
-    SLSelect(values; label="", index=0, help="", style="")
+    SLSelect(values; label="", index=0, help="", style="", clearable=false)
 
 Creates a dropdown select widget with reactive selection tracking.
 
@@ -323,6 +330,7 @@ Creates a dropdown select widget with reactive selection tracking.
 - `index::Observable{Int}` - Observable containing the currently selected index (1-based)
 - `value` - Computed property returning `values[index[]]` (the currently selected value)
 - `style::String` - Inline CSS style applied to the select element
+- `clearable::Bool` - Show a clear button when an option is selected; clearing sets `index[]` to `0` (so `value` returns `nothing`)
 
 # Methods
 - `push!(select, value)` - Add a new option
@@ -337,6 +345,7 @@ struct SLSelect{T}
     index::Observable{Int}
     help::String
     style::String
+    clearable::Bool
     # value from getproperty
 end
 
@@ -348,8 +357,8 @@ function get_options(values::Vector)
     return options
 end
 
-function SLSelect(values::Vector{T}; label::String="", index=0, help::String="", style::String="") where T
-    return SLSelect(label, Observable(get_options(values)), values, Observable(index), help, style)
+function SLSelect(values::Vector{T}; label::String="", index=0, help::String="", style::String="", clearable::Bool=false) where T
+    return SLSelect(label, Observable(get_options(values)), values, Observable(index), help, style, clearable)
 end
 
 function Base.getproperty(x::SLSelect, name::Symbol)
@@ -411,10 +420,17 @@ function Bonito.jsrender(session::Session, x::SLSelect)
             }
         }
         element.addEventListener("sl-change", onchange);
+        // Clearing sets element.value to "", which onchange ignores; map it to index 0 (no selection).
+        element.addEventListener("sl-clear", function () { $(x.index).notify(0); });
     }
     """
 
-    dom = sl_select(x.options, DOM.div(Bonito.HTML(x.help); slot="help-text"); label=x.label, value=string(x.index[]), style=x.style)
+    kwargs = Pair[]
+    if x.clearable
+        push!(kwargs, :clearable => true)
+    end
+
+    dom = sl_select(x.options, DOM.div(Bonito.HTML(x.help); slot="help-text"); label=x.label, value=string(x.index[]), style=x.style, kwargs...)
     update_value = js""" function (value) { 
         $(dom).value = value.toString()
         } 
@@ -719,7 +735,7 @@ end
 SLRadio(value::Union{String, Hyperscript.Node}; disabled=false, object=nothing) = SLRadio(value, disabled, object, 0)
 
 """
-    SLListItem(value; disabled=false, object=nothing)
+    SLListItem(value; disabled=false, object=nothing, visible=true)
 
 A single row in an [`SLList`](@ref). Identical to [`SLRadio`](@ref) except for its styling: the radio
 circle is hidden and the selected row is marked with a coloured bar, so the group reads as a list
@@ -734,23 +750,37 @@ and used by [`ListManager`](@ref) to hold the underlying value.
 - `disabled::Bool` - Whether this row can be selected
 - `object::Any` - Optional associated data
 - `index::Int` - Position in the group, assigned when added to an `SLList`
+- `visible::Observable{Bool}` - Whether the row is shown; a hidden row stays in the list, which is
+  how [`ListManager`](@ref) filters without removing anything
 """
 mutable struct SLListItem <: SLRadioLike
     value::Union{String, Hyperscript.Node}
     disabled::Bool
     object::Any
     index::Int
+    visible::Observable{Bool}
 end
-SLListItem(value::Union{String, Hyperscript.Node}; disabled=false, object=nothing) = SLListItem(value, disabled, object, 0)
+SLListItem(value::Union{String, Hyperscript.Node}; disabled=false, object=nothing, visible=true) = SLListItem(value, disabled, object, 0, Observable(visible))
 
 function Bonito.jsrender(session::Session, x::SLRadioLike)
-    kwargs = x.disabled ? [:disabled => true] : []
+    kwargs = Pair{Symbol, Any}[]
+    x.disabled && push!(kwargs, :disabled => true)
     f = if x isa SLRadio
         sl_radio
     elseif x isa SLListItem
+        # set the initial display statically so a hidden row never flashes on render
+        x.visible[] || push!(kwargs, :style => "display: none;")
         sl_list_item
     end
     dom = f(x.value; value=string(x.index), kwargs...)
+
+    # toggling visibility only touches this row's style, rather than re-rendering the whole list
+    if x isa SLListItem
+        onjs(session, x.visible, js"""function (visible) {
+            $(dom).style.display = visible ? "" : "none";
+        }""")
+    end
+
     return Bonito.jsrender(session, dom)
 end
 
@@ -1338,6 +1368,199 @@ function Bonito.jsrender(session::Session, x::SLAlert)
         } 
     """
     onjs(session, x.open, open_close)
+
+    return Bonito.jsrender(session, dom)
+end
+
+
+# ----------------------------------------
+# Menu
+# ----------------------------------------
+sl_menu(args...; kw...) = sl("sl-menu", args...; kw...)
+sl_menu_item(args...; kw...) = sl("sl-menu-item", args...; kw...)
+sl_menu_label(args...; kw...) = sl("sl-menu-label", args...; kw...)
+
+"""
+    SLMenuLabel(label)
+
+A non-selectable heading used to group items within an [`SLMenu`](@ref).
+
+# Fields
+- `label::String` - Label text
+"""
+struct SLMenuLabel
+    label::String
+end
+
+Bonito.jsrender(session::Session, x::SLMenuLabel) = Bonito.jsrender(session, sl_menu_label(x.label))
+
+"""
+    SLMenuItem(label; value=label, checkbox=false, checked=false, disabled=false, prefix=nothing, suffix=nothing, submenu=[])
+
+A single option within an [`SLMenu`](@ref). Selecting it sets the menu's `value` to this item's `value`.
+
+With `checkbox=true` the item toggles a check mark each time it is selected, tracked by `checked`.
+Items given a `submenu` open a nested menu; selections there are reported by the top level menu.
+
+# Fields
+- `label::Union{String, Hyperscript.Node}` - Item content
+- `value::String` - Value reported to the menu when the item is selected
+- `checkbox::Bool` - Whether the item is a checkbox item
+- `checked::Observable{Bool}` - Observable containing the check state of a checkbox item
+- `disabled::Observable{Bool}` - Observable controlling whether the item is disabled
+- `loading::Observable{Bool}` - Observable controlling the loading spinner state
+- `prefix::Union{String, Hyperscript.Node, Nothing}` - Content placed before the label, such as an `sl_icon`
+- `suffix::Union{String, Hyperscript.Node, Nothing}` - Content placed after the label, such as a keyboard shortcut
+- `submenu::Vector{Any}` - Items of a nested menu: `SLMenuItem`, `SLMenuLabel` or `sl_divider()`
+"""
+struct SLMenuItem
+    label::Union{String, Hyperscript.Node}
+    value::String
+    checkbox::Bool
+    checked::Observable{Bool}
+    disabled::Observable{Bool}
+    loading::Observable{Bool}
+    prefix::Union{String, Hyperscript.Node, Nothing}
+    suffix::Union{String, Hyperscript.Node, Nothing}
+    submenu::Vector{Any}
+end
+
+SLMenuItem(label::Union{String, Hyperscript.Node}; value::String=(label isa String ? label : ""), checkbox::Bool=false, checked::Bool=false, disabled::Bool=false, prefix=nothing, suffix=nothing, submenu::Vector=[]) =
+    SLMenuItem(label, value, checkbox, Observable(checked), Observable(disabled), Observable(false), prefix, suffix, submenu)
+
+function Bonito.jsrender(session::Session, x::SLMenuItem)
+
+    # The menu reports selections, and Shoelace toggles `checked` before it does.  Hand the
+    # element our Observable so the menu's handler can sync the new state back to Julia.
+    setup = js"""
+    function onload(element) {
+        element.slwChecked = $(x.checked);
+    }
+    """
+
+    kwargs = Pair[]
+    if x.checkbox
+        push!(kwargs, :type => "checkbox")
+        if x.checked[]
+            push!(kwargs, :checked => true)
+        end
+    end
+
+    if x.disabled[]
+        push!(kwargs, :disabled => true)
+    end
+
+    children = Any[x.label]
+    if !isnothing(x.prefix)
+        push!(children, DOM.span(x.prefix; slot="prefix"))
+    end
+    if !isnothing(x.suffix)
+        push!(children, DOM.span(x.suffix; slot="suffix"))
+    end
+    if !isempty(x.submenu)
+        push!(children, sl_menu(x.submenu...; slot="submenu"))
+    end
+
+    dom = sl_menu_item(children...; value=x.value, kwargs...)
+
+    disable = js"""
+        function (value) {
+            if (value) {
+                $(dom).setAttribute("disabled","")
+            } else {
+                $(dom).removeAttribute("disabled")
+            }
+        }
+    """
+    onjs(session, x.disabled, disable)
+
+    loading = js"""
+        function (value) {
+            if (value) {
+                $(dom).setAttribute("loading","")
+            } else {
+                $(dom).removeAttribute("loading")
+            }
+        }
+    """
+    onjs(session, x.loading, loading)
+
+    update_checked = js"""
+        function (value) {
+            $(dom).checked = value
+        }
+    """
+    onjs(session, x.checked, update_checked)
+
+    Bonito.onload(session, dom, setup)
+
+    return Bonito.jsrender(session, dom)
+end
+
+"""
+    SLMenu(items; style="")
+
+Creates a menu of selectable items with reactive selection tracking.
+
+`items` may hold [`SLMenuItem`](@ref), [`SLMenuLabel`](@ref) and `sl_divider()` in any order.
+Selecting an item, including one in a submenu, sets `value` to the item's `value`.  Selecting the
+same item again notifies `value` again, so a menu can be used for actions as well as choices.
+
+# Fields
+- `items::Observable{Vector{Any}}` - Observable containing the menu contents
+- `value::Observable{String}` - Observable containing the value of the last selected item (`""` before any selection)
+- `style::String` - Inline CSS style applied to the menu element
+
+# Methods
+- `push!(menu, item)` - Add a new item
+- `empty!(menu)` - Remove all items
+- `popat!(menu, i)` - Remove the item at index i
+"""
+struct SLMenu
+    items::Observable{Vector{Any}}
+    value::Observable{String}
+    style::String
+end
+
+SLMenu(items::Vector; style::String="") = SLMenu(Observable(Vector{Any}(items)), Observable(""), style)
+
+function Base.push!(x::SLMenu, item)
+    push!(x.items[], item)
+    notify(x.items)
+end
+
+function Base.empty!(x::SLMenu)
+    empty!(x.items[])
+    notify(x.items)
+end
+
+function Base.popat!(x::SLMenu, i::Int)
+    popat!(x.items[], i)
+    notify(x.items)
+end
+
+function Bonito.jsrender(session::Session, x::SLMenu)
+
+    # sl-select bubbles, so one listener on the wrapper hears the menu and its submenus, and
+    # survives the menu being re-rendered when `items` changes.
+    setup = js"""
+    function onload(element) {
+        function onselect(e) {
+            const item = e.detail.item;
+            if (item.type === "checkbox" && item.slwChecked) {
+                item.slwChecked.notify(item.checked)
+            }
+            $(x.value).notify(item.value)
+        }
+        element.addEventListener("sl-select", onselect);
+    }
+    """
+
+    # Shoelace finds items (for keyboard navigation) among the menu's direct children, so the
+    # whole menu is re-rendered rather than nesting an Observable inside it.
+    dom = DOM.div(map(items -> sl_menu(items...; style=x.style), x.items))
+
+    Bonito.onload(session, dom, setup)
 
     return Bonito.jsrender(session, dom)
 end
