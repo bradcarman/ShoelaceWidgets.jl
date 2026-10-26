@@ -55,6 +55,12 @@ SLListItem
 SLDialog
 ```
 
+### Drawer
+
+```@docs
+SLDrawer
+```
+
 ### Details
 
 ```@docs

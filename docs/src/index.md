@@ -141,6 +141,31 @@ app = App() do session
 end
 ```
 
+#### Drawer
+Create a drawer that slides in from an edge of the page. `open` controls its visibility, and is set back
+to `false` when the user closes it:
+
+```@example quickstart
+close_button = SLButton("Close"; variant="primary")
+drawer = SLDrawer(DOM.div("Drawer content"); label="Settings", placement="end", footer=close_button)
+
+on(close_button.value) do _
+    drawer.open[] = false
+end
+
+open_button = SLButton("Open Drawer")
+on(open_button.value) do _
+    drawer.open[] = true
+end
+
+app = App() do session
+    DOM.div(open_button, drawer)
+end
+```
+
+Use `contained=true` to open the drawer inside its parent element instead of over the page; the parent
+needs `position: relative`.
+
 #### Menu
 Create a menu of selectable items. `value` holds the value of the last selected item, and checkbox
 items track their state in `checked`:
@@ -188,6 +213,7 @@ ShoelaceWidgets.jl provides Julia wrappers for common Shoelace components:
 - [`SLRadio`](@ref) / [`SLRadioGroup`](@ref) - Radio button controls (also available as `SLListItem` / `SLList` that provide different selection styling )
 - [`SLProgressBar`](@ref) - Progress indicators and loading bars
 - [`SLDialog`](@ref) - Dialog window
+- [`SLDrawer`](@ref) - Panel that slides in from an edge of the page
 - [`SLAlert`](@ref) - Alerts used to display important messages inline
 - [`SLMenu`](@ref) / [`SLMenuItem`](@ref) / [`SLMenuLabel`](@ref) - Menus of selectable items, with checkbox items and submenus
 

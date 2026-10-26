@@ -8,7 +8,7 @@ using Dates
 export get_shoelace, SLTheme
 
 # controls
-export SLInput, SLSelect, SLButton, SLRadio, SLRadioGroup, SLDialog, SLList, SLListItem, SLCheckbox, SLTextarea, SLProgressBar, SLAlert, SLDetails, SLMenu, SLMenuItem, SLMenuLabel
+export SLInput, SLSelect, SLButton, SLRadio, SLRadioGroup, SLDialog, SLList, SLListItem, SLCheckbox, SLTextarea, SLProgressBar, SLAlert, SLDetails, SLMenu, SLMenuItem, SLMenuLabel, SLDrawer
 
 # composite controls
 export ListManager, DialogManager
@@ -984,6 +984,92 @@ function Bonito.jsrender(session::Session, x::SLDialog)
                 $(dom).hide();
             }
         } 
+    """
+    onjs(session, x.open, open_close)
+
+    Bonito.onload(session, dom, setup)
+
+    return Bonito.jsrender(session, dom)
+end
+
+
+# ----------------------------------------
+# Drawer
+# ----------------------------------------
+sl_drawer(args...; kw...) = sl("sl-drawer", args...; kw...)
+
+const DRAWER_PLACEMENTS = ("start", "end", "top", "bottom")
+
+"""
+    SLDrawer(content; label="", placement="end", contained=false, no_header=false, footer=nothing, style="")
+
+Creates a drawer: a panel that slides in from an edge of the page, or of its parent element when `contained`.
+
+`open` tracks the drawer's visibility in both directions. Setting it from Julia shows or hides the drawer,
+and closing it in the browser (close button, Escape, or clicking the overlay) sets it back to `false`.
+
+# Fields
+- `value::Observable{Hyperscript.Node}` - Observable containing the drawer content
+- `label::String` - Drawer title/header text
+- `open::Observable{Bool}` - Observable controlling drawer visibility
+- `placement::String` - Edge the drawer slides in from: "start", "end", "top" or "bottom"
+- `contained::Bool` - Open within the parent element rather than over the page; the parent needs `position: relative`
+- `no_header::Bool` - Hide the header, including the label and close button
+- `footer::Any` - Content for the footer, such as an `SLButton` or a `DOM.div` of buttons; `nothing` for no footer
+- `style::String` - Inline CSS style applied to the drawer element
+"""
+struct SLDrawer
+    value::Observable{Hyperscript.Node}
+    label::String
+    open::Observable{Bool}
+    placement::String
+    contained::Bool
+    no_header::Bool
+    footer::Any
+    style::String
+end
+
+function SLDrawer(value::Hyperscript.Node; label::String="", placement::String="end", contained::Bool=false, no_header::Bool=false, footer=nothing, style::String="")
+    placement in DRAWER_PLACEMENTS || throw(ArgumentError("placement must be one of $(join(DRAWER_PLACEMENTS, ", ")), got \"$placement\""))
+    return SLDrawer(Observable(value), label, Observable(false), placement, contained, no_header, footer, style)
+end
+
+function Bonito.jsrender(session::Session, x::SLDrawer)
+
+    setup = js"""
+    function onload(element) {
+        // sl-hide bubbles up from components inside the drawer, only react to our own
+        function hide(e){
+            if (e.target === element) {
+                $(x.open).notify(false);
+            }
+        }
+        element.addEventListener("sl-hide", hide);
+    }
+    """
+
+    kwargs = Pair[]
+    if x.contained
+        push!(kwargs, :contained => true)
+    end
+
+    if x.no_header
+        push!(kwargs, Symbol("no-header") => true)
+    end
+
+    children = Any[x.value]
+    if !isnothing(x.footer)
+        push!(children, DOM.div(x.footer; slot="footer"))
+    end
+
+    dom = sl_drawer(children...; label=x.label, placement=x.placement, style=x.style, kwargs...)
+    open_close = js""" function (value) {
+        if (value) {
+            $(dom).show();
+        } else {
+            $(dom).hide();
+        }
+    }
     """
     onjs(session, x.open, open_close)
 
