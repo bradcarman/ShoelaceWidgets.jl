@@ -99,6 +99,12 @@ app = App() do session
 end
 ```
 
+Use `placeholder` to show hint text when no option is selected (`index=0`):
+
+```@example quickstart
+select = SLSelect(["Small", "Medium", "Large"]; label="Choose size", placeholder="Select a size...")
+```
+
 #### Progress Bar
 Create a progress bar with reactive updates:
 

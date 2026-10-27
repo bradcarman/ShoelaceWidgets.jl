@@ -40,3 +40,12 @@ select.index[] = 1
 empty!(select)
 @test isnothing(select.value)
 
+
+
+select = SLSelect(["one", "two", "three"]; label="Test", placeholder="Pick one")
+app = App() do session
+    select
+end
+@test select.placeholder == "Pick one"
+@test select.index[] == 0
+@test isnothing(select.value)

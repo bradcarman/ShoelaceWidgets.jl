@@ -319,7 +319,7 @@ sl_option(args...; kw...) = sl("sl-option", args...; kw...)
 sl_select(args...; kw...) = sl("sl-select", args...; kw...)
 
 """
-    SLSelect(values; label="", index=0, help="", style="", clearable=false)
+    SLSelect(values; label="", index=0, help="", placeholder="", style="", clearable=false)
 
 Creates a dropdown select widget with reactive selection tracking.
 
@@ -328,6 +328,7 @@ Creates a dropdown select widget with reactive selection tracking.
 - `options::Observable{Vector{Hyperscript.Node}}` - Observable containing the option elements
 - `values::Vector{T}` - Array of selectable values
 - `index::Observable{Int}` - Observable containing the currently selected index (1-based)
+- `placeholder::String` - Placeholder text shown when no option is selected (`index[] == 0`)
 - `value` - Computed property returning `values[index[]]` (the currently selected value)
 - `style::String` - Inline CSS style applied to the select element
 - `clearable::Bool` - Show a clear button when an option is selected; clearing sets `index[]` to `0` (so `value` returns `nothing`)
@@ -344,6 +345,7 @@ struct SLSelect{T}
     values::Vector{T}
     index::Observable{Int}
     help::String
+    placeholder::String
     style::String
     clearable::Bool
     # value from getproperty
@@ -357,8 +359,8 @@ function get_options(values::Vector)
     return options
 end
 
-function SLSelect(values::Vector{T}; label::String="", index=0, help::String="", style::String="", clearable::Bool=false) where T
-    return SLSelect(label, Observable(get_options(values)), values, Observable(index), help, style, clearable)
+function SLSelect(values::Vector{T}; label::String="", index=0, help::String="", placeholder::String="", style::String="", clearable::Bool=false) where T
+    return SLSelect(label, Observable(get_options(values)), values, Observable(index), help, placeholder, style, clearable)
 end
 
 function Base.getproperty(x::SLSelect, name::Symbol)
@@ -428,6 +430,9 @@ function Bonito.jsrender(session::Session, x::SLSelect)
     kwargs = Pair[]
     if x.clearable
         push!(kwargs, :clearable => true)
+    end
+    if !isempty(x.placeholder)
+        push!(kwargs, :placeholder => x.placeholder)
     end
 
     dom = sl_select(x.options, DOM.div(Bonito.HTML(x.help); slot="help-text"); label=x.label, value=string(x.index[]), style=x.style, kwargs...)
