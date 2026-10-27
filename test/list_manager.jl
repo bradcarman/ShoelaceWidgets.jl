@@ -70,7 +70,13 @@ push!(manager, "gamma")
 @test get_values(manager) == ["alpha", "gamma"]
 @test [item.index for item in manager.list.values[]] == [1, 2]
 
+# append! re-renders the list once, not once per item: a row first shown by a render that a later one
+# replaced stops receiving updates in the browser (its filter visibility no longer changes)
+renders = Ref(0)
+counter = on(_ -> renders[] += 1, manager.list.values)
 append!(manager, ["delta", "epsilon"])
+Bonito.Observables.off(counter)
+@test renders[] == 1
 @test get_values(manager) == ["alpha", "gamma", "delta", "epsilon"]
 @test [item.index for item in manager.list.values[]] == [1, 2, 3, 4]
 

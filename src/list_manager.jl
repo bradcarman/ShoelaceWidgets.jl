@@ -549,10 +549,9 @@ function Base.push!(x::ListManager, value)
     return x
 end
 
+# appended in one batch, so the list re-renders once (see `append!(::SLRadioGroup, ...)`)
 function Base.append!(x::ListManager, values)
-    for value in values
-        push!(x.list, filter_item!(x, x.item_function(x, value)))
-    end
+    append!(x.list, [filter_item!(x, x.item_function(x, value)) for value in values])
     update_buttons!(x)
     return x
 end

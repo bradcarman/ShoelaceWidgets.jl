@@ -804,6 +804,7 @@ Creates a radio button group widget with reactive selection tracking.
 
 # Methods
 - `push!(group, radio)` - Add a new radio button
+- `append!(group, radios)` - Add several radio buttons, re-rendering once
 - `empty!(group)` - Remove all radio buttons
 - `popat!(group, i)` - Remove radio button at index i
 - `setproperty!(group, :index, i)` - Set selection by index
@@ -868,6 +869,19 @@ function Base.push!(x::SLRadioGroup, value::SLRadioLike)
     value.index = length(x.values[]) + 1
     push!(x.values[], value)
     notify(x.values)
+end
+
+# One notify for the whole batch rather than one per radio, as `push!` would.  Each notify re-renders the
+# group, and Bonito sends an Observable's updates through the render that first showed it; a radio first
+# shown by a render that a later one replaced stops updating (e.g. an `SLListItem` no longer hides).
+function Base.append!(x::SLRadioGroup, values)
+    n = length(x.values[])
+    for (i, value) in enumerate(values)
+        value.index = n + i
+        push!(x.values[], value)
+    end
+    notify(x.values)
+    return x
 end
 
 function Base.insert!(x::SLRadioGroup, i, value::SLRadioLike)
