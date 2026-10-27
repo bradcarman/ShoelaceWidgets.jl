@@ -26,9 +26,9 @@ details.open[] = true
 details.value[] = DOM.div("Test 2")
 
 # NOTE: diaglog does not show well in VS Code, use browser to see correctly
-port = 80
-url = "0.0.0.0"
-server = Bonito.Server(app, url, port)
+# port = 80
+# url = "0.0.0.0"
+# server = Bonito.Server(app, url, port)
 
 @test true
 
